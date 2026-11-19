@@ -18,10 +18,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.droidspaces.app.ui.component.ChDroidRootfsCard
 import com.droidspaces.app.ui.component.DsSnackbarHost
 import com.droidspaces.app.ui.component.EmptyState
-import com.droidspaces.app.ui.component.ErrorState
-import com.droidspaces.app.ui.component.KernelUnsupportedState
 import com.droidspaces.app.ui.component.RootUnavailableState
 import com.droidspaces.app.ui.component.PullToRefreshWrapper
 import com.droidspaces.app.ui.component.RunningContainerCard
@@ -49,6 +48,11 @@ fun ControlPanelScreen(
     containerViewModel: ContainerViewModel,
     onNavigateToContainerDetails: (String) -> Unit = {},
     onNavigateToTerminal: (String) -> Unit = {},
+    rootfsRunning: Boolean = false,
+    rootfsName: String = "",
+    onOpenRootfsTerminal: () -> Unit = {},
+    onStartRootfs: () -> Unit = {},
+    onStopRootfs: () -> Unit = {},
     bottomBarInset: Dp = 0.dp,
 ) {
     val context = LocalContext.current
@@ -84,14 +88,11 @@ fun ControlPanelScreen(
             !isRootAvailable -> {
                 RootUnavailableState(modifier = Modifier.padding(bottom = bottomBarInset))
             }
-            !isBackendAvailable -> {
-                ErrorState(modifier = Modifier.padding(bottom = bottomBarInset))
-            }
-            !isKernelSupported -> {
-                KernelUnsupportedState(modifier = Modifier.padding(bottom = bottomBarInset))
-            }
+            // ChDroid drives chroot.sh, not the Droidspaces backend. A missing
+            // backend or an unmet container kernel gate must not blank this tab —
+            // the rootfs is still usable and must still be listed here.
             else -> {
-                if (entries.isEmpty()) {
+                if (entries.isEmpty() && !rootfsRunning) {
                     EmptyState(
                         icon = Icons.Default.Dashboard,
                         title = context.getString(R.string.no_containers_running),
@@ -109,6 +110,17 @@ fun ControlPanelScreen(
                             // Each card carries its own 16dp gap (AnimatedListEntry) on top of this
                             .padding(top = 8.dp, bottom = bottomBarInset + 16.dp),
                     ) {
+                        if (rootfsRunning) {
+                            ChDroidRootfsCard(
+                                distro = rootfsName.ifBlank { "ChDroid rootfs" },
+                                isRunning = true,
+                                isBusy = false,
+                                onOpenTerminal = onOpenRootfsTerminal,
+                                onStart = onStartRootfs,
+                                onStop = onStopRootfs,
+                                modifier = Modifier.padding(bottom = 16.dp)
+                            )
+                        }
                         entries.forEach { entry ->
                             val container = entry.item
                             // The heartbeat reports the broker's socket or x11 only for a container

@@ -223,5 +223,9 @@ object ChDroidRootfsManager {
     fun terminalCommand(): String =
         "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell 2>/dev/null; " +
             "${androidRootMountCmd()}; " +
-            "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root"
+            "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root; " +
+            // On a successful enter, chroot.sh exec's over this shell and this is
+            // never reached. If the chroot cannot be entered for any reason, keep
+            // the terminal alive with a host root shell instead of closing the tab.
+            "exec su"
 }

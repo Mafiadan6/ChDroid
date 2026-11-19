@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import com.droidspaces.app.R
 import com.droidspaces.app.ui.theme.DsIcons
 import com.droidspaces.app.util.HostCapabilities
+import com.droidspaces.app.util.ChDroidRootfsManager
 import androidx.compose.runtime.collectAsState
 import com.droidspaces.app.util.Constants
 
@@ -168,8 +169,26 @@ fun MainTabScreen(
     val isBackendAvailable = appStateViewModel.isBackendAvailable
     // Only show checking on initial load when we don't have cached status
     val isChecking = !appStateViewModel.hasCompletedInitialCheck && stableDroidspacesStatus == null
-    val containerCount = containerViewModel.containerCount
-    val runningCount = containerViewModel.runningCount
+    // In the CLI fork the rootfs is not a Droidspaces container, so containerViewModel
+    // never counts it. Fold the installed ChDroid rootfs into the Home tile counts.
+    var rootfsInstalled by remember { mutableStateOf(false) }
+    var rootfsRunning by remember { mutableStateOf(false) }
+    var rootfsName by remember { mutableStateOf("") }
+    LaunchedEffect(containerViewModel.isRefreshing) {
+        if (containerViewModel.isRefreshing) return@LaunchedEffect
+        rootfsInstalled = ChDroidRootfsManager.isInstalled()
+        rootfsRunning = rootfsInstalled &&
+            ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
+        if (rootfsInstalled) {
+            val name = ChDroidRootfsManager.containerName()
+            val distro = ChDroidRootfsManager.distro()
+            rootfsName = name.ifBlank { distro }
+        } else {
+            rootfsName = ""
+        }
+    }
+    val containerCount = containerViewModel.containerCount + if (rootfsInstalled) 1 else 0
+    val runningCount = containerViewModel.runningCount + if (rootfsRunning) 1 else 0
 
     /**
      * Combined refresh function for pull-to-refresh.
@@ -319,6 +338,21 @@ fun MainTabScreen(
                                 containerViewModel = containerViewModel,
                                 onNavigateToContainerDetails = onNavigateToContainerDetails,
                                 onNavigateToTerminal = onNavigateToTerminal,
+                                rootfsRunning = rootfsRunning,
+                                rootfsName = rootfsName,
+                                onOpenRootfsTerminal = { onNavigateToTerminal("") },
+                                onStartRootfs = {
+                                    scope.launch {
+                                        ChDroidRootfsManager.start()
+                                        rootfsRunning = true
+                                    }
+                                },
+                                onStopRootfs = {
+                                    scope.launch {
+                                        ChDroidRootfsManager.stop()
+                                        rootfsRunning = false
+                                    }
+                                },
                                 bottomBarInset = bottomBarHeight
                             )
                         }
@@ -427,9 +461,10 @@ private fun HomeTabContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // The count cards lead to the other tabs, so hide them when those
-            // tabs would only show the root or kernel state.
-            if (isRootAvailable && isKernelSupported) {
+            // The count cards lead to the other tabs. chroot.sh owns namespaces,
+            // so a Droidspaces kernel gate is irrelevant here — root is the only
+            // thing these tiles need.
+            if (isRootAvailable) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)

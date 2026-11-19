@@ -1,5 +1,6 @@
 package com.droidspaces.app.ui.terminal
 
+import com.droidspaces.app.util.ChDroidRootfsManager
 import com.droidspaces.app.util.Constants
 import com.termux.terminal.TerminalEmulator
 import com.termux.terminal.TerminalSession
@@ -52,7 +53,7 @@ object DroidspacesTerminalSession {
         // payload. safeName cannot hold " ' $ or `, the escape is belt-and-suspenders.
         val shArg = if (safeName == null) {
             if (containerName.isNullOrBlank()) {
-                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root"
+                ChDroidRootfsManager.terminalCommand()
             } else {
                 "su"
             }
