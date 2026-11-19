@@ -39,11 +39,14 @@ class TerminalSessionService : Service() {
             sessionId: String = containerName,
         ): TerminalSession {
             val user = containerUser ?: "root"
-            return DroidspacesTerminalSession.create(
+            com.droidspaces.app.util.CrashLogger.log("createSession: name='$containerName' user='$user'")
+            val session = DroidspacesTerminalSession.create(
                 sessionClient = client,
                 containerName = containerName,
                 containerUser = user,
-            ).also {
+            )
+            com.droidspaces.app.util.CrashLogger.log("createSession: TerminalSession constructed ok")
+            return session.also {
                 sessions[sessionId] = it
                 globalSessionList[sessionId] = SessionInfo(
                     containerName,

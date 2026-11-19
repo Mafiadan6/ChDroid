@@ -739,6 +739,7 @@ fun DroidspacesNavigation(
 
         composable(Screen.Terminal.route) { backStackEntry ->
             val containerName = backStackEntry.arguments?.getString("containerName") ?: ""
+            com.droidspaces.app.util.CrashLogger.log("terminal route entered: name='$containerName'")
             ContainerTerminalScreen(
                 containerName = containerName,
                 onNavigateBack = {

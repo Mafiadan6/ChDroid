@@ -99,6 +99,7 @@ fun ContainerTerminalScreen(
     DisposableEffect(Unit) {
         val conn = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                com.droidspaces.app.util.CrashLogger.log("terminal service connected: ${service != null}")
                 binder = service as? TerminalSessionService.SessionBinder
             }
             override fun onServiceDisconnected(name: ComponentName?) { binder = null }
@@ -147,6 +148,7 @@ fun ContainerTerminalScreen(
             if (resolved != null) hostname = resolved
         }
         hostnameReady = true
+        com.droidspaces.app.util.CrashLogger.log("terminal hostname resolved: '$hostname' hostShell=$isHostShell")
     }
 
     // Sync UI tabs with background service reality.
@@ -463,6 +465,7 @@ private fun TerminalTabView(
             Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
                 AndroidView(
                     factory = { ctx ->
+                        runCatching {
                         TerminalView(ctx, null).apply {
                             TerminalScreenState.terminalView = WeakReference(this)
                             setTextSize(fontSizePx)      // must run first, initializes mRenderer
@@ -487,6 +490,7 @@ private fun TerminalTabView(
                                         }
                                     },
                                 )
+                                com.droidspaces.app.util.CrashLogger.log("terminal view: creating/attaching session ${tab.id}")
                                 val session: TerminalSession =
                                     binder.getSession(tab.id) ?: binder.createSession(
                                         containerName = containerName,
@@ -512,9 +516,20 @@ private fun TerminalTabView(
                                 }
                             }
                         }
+                        }.getOrElse { err ->
+                            com.droidspaces.app.util.CrashLogger.log(
+                                "TERMINAL VIEW FAILED: ${err.javaClass.name}: ${err.message}"
+                            )
+                            android.widget.TextView(ctx).apply {
+                                text = "Terminal failed to start\n\n${err.javaClass.simpleName}: ${err.message}"
+                                setTextColor(-1)
+                                setPadding(48, 48, 48, 48)
+                                setBackgroundColor(0xFF1A1A1E.toInt())
+                            }
+                        }
                     },
                     update = { tv ->
-                        if (isVisible) {
+                        if (tv is TerminalView && isVisible) {
                             // Re-apply before setTextSize: termux renderer resets typeface on size changes
                             tv.setTypeface(terminalTypeface)
                             tv.setTextSize(fontSizePx)

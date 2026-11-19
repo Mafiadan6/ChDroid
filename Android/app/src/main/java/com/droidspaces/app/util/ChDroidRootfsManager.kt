@@ -228,4 +228,79 @@ object ChDroidRootfsManager {
             // never reached. If the chroot cannot be entered for any reason, keep
             // the terminal alive with a host root shell instead of closing the tab.
             "exec su"
+
+    /**
+     * Live stats for the running rootfs, shaped like the backend's OSInfo so the
+     * Panel's RunningContainerCard shows the same uptime / IP / CPU / RAM rows a
+     * Droidspaces container does. One shell pass reads everything; `~` stands in
+     * for `$` so the script reads cleanly without Kotlin escaping noise.
+     */
+    suspend fun stats(): ContainerOSInfoManager.OSInfo? = withContext(Dispatchers.IO) {
+        if (!isInstalled()) return@withContext null
+        val rootfs = Constants.CHDROID_ROOTFS_DIR
+        val base = Constants.CHDROID_ROOTFS_BASE
+        val script = """
+            BB='${Constants.INSTALL_PATH}/busybox-release'
+            [ -x "~BB" ] || BB='${Constants.INSTALL_PATH}/busybox'
+            PID=~(cat '$base/holder.pid' 2>/dev/null)
+            DISTRO=~(head -n1 '$base/distro-id' 2>/dev/null)
+            PRETTY=~(~BB sed -n 's/^PRETTY_NAME="\?\([^"]*\)"\?/\1/p' '$rootfs/etc/os-release' 2>/dev/null | head -1)
+            HOST=~(head -n1 '$rootfs/etc/hostname' 2>/dev/null)
+            IP=~(~BB ip -4 -o addr show scope global 2>/dev/null | ~BB awk '{print $4}' | ~BB cut -d/ -f1 | head -1)
+            [ -n "~IP" ] || IP=~(getprop dhcp.wlan0.ipaddress 2>/dev/null | ~BB cut -d' ' -f1)
+            [ -n "~PRETTY" ] || PRETTY=~DISTRO
+            [ -n "~HOST" ] || HOST=~DISTRO
+            UPTIME_S=''
+            CPU=''
+            RSS_KB=0
+            if [ -n "~PID" ] && [ -r /proc/~PID/stat ]; then
+              START=~(~BB cut -d' ' -f22 /proc/~PID/stat)
+              NOW=~(~BB cut -d' ' -f1 /proc/uptime)
+              UPTIME_S=~(~BB awk "BEGIN{printf \"%d\", ~NOW - ~START/100}")
+              CPU=~(~BB ps -o pcpu= -p ~PID 2>/dev/null | ~BB tr -d ' ')
+              sum_tree() {
+                for c in ~(cat /proc/~1/task/~1/children 2>/dev/null); do
+                  r=~(~BB cut -d' ' -f2 /proc/~c/statm 2>/dev/null)
+                  [ -n "~r" ] && RSS_KB=$((RSS_KB + r * 4))
+                  sum_tree ~c
+                done
+              }
+              sum_tree ~PID
+            fi
+            echo "DISTRO=~DISTRO"
+            echo "PRETTY=~PRETTY"
+            echo "HOST=~HOST"
+            echo "IP=~IP"
+            echo "UPTIME=~UPTIME_S"
+            echo "CPU=~CPU"
+            echo "RSS=~RSS_KB"
+        """.trimIndent().replace('~', '$')
+        val out = Shell.cmd(script).exec().out
+        val m = out.associate { line ->
+            val i = line.indexOf('=')
+            if (i > 0) line.substring(0, i) to line.substring(i + 1) else "" to ""
+        }
+        val uptimeSec = m["UPTIME"]?.toLongOrNull() ?: 0L
+        val uptimeLabel = when {
+            uptimeSec >= 3600 -> "${uptimeSec / 3600}h ${(uptimeSec % 3600) / 60}m"
+            uptimeSec >= 60 -> "${uptimeSec / 60}m ${uptimeSec % 60}s"
+            uptimeSec > 0 -> "${uptimeSec}s"
+            else -> ""
+        }
+        val pretty = m["PRETTY"]?.ifBlank { null }
+        ContainerOSInfoManager.OSInfo(
+            prettyName = pretty,
+            name = pretty,
+            version = null,
+            versionId = null,
+            id = m["DISTRO"]?.ifBlank { null },
+            hostname = m["HOST"]?.ifBlank { null },
+            ipAddress = m["IP"]?.ifBlank { null },
+            uptime = uptimeLabel.ifBlank { null },
+            cpuUsage = m["CPU"]?.toDoubleOrNull(),
+            ramUsedKb = m["RSS"]?.toLongOrNull(),
+            ramPercent = null,
+            ramLimitKb = null
+        )
+    }
 }

@@ -18,7 +18,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
-import com.droidspaces.app.ui.component.ChDroidRootfsCard
 import com.droidspaces.app.ui.component.DsSnackbarHost
 import com.droidspaces.app.ui.component.EmptyState
 import com.droidspaces.app.ui.component.RootUnavailableState
@@ -30,9 +29,13 @@ import com.droidspaces.app.ui.util.rememberAnimatedEntries
 import com.droidspaces.app.ui.viewmodel.ContainerViewModel
 import com.droidspaces.app.ui.viewmodel.SystemStatsViewModel
 import com.droidspaces.app.util.AnlandUtils
+import com.droidspaces.app.util.ChDroidRootfsManager
+import com.droidspaces.app.util.ContainerInfo
+import com.droidspaces.app.util.ContainerOSInfoManager
 import com.droidspaces.app.util.TermuxX11Utils
 import androidx.compose.ui.platform.LocalContext
 import com.droidspaces.app.R
+import kotlinx.coroutines.delay
 
 /**
  * Control Panel screen - shows system stats and running containers.
@@ -81,6 +84,23 @@ fun ControlPanelScreen(
 
     val containerUsageMap = systemStatsViewModel.containerUsageMap
 
+    // The CLI rootfs is not a backend container, so SystemStatsViewModel cannot
+    // poll it. Probe chroot.sh's namespace directly and feed the same OSInfo shape
+    // into the card, so uptime / IP / CPU / RAM stay live while the Panel is open.
+    var rootfsStats by remember { mutableStateOf<ContainerOSInfoManager.OSInfo?>(null) }
+    LaunchedEffect(rootfsRunning) {
+        if (!rootfsRunning) {
+            rootfsStats = null
+            return@LaunchedEffect
+        }
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                rootfsStats = ChDroidRootfsManager.stats()
+                delay(2000)
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Show content based on root and backend availability
         // Using when instead of early return to prevent UI glitches during recomposition
@@ -111,15 +131,24 @@ fun ControlPanelScreen(
                             .padding(top = 8.dp, bottom = bottomBarInset + 16.dp),
                     ) {
                         if (rootfsRunning) {
-                            ChDroidRootfsCard(
-                                distro = rootfsName.ifBlank { "ChDroid rootfs" },
-                                isRunning = true,
-                                isBusy = false,
-                                onOpenTerminal = onOpenRootfsTerminal,
-                                onStart = onStartRootfs,
-                                onStop = onStopRootfs,
-                                modifier = Modifier.padding(bottom = 16.dp)
-                            )
+                            // Same card Droidspaces uses on the Panel. The CLI rootfs
+                            // is not a backend container, so a synthetic ContainerInfo
+                            // with its name is enough for RunningContainerCard, which
+                            // only reads container.name for its identity and icon.
+                            key("chdroid-rootfs") {
+                                val displayName = rootfsName.ifBlank { "ChDroid" }
+                                RunningContainerCard(
+                                    container = ContainerInfo(
+                                        name = displayName,
+                                        hostname = displayName,
+                                        rootfsPath = ""
+                                    ),
+                                    onEnter = onOpenRootfsTerminal,
+                                    onTerminalClick = onOpenRootfsTerminal,
+                                    osInfo = rootfsStats,
+                                    modifier = Modifier.padding(bottom = 16.dp)
+                                )
+                            }
                         }
                         entries.forEach { entry ->
                             val container = entry.item

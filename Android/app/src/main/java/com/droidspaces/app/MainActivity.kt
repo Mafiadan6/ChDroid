@@ -1,13 +1,16 @@
 package com.droidspaces.app
 
 import android.content.Intent
+import android.widget.Toast
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -17,15 +20,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import com.droidspaces.app.ui.util.rememberClearFocus
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import com.droidspaces.app.ui.navigation.DroidspacesNavigation
 import com.droidspaces.app.ui.theme.DroidspacesTheme
 import com.droidspaces.app.ui.theme.rememberThemeState
+import com.droidspaces.app.util.CrashLogger
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
+        CrashLogger.install(this)
 
         // Set condition immediately - UI will hide splash when ready
         // Start with false to show UI immediately (content is ready)
@@ -93,6 +103,7 @@ class MainActivity : AppCompatActivity() {
                         onShortcutHandled = { pendingShortcut = null }
                     )
                 }
+                CrashReportDialog()
             }
         }
     }
@@ -118,6 +129,41 @@ class MainActivity : AppCompatActivity() {
             else -> pendingShortcut
         }
     }
+}
+
+/** Surfaces the last on-device crash log so it can be read without adb. */
+@Composable
+private fun CrashReportDialog() {
+    val context = LocalContext.current
+    val clipboard = LocalClipboardManager.current
+    var report by remember { mutableStateOf(CrashLogger.read(context)) }
+    var visible by remember { mutableStateOf(report != null) }
+    if (!visible || report == null) return
+    AlertDialog(
+        onDismissRequest = { visible = false },
+        title = { Text("ChDroid crash report") },
+        text = {
+            Text(
+                text = report!!,
+                fontFamily = FontFamily.Monospace,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                clipboard.setText(AnnotatedString(report!!))
+                Toast.makeText(context, "Copied", Toast.LENGTH_SHORT).show()
+            }) { Text("Copy") }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                CrashLogger.clear(context)
+                report = null
+                visible = false
+            }) { Text("Clear") }
+        }
+    )
 }
 
 @Composable
