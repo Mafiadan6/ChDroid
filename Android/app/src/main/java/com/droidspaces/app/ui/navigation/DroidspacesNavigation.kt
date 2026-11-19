@@ -132,7 +132,17 @@ sealed class Screen(val route: String) {
     }
 
     data object Terminal : Screen("terminal/{containerName}") {
-        fun createRoute(containerName: String) = "terminal/${Uri.encode(containerName)}"
+        // A blank name is the ChDroid rootfs shell. The old createRoute("") produced
+        // "terminal/", which never matched {containerName} and threw
+        // IllegalArgumentException on the main thread, force-closing the app. Use a
+        // real path segment and decode it back to "" in the destination.
+        private const val ROOTFS_SENTINEL = "__chdroid_rootfs__"
+
+        fun createRoute(containerName: String) =
+            "terminal/${Uri.encode(if (containerName.isEmpty()) ROOTFS_SENTINEL else containerName)}"
+
+        fun decode(containerName: String?): String =
+            if (containerName == ROOTFS_SENTINEL) "" else (containerName ?: "")
     }
 }
 
@@ -737,8 +747,16 @@ fun DroidspacesNavigation(
             )
         }
 
-        composable(Screen.Terminal.route) { backStackEntry ->
-            val containerName = backStackEntry.arguments?.getString("containerName") ?: ""
+        composable(
+            route = Screen.Terminal.route,
+            arguments = listOf(navArgument("containerName") {
+                type = NavType.StringType
+                defaultValue = ""
+            })
+        ) { backStackEntry ->
+            val containerName = Screen.Terminal.decode(
+                backStackEntry.arguments?.getString("containerName")
+            )
             com.droidspaces.app.util.CrashLogger.log("terminal route entered: name='$containerName'")
             ContainerTerminalScreen(
                 containerName = containerName,

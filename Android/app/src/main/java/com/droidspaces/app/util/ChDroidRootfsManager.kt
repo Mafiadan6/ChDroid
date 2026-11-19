@@ -253,19 +253,56 @@ object ChDroidRootfsManager {
             UPTIME_S=''
             CPU=''
             RSS_KB=0
+            MEMTOTAL=~(~BB awk '/^MemTotal:/{print ~2}' /proc/meminfo)
+            NS=''
+            HOSTNS=~(readlink /proc/1/ns/pid 2>/dev/null)
+            [ -n "~PID" ] && [ -r /proc/~PID/ns/pid ] && NS=~(readlink /proc/~PID/ns/pid 2>/dev/null)
             if [ -n "~PID" ] && [ -r /proc/~PID/stat ]; then
               START=~(~BB cut -d' ' -f22 /proc/~PID/stat)
               NOW=~(~BB cut -d' ' -f1 /proc/uptime)
               UPTIME_S=~(~BB awk "BEGIN{printf \"%d\", ~NOW - ~START/100}")
-              CPU=~(~BB ps -o pcpu= -p ~PID 2>/dev/null | ~BB tr -d ' ')
-              sum_tree() {
-                for c in ~(cat /proc/~1/task/~1/children 2>/dev/null); do
-                  r=~(~BB cut -d' ' -f2 /proc/~c/statm 2>/dev/null)
-                  [ -n "~r" ] && RSS_KB=$((RSS_KB + r * 4))
-                  sum_tree ~c
-                done
-              }
-              sum_tree ~PID
+            fi
+            # The holder is a sleeping namespace anchor, not the container. Walk
+            # every process in its PID namespace the way the backend's collect.c
+            # does. Without a private PID namespace, match by chroot root instead.
+            match() {
+              if [ -z "~NS" ] || [ "~NS" = "~HOSTNS" ]; then
+                [ ~(readlink /proc/~1/root 2>/dev/null) = '$rootfs' ]
+              else
+                [ ~(readlink /proc/~1/ns/pid 2>/dev/null) = "~NS" ]
+              fi
+            }
+            ticks() {
+              t=0
+              for d in /proc/[0-9]*; do
+                p=~{d#/proc/}
+                match "~p" || continue
+                line=~(cat "~d/stat" 2>/dev/null) || continue
+                rest=~{line##*) }
+                set -- ~rest
+                t=$((t + ~{12} + ~{13}))
+              done
+              echo "~t"
+            }
+            host_ticks() {
+              read -r _ u n s i w q r _ < /proc/stat
+              echo $((u+n+s+i+w+q+r))
+            }
+            if [ -n "~PID" ]; then
+              for d in /proc/[0-9]*; do
+                p=~{d#/proc/}
+                match "~p" || continue
+                set -- ~(cat "~d/statm" 2>/dev/null)
+                RSS_KB=$((RSS_KB + ~{2} * 4))
+              done
+              T1=~(ticks)
+              H1=~(host_ticks)
+              ~BB sleep 0.25
+              T2=~(ticks)
+              H2=~(host_ticks)
+              DT=$((T2 - T1)); [ ~DT -lt 0 ] && DT=0
+              DH=$((H2 - H1))
+              [ ~DH -gt 0 ] && CPU=~(~BB awk "BEGIN{printf \"%.1f\", ~DT*100.0/~DH}")
             fi
             echo "DISTRO=~DISTRO"
             echo "PRETTY=~PRETTY"
@@ -274,6 +311,7 @@ object ChDroidRootfsManager {
             echo "UPTIME=~UPTIME_S"
             echo "CPU=~CPU"
             echo "RSS=~RSS_KB"
+            echo "MEMTOTAL=~MEMTOTAL"
         """.trimIndent().replace('~', '$')
         val out = Shell.cmd(script).exec().out
         val m = out.associate { line ->
@@ -288,6 +326,8 @@ object ChDroidRootfsManager {
             else -> ""
         }
         val pretty = m["PRETTY"]?.ifBlank { null }
+        val ramUsedKb = m["RSS"]?.toLongOrNull()?.takeIf { it > 0 }
+        val memTotalKb = m["MEMTOTAL"]?.toLongOrNull() ?: 0L
         ContainerOSInfoManager.OSInfo(
             prettyName = pretty,
             name = pretty,
@@ -298,8 +338,9 @@ object ChDroidRootfsManager {
             ipAddress = m["IP"]?.ifBlank { null },
             uptime = uptimeLabel.ifBlank { null },
             cpuUsage = m["CPU"]?.toDoubleOrNull(),
-            ramUsedKb = m["RSS"]?.toLongOrNull(),
-            ramPercent = null,
+            ramUsedKb = ramUsedKb,
+            ramPercent = if (memTotalKb > 0 && ramUsedKb != null)
+                (ramUsedKb.toDouble() * 100.0 / memTotalKb).coerceIn(0.0, 100.0) else null,
             ramLimitKb = null
         )
     }
