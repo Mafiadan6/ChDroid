@@ -23,7 +23,7 @@
     <string name="backend_not_installed">Backend: No instalado</string>
     <string name="backend_corrupted">Backend: Corrupto</string>
     <string name="root_unavailable">Acceso root no Disponible.</string>
-    <string name="grant_root_message">Concede acceso root para seguir usando Droidspaces</string>
+    <string name="grant_root_message">Concede acceso root para seguir usando ChDroid</string>
     <string name="unknown">Desconocido</string>
     <string name="update_available_message">Actualización del Backend Disponible, toca para actualizar</string>
     <string name="backend_section">Backend</string>
@@ -44,7 +44,7 @@
     <string name="language">Idioma</string>
     <string name="system_default">Predeterminado del sistema</string>
     <string name="about_section">Acerca de</string>
-    <string name="about_droidspaces">Acerca de Droidspaces</string>
+    <string name="about_droidspaces">Acerca de ChDroid</string>
     <string name="about_description">Gestor de contenedores Linux (estilo LXC) para Android</string>
     <string name="developers">Desarrolladores</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -122,7 +122,7 @@
     <string name="next_storage">Siguiente: Almacenamiento</string>
     <string name="installation_complete">Instalación completada</string>
     <string name="installation_failed">Instalación fallida</string>
-    <string name="installing_droidspaces">Instalando Droidspaces</string>
+    <string name="installing_droidspaces">Instalando ChDroid</string>
     <string name="backend_installed_success">El backend se ha instalado correctamente</string>
     <string name="binary_installation_failed">Fallo en la instalación de binarios</string>
     <string name="no_containers_running">No hay contenedores en ejecución</string>
@@ -199,7 +199,7 @@
     <string name="error_hostname_invalid">El hostname solo puede contener letras, números y guiones (-)</string>
     <string name="check_requirements">Verificar requisitos</string>
     <string name="requirements_check_title">Comprobación de requisitos</string>
-    <string name="requirements_for_droidspaces">Requisitos para Droidspaces</string>
+    <string name="requirements_for_droidspaces">Requisitos para ChDroid</string>
     <string name="requirements_check_completed_successfully">Requisitos comprobados con éxito</string>
     <string name="requirements_check_completed_with_errors">Comprobación de requisitos con errores</string>
     <string name="kernel_requirements_copied">Requisitos del kernel copiados al portapapeles</string>
@@ -227,9 +227,9 @@
     <string name="guide">Guía</string>
     <string name="accent_color">Color de acento</string>
     <string name="daemon_mode">Modo de dæmonio</string>
-    <string name="daemon_mode_description">Ejecutar Droidspaces como un daemon persistente a nivel de sistema para evitar bloques de seccomp de Magisk/APatch, GrapheneOS, etc. Esto permite operaciones de alto privilegio al buscar y ejecutar comandos desde el espacio de usuario (Reinicio requerido).</string>
-    <string name="symlink_integration">Integra Droidspaces a la ruta de sistema</string>
-    <string name="symlink_integration_description">Cree un enlace en /system/bin para acceder al comando droidspaces en Android root shell. ADVERTENCIA: ESTE CAUSES BUCLE DE ARRANQUE SI SU MONTADO DEL SISTEMA ES SOBRECARGADO. Únicamente utilice esta opción cuando use el sistema de montaje basado en Magic Mount (Reinicio requerido)</string>
+    <string name="daemon_mode_description">Ejecutar ChDroid como un daemon persistente a nivel de sistema para evitar bloques de seccomp de Magisk/APatch, GrapheneOS, etc. Esto permite operaciones de alto privilegio al buscar y ejecutar comandos desde el espacio de usuario (Reinicio requerido).</string>
+    <string name="symlink_integration">Integra ChDroid a la ruta de sistema</string>
+    <string name="symlink_integration_description">Cree un enlace en /system/bin para acceder al comando chdroid en Android root shell. ADVERTENCIA: ESTE CAUSES BUCLE DE ARRANQUE SI SU MONTADO DEL SISTEMA ES SOBRECARGADO. Únicamente utilice esta opción cuando use el sistema de montaje basado en Magic Mount (Reinicio requerido)</string>
     <string name="source_code">Código fuente</string>
     <string name="generate_bug_report">Generar un informe de fallo</string>
     <string name="generate_bug_report_description">Recoge informe del sistema y bitácoras para depuración</string>

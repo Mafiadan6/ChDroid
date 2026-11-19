@@ -47,7 +47,7 @@
     <string name="backend_not_installed">백엔드: 설치되지 않음</string>
     <string name="backend_corrupted">백엔드: 손상됨</string>
     <string name="root_unavailable">루트 액세스를 사용할 수 없습니다.</string>
-    <string name="grant_root_message">droidspaces를 계속 탐색하려면 루트 액세스를 허용하세요!</string>
+    <string name="grant_root_message">chdroid를 계속 탐색하려면 루트 액세스를 허용하세요!</string>
     <string name="unknown">알 수 없음</string>
     <string name="update_available_message">백엔드 업데이트가 있습니다. 여기를 눌러 업데이트하세요</string>
     <string name="backend_attention_required">백엔드: 조치 필요</string>
@@ -76,11 +76,11 @@
     <string name="dynamic_color_description">Android 12+ Monet 테마(Material You) 사용</string>
     <string name="accent_color">강조 색상</string>
     <string name="daemon_mode">데몬 모드</string>
-    <string name="daemon_mode_description">Droidspaces를 지속적인 시스템 수준 데몬으로 실행하여 Magisk/APatch, GrapheneOS 등의 seccomp 차단을 우회합니다. 유저스페이스에서 명령을 가져와 실행함으로써 고권한 작업을 가능하게 합니다(재부팅 필요).</string>
-    <string name="symlink_integration">Droidspaces를 시스템 경로에 통합</string>
-    <string name="symlink_integration_description">Android 루트 셸에서 droidspaces 명령에 접근할 수 있도록 /system/bin에 심볼릭 링크를 생성합니다. 경고: 마운트 시스템이 OverlayFS meta 모듈인 경우 이 옵션을 활성화하면 부트루프가 발생합니다. Magic Mount 기반 마운트 시스템을 사용하는 경우에만 사용하세요(재부팅 필요)</string>
+    <string name="daemon_mode_description">ChDroid를 지속적인 시스템 수준 데몬으로 실행하여 Magisk/APatch, GrapheneOS 등의 seccomp 차단을 우회합니다. 유저스페이스에서 명령을 가져와 실행함으로써 고권한 작업을 가능하게 합니다(재부팅 필요).</string>
+    <string name="symlink_integration">ChDroid를 시스템 경로에 통합</string>
+    <string name="symlink_integration_description">Android 루트 셸에서 chdroid 명령에 접근할 수 있도록 /system/bin에 심볼릭 링크를 생성합니다. 경고: 마운트 시스템이 OverlayFS meta 모듈인 경우 이 옵션을 활성화하면 부트루프가 발생합니다. Magic Mount 기반 마운트 시스템을 사용하는 경우에만 사용하세요(재부팅 필요)</string>
     <string name="about_section">정보</string>
-    <string name="about_droidspaces">Droidspaces 정보</string>
+    <string name="about_droidspaces">ChDroid 정보</string>
     <string name="about_description">Android용 LXC 스타일 컨테이너 관리자</string>
     <string name="developers">개발자</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -290,8 +290,8 @@
     <string name="installation_complete">설치 완료</string>
     <string name="installation_failed">설치 실패</string>
     <string name="done">완료</string>
-    <string name="installing_droidspaces">Droidspaces 설치 중</string>
-    <string name="backend_installed_success">Droidspaces 백엔드가 성공적으로 설치되었습니다</string>
+    <string name="installing_droidspaces">ChDroid 설치 중</string>
+    <string name="backend_installed_success">ChDroid 백엔드가 성공적으로 설치되었습니다</string>
     <string name="binary_installation_failed">바이너리 설치 실패</string>
     <!-- File Picker Screen -->
     <string name="filter_absolute_path_hint">필터링하거나 절대 경로 입력…</string>
@@ -389,7 +389,7 @@
     <string name="loading">로드 중...</string>
     <!-- Empty State -->
     <string name="backend_not_available">백엔드 사용 불가</string>
-    <string name="backend_not_available_description">Droidspaces 백엔드가 설치되어 있지 않거나 손상되었습니다. 먼저 설치하세요.</string>
+    <string name="backend_not_available_description">ChDroid 백엔드가 설치되어 있지 않거나 손상되었습니다. 먼저 설치하세요.</string>
     <string name="root_access_not_available">루트 액세스 사용 불가</string>
     <string name="root_access_not_available_description">루트 액세스를 사용할 수 없어 이 페이지가 비활성화되었습니다</string>
     <!-- Dialog Utils -->
@@ -436,7 +436,7 @@
     <!-- Requirements -->
     <string name="check_requirements">요구 사항 확인</string>
     <string name="requirements_check_title">요구 사항 확인</string>
-    <string name="requirements_for_droidspaces">Droidspaces 요구 사항</string>
+    <string name="requirements_for_droidspaces">ChDroid 요구 사항</string>
     <string name="requirements_check_completed_successfully">요구 사항 확인이 성공적으로 완료되었습니다</string>
     <string name="requirements_check_completed_with_errors">요구 사항 확인이 오류와 함께 완료되었습니다</string>
     <string name="kernel_requirements_copied">커널 요구 사항이 클립보드에 복사되었습니다</string>
@@ -450,9 +450,9 @@
     <string name="select_user_to_enter">컨테이너에 진입할 사용자를 선택하세요:</string>
     <!-- Notification Permission -->
     <string name="notification_permission_title">알림 권한</string>
-    <string name="notification_permission_rationale">Droidspaces는 백그라운드에서 터미널 세션을 계속 실행하기 위해 지속적인 알림을 표시해야 합니다. 이 권한이 없으면 Android(특히 삼성 기기)가 터미널 서비스를 예기치 않게 종료할 수 있습니다.</string>
+    <string name="notification_permission_rationale">ChDroid는 백그라운드에서 터미널 세션을 계속 실행하기 위해 지속적인 알림을 표시해야 합니다. 이 권한이 없으면 Android(특히 삼성 기기)가 터미널 서비스를 예기치 않게 종료할 수 있습니다.</string>
     <!-- Terminal Session Notification -->
-    <string name="notification_title">Droidspaces 터미널</string>
+    <string name="notification_title">ChDroid 터미널</string>
     <string name="notification_action_exit">종료</string>
     <string name="notification_wakelock_on">웨이크락: 켜짐</string>
     <string name="notification_wakelock_off">웨이크락: 꺼짐</string>
@@ -470,7 +470,7 @@
     <string name="resize_dialog_message">\"%1$s\"의 스파스 이미지 크기를 조정합니다. 크기를 늘리는 것이 줄이는 것보다 안전합니다. 데이터를 백업하세요.</string>
     <string name="starting_migration">마이그레이션 작업 시작 중...</string>
     <string name="starting_resizing">크기 조정 작업 시작 중...</string>
-    <string name="help_card_title">Droidspaces가 처음이신가요?</string>
+    <string name="help_card_title">ChDroid가 처음이신가요?</string>
     <string name="help_card_message">첫 번째 리눅스 컨테이너를 설정하는 방법을 알아보려면 여기를 누르세요!</string>
     <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">특권 모드</string>
@@ -483,19 +483,19 @@
     <string name="privileged_disclaimer">이 옵션들을 활성화하면 기기 보안이 저하됩니다. 데이터 손실, 벽돌 현상, 이상한 버그에 대해 저희는 책임지지 않습니다. 이 모드 사용 중 발생한 문제는 신고하지 마세요.</string>
     <string name="privileged_confirm_instruction">확인을 위해 \"I WON\'T REPORT ANY BUGS\"를 대문자로 정확히 입력하세요:</string>
     <string name="i_understand_caps">I WON\'T REPORT ANY BUGS</string>
-    <string name="hw_access_disclaimer">Droidspaces v6.1.0부터 udevd는 USB, 블록, 입력, TTY, 네트워크 서브시스템에 대한 실질적인 접근 권한을 갖습니다. 컨테이너가 Android가 현재 사용 중인 하드웨어를 가져갈 수 있습니다.\n\n컨테이너를 실행한 후 키보드, SD 카드 또는 USB 장치가 Android에서 작동하지 않는다면 - 이는 버그가 아닙니다. 컨테이너가 이를 가져간 것입니다. 전체 하드웨어 액세스를 요청하신 것입니다.\n\n이 모드 사용 중 발생한 하드웨어 충돌이나 커널 패닉 문제는 신고하지 마세요.</string>
+    <string name="hw_access_disclaimer">ChDroid v6.1.0부터 udevd는 USB, 블록, 입력, TTY, 네트워크 서브시스템에 대한 실질적인 접근 권한을 갖습니다. 컨테이너가 Android가 현재 사용 중인 하드웨어를 가져갈 수 있습니다.\n\n컨테이너를 실행한 후 키보드, SD 카드 또는 USB 장치가 Android에서 작동하지 않는다면 - 이는 버그가 아닙니다. 컨테이너가 이를 가져간 것입니다. 전체 하드웨어 액세스를 요청하신 것입니다.\n\n이 모드 사용 중 발생한 하드웨어 충돌이나 커널 패닉 문제는 신고하지 마세요.</string>
     <!-- Rootfs repository -->
     <string name="repo_title">Rootfs 저장소</string>
     <string name="repo_fab_label">저장소</string>
     <string name="repo_refresh">새로고침</string>
-    <string name="repo_banner_text">\"Droidspaces developers\" 하위의 rootfs tarball은 오픈 소스이며 투명합니다. 이 카드를 눌러 저희의 변경 사항을 직접 다운로드하거나 확인할 수 있습니다.</string>
+    <string name="repo_banner_text">\"ChDroid developers\" 하위의 rootfs tarball은 오픈 소스이며 투명합니다. 이 카드를 눌러 저희의 변경 사항을 직접 다운로드하거나 확인할 수 있습니다.</string>
     <string name="repo_banner_url" translatable="false">https://github.com/Droidspaces/Droidspaces-rootfs-builder</string>
     <string name="repo_failed_to_load">저장소를 불러오지 못했습니다</string>
     <string name="repo_download">다운로드</string>
     <string name="repo_cancel">취소</string>
     <string name="repo_install">설치</string>
     <string name="repo_retry">재시도</string>
-    <string name="repo_notification_description">Droidspaces rootfs 다운로드</string>
+    <string name="repo_notification_description">ChDroid rootfs 다운로드</string>
     <string name="repo_error_no_assets">최신 릴리스에서 rootfs tarball을 찾을 수 없습니다</string>
     <string name="repo_dl_error_unknown">알 수 없는 오류</string>
     <string name="repo_dl_error_file_error">파일 시스템 오류</string>

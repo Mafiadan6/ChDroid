@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.droidspaces.app.R
+import com.droidspaces.app.util.FilePickerUtils
 import com.droidspaces.app.util.ViewModelLogger
 import com.droidspaces.app.util.UbuntuChrootManager
 
@@ -33,9 +34,8 @@ private enum class ChDroidInstallPhase { INSTALLING, DONE, ERROR }
  * install itself is distro-agnostic — the ZIP's manifest and rootfs decide what
  * actually lands in /data/local/ubuntu-chroot.
  */
-private fun rootfsLabel(uri: Uri): String {
-    val file = uri.lastPathSegment.orEmpty().substringBefore('?')
-    val clean = file.substringBeforeLast('.').ifBlank { "rootfs" }
+private fun rootfsLabel(fileName: String): String {
+    val clean = fileName.substringBeforeLast('.').ifBlank { "rootfs" }
     val known = listOf("Artix", "Arch", "Ubuntu", "Alpine", "Debian", "Kali", "OpenWrt", "Azure", "Fedora")
     return known.firstOrNull { clean.contains(it, ignoreCase = true) }
         ?: clean.replace('-', ' ').replace('_', ' ')
@@ -49,7 +49,9 @@ fun ChDroidInstallScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val label = remember(zipUri) { rootfsLabel(zipUri) }
+    // A content URI's lastPathSegment is often a provider document id (e.g.
+    // "msf:1000003692"), not a filename. Resolve the real path for the label.
+    val label = remember(zipUri) { mutableStateOf("rootfs") }
     val logs = remember { mutableStateListOf<String>() }
     val phase = remember { mutableStateOf(ChDroidInstallPhase.INSTALLING) }
     val error = remember { mutableStateOf("") }
@@ -60,10 +62,14 @@ fun ChDroidInstallScreen(
 
     LaunchedEffect(zipUri) {
         if (phase.value != ChDroidInstallPhase.INSTALLING || logs.isNotEmpty()) return@LaunchedEffect
-        logger.i("Installing $label from ${zipUri.lastPathSegment.orEmpty()}")
+        val path = FilePickerUtils.realPath(context, zipUri)
+        val fileName = path?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
+            ?: zipUri.lastPathSegment.orEmpty()
+        label.value = rootfsLabel(fileName)
+        logger.i("Installing ${label.value} from $fileName")
         val result = UbuntuChrootManager.install(context, zipUri, logger)
         if (result.isSuccess) {
-            logger.i("$label ready")
+            logger.i("${label.value} ready")
             phase.value = ChDroidInstallPhase.DONE
         } else {
             error.value = result.exceptionOrNull()?.message.orEmpty()
@@ -74,7 +80,7 @@ fun ChDroidInstallScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(context.getString(R.string.chdroid_install_title, label)) })
+            TopAppBar(title = { Text(context.getString(R.string.chdroid_install_title, label.value)) })
         }
     ) { padding ->
         Column(
@@ -89,7 +95,7 @@ fun ChDroidInstallScreen(
                     style = MaterialTheme.typography.titleMedium
                 )
                 ChDroidInstallPhase.DONE -> Text(
-                    text = context.getString(R.string.chdroid_install_done, label),
+                    text = context.getString(R.string.chdroid_install_done, label.value),
                     style = MaterialTheme.typography.titleMedium
                 )
                 ChDroidInstallPhase.ERROR -> {

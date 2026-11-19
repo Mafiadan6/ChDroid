@@ -24,7 +24,7 @@
     <string name="backend_update_available">Backend: Yeni bir güncelleme var</string>
     <string name="running">Çalışıyor</string>
     <string name="root_unavailable">Root erişimi mevcut değil.</string>
-    <string name="grant_root_message">Droidspaces\'i kullanmaya devam etmek için root erişimi verin!</string>
+    <string name="grant_root_message">ChDroid\'i kullanmaya devam etmek için root erişimi verin!</string>
     <string name="unknown">Bilinmeyen</string>
     <string name="update_available_message">Backend güncellemesi mevcut; güncellemek için buraya tıklayın</string>
     <string name="backend_section">Backend</string>
@@ -45,11 +45,11 @@
     <string name="dynamic_color">Sistemin Varsayılan Renk Paletini Uygula</string>
     <string name="dynamic_color_description">Android 12 ve üzeri sürümlerde Monet tema sistemini (Material You) kullan</string>
     <string name="daemon_mode">Arka Plan Modu</string>
-    <string name="daemon_mode_description">Droidspaces\'i, Magisk/APatch, GrapheneOS vb. kaynaklı seccomp engellemelerini aşmak için kalıcı bir sistem düzeyinde arka plan hizmeti olarak çalıştırın. Bu, userspace komutlarını çalıştırarak yüksek ayrıcalıklı işlemleri mümkün kılar (Yeniden başlatma gereklidir).</string>
-    <string name="symlink_integration">Droidspaces\'i terminale entegre edin</string>
-    <string name="symlink_integration_description">Android root shellde droidspaces komutuna erişmek için /system/bin dizininde bir symlink oluşturun. UYARI: Mount sisteminiz overlayfs meta modülleri ise, bu seçeneği etkinleştirmek bootloopa neden olur. Bu seçeneği yalnızca Magic Mount tabanlı mount sistemi kullanırken kullanın (Yeniden başlatma gereklidir)</string>
+    <string name="daemon_mode_description">ChDroid\'i, Magisk/APatch, GrapheneOS vb. kaynaklı seccomp engellemelerini aşmak için kalıcı bir sistem düzeyinde arka plan hizmeti olarak çalıştırın. Bu, userspace komutlarını çalıştırarak yüksek ayrıcalıklı işlemleri mümkün kılar (Yeniden başlatma gereklidir).</string>
+    <string name="symlink_integration">ChDroid\'i terminale entegre edin</string>
+    <string name="symlink_integration_description">Android root shellde chdroid komutuna erişmek için /system/bin dizininde bir symlink oluşturun. UYARI: Mount sisteminiz overlayfs meta modülleri ise, bu seçeneği etkinleştirmek bootloopa neden olur. Bu seçeneği yalnızca Magic Mount tabanlı mount sistemi kullanırken kullanın (Yeniden başlatma gereklidir)</string>
     <string name="about_section">Hakkında</string>
-    <string name="about_droidspaces">Droidspaces Hakkında</string>
+    <string name="about_droidspaces">ChDroid Hakkında</string>
     <string name="about_description">Android için LXC benzeri konteyner yöneticisi</string>
     <string name="developers">Geliştirici(ler)</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -183,8 +183,8 @@
     <string name="next_storage">Sonraki: Depolama</string>
     <string name="installation_complete">Kurulum Tamamlandı</string>
     <string name="installation_failed">Kurulum Başarısız</string>
-    <string name="installing_droidspaces">Droidspaces Kuruluyor</string>
-    <string name="backend_installed_success">Droidspaces backendi başarıyla kuruldu</string>
+    <string name="installing_droidspaces">ChDroid Kuruluyor</string>
+    <string name="backend_installed_success">ChDroid backendi başarıyla kuruldu</string>
     <string name="binary_installation_failed">Binary yüklemesi başarısız oldu</string>
     <string name="no_containers_running">Çalışan konteyner yok</string>
     <string name="start_container_first">Burada görebilmek için önce bir konteyner başlatın</string>
@@ -225,7 +225,7 @@
     <string name="supported_abis">Desteklenen ABI\'ler</string>
     <string name="loading">Yükleniyor...</string>
     <string name="backend_not_available">Backend kullanılamıyor</string>
-    <string name="backend_not_available_description">Droidspaces backend\'i yüklenmemiş veya bozuk. Lütfen önce bunu yükleyin.</string>
+    <string name="backend_not_available_description">ChDroid backend\'i yüklenmemiş veya bozuk. Lütfen önce bunu yükleyin.</string>
     <string name="root_access_not_available">Root erişimi mevcut değil</string>
     <string name="root_access_not_available_description">Root erişimi mevcut olmadığı için bu sayfa devre dışı bırakılmıştır</string>
     <string name="operation_failed_title">İşlem Başarısız</string>
@@ -260,7 +260,7 @@
     <string name="error_hostname_invalid">Host adı yalnızca harfler, rakamlar ve tire (-) içerebilir</string>
     <string name="check_requirements">Gereksinimleri Kontrol Edin</string>
     <string name="requirements_check_title">Gereksinim Kontrolü</string>
-    <string name="requirements_for_droidspaces">Droidspaces için Gereksinimler</string>
+    <string name="requirements_for_droidspaces">ChDroid için Gereksinimler</string>
     <string name="requirements_check_completed_successfully">Gereksinim kontrolü başarıyla tamamlandı</string>
     <string name="requirements_check_completed_with_errors">Gereksinim kontrolü hatalar ile tamamlandı</string>
     <string name="kernel_requirements_copied">Kernel gereksinimleri panoya kopyalandı</string>
@@ -271,7 +271,7 @@
     <string name="open_terminal">Terminali aç</string>
     <string name="select_user_to_enter">Konteynere girecek kullanıcıyı seçin:</string>
     <string name="notification_permission_title">Bildirim İzni</string>
-    <string name="notification_permission_rationale">Droidspaces, terminal oturumlarınızın arka planda çalışmaya devam etmesini sağlamak için kalıcı bir bildirim göstermelidir. Aksi takdirde, Android (özellikle Samsung cihazlarda) terminal hizmetini beklenmedik bir şekilde sonlandırabilir.</string>
+    <string name="notification_permission_rationale">ChDroid, terminal oturumlarınızın arka planda çalışmaya devam etmesini sağlamak için kalıcı bir bildirim göstermelidir. Aksi takdirde, Android (özellikle Samsung cihazlarda) terminal hizmetini beklenmedik bir şekilde sonlandırabilir.</string>
     <string name="migrate_to_sparse_image">Sparse imageye geçin</string>
     <string name="resize_sparse_image">Sparse imageyi yeniden boyutlandırın</string>
     <string name="migrate_dialog_title">Sparse imageye geçin</string>
@@ -280,7 +280,7 @@
     <string name="resize_dialog_message">“%1$s” için sparse image boyutu değiştiriliyor. Boyutu büyütmek, küçültmekten daha güvenlidir. Lütfen verilerinizi yedekleyin.</string>
     <string name="starting_migration">Taşıma işlemi başlatılıyor...</string>
     <string name="starting_resizing">Boyut değiştirme işlemi başlatılıyor...</string>
-    <string name="help_card_title">Droidspaces\'e yeni misiniz?</string>
+    <string name="help_card_title">ChDroid\'e yeni misiniz?</string>
     <string name="help_card_message">İlk Linux konteynerinizi nasıl kuracağınızı öğrenmek için buraya dokunun!</string>
     <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
     <string name="failure_in_operation">Failure in %1$sing container %2$s</string>

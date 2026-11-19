@@ -21,7 +21,7 @@
     <string name="backend_not_installed">Backend: Não instalado</string>
     <string name="backend_corrupted">Backend: Corrompido</string>
     <string name="root_unavailable">O acesso root não está disponível.</string>
-    <string name="grant_root_message">Conceda acesso root para continuar a explorar o Droidspaces!</string>
+    <string name="grant_root_message">Conceda acesso root para continuar a explorar o ChDroid!</string>
     <string name="unknown">Desconhecido</string>
     <string name="update_available_message">Atualização do backend disponível, clique aqui para atualizar</string>
     <string name="backend_section">Backend</string>
@@ -42,7 +42,7 @@
     <string name="dynamic_color">Aplicar paleta de cores padrão do sistema</string>
     <string name="dynamic_color_description">Usar tema Monet do Android 12+ (Material You)</string>
     <string name="about_section">Sobre</string>
-    <string name="about_droidspaces">Sobre o Droidspaces</string>
+    <string name="about_droidspaces">Sobre o ChDroid</string>
     <string name="about_description">Gestor de contentores estilo LXC para Android</string>
     <string name="developers">Programador(es)</string>
     <string name="telegram_channel">Canal no Telegram</string>
@@ -115,7 +115,7 @@
     <string name="next_storage">Próximo: Armazenamento</string>
     <string name="installation_complete">Instalação Concluída</string>
     <string name="installation_failed">Instalação Falhou</string>
-    <string name="installing_droidspaces">A instalar Droidspaces</string>
+    <string name="installing_droidspaces">A instalar ChDroid</string>
     <string name="backend_installed_success">Backend instalado com sucesso</string>
     <string name="binary_installation_failed">Falha na instalação dos binários</string>
     <string name="no_containers_running">Nenhum contentor em execução</string>
@@ -189,7 +189,7 @@
     <string name="error_hostname_invalid">O hostname pode conter apenas letras, números e hífens (-)</string>
     <string name="check_requirements">Verificar Requisitos</string>
     <string name="requirements_check_title">Verificação de Requisitos</string>
-    <string name="requirements_for_droidspaces">Requisitos para Droidspaces</string>
+    <string name="requirements_for_droidspaces">Requisitos para ChDroid</string>
     <string name="requirements_check_completed_successfully">Verificação de requisitos concluída com sucesso</string>
     <string name="requirements_check_completed_with_errors">Verificação de requisitos concluída com erros</string>
     <string name="kernel_requirements_copied">Requisitos do kernel copiados para a área de transferência</string>
@@ -212,8 +212,8 @@
     <string name="tap_to_fix_system">Toque para corrigir a configuração do sistema</string>
     <string name="guide">Guia</string>
     <string name="daemon_mode">Modo de Daemon</string>
-    <string name="daemon_mode_description">Executar o Droidspaces como um daemon do nível do sistema persistente para ignorar blocos seccomp de Magisk / APatch, GrapheneOS, etc. Isso permite operações de nível alto, a buscar e executar comandos no userspace (Reinicialização necessária).</string>
-    <string name="symlink_integration">Integrar Droidspaces no caminho do sistema</string>
+    <string name="daemon_mode_description">Executar o ChDroid como um daemon do nível do sistema persistente para ignorar blocos seccomp de Magisk / APatch, GrapheneOS, etc. Isso permite operações de nível alto, a buscar e executar comandos no userspace (Reinicialização necessária).</string>
+    <string name="symlink_integration">Integrar ChDroid no caminho do sistema</string>
     <string name="source_code">Código-fonte</string>
     <string name="generate_bug_report">Gerar um relatório de bug</string>
     <string name="generate_bug_report_description">Coletar informações do sistema e logs para a depuração</string>

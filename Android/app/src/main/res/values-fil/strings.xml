@@ -23,7 +23,7 @@
     <string name="backend_not_installed">Backend: Hindi nakainstall</string>
     <string name="backend_corrupted">Backend: Corrupted</string>
     <string name="root_unavailable">Hindi available ang root access.</string>
-    <string name="grant_root_message">Magbigay ng root access upang patuloy na galugarin ang droidspaces !</string>
+    <string name="grant_root_message">Magbigay ng root access upang patuloy na galugarin ang chdroid !</string>
     <string name="unknown">Hindi alam</string>
     <string name="update_available_message">May available na backend update, i-click dito upang mag-update</string>
     <string name="backend_section">Backend</string>
@@ -44,7 +44,7 @@
     <string name="dynamic_color">Ilapat ang Default na Color Palette ng System</string>
     <string name="dynamic_color_description">Gamitin ang Android 12+ Monet theming (Material You)</string>
     <string name="about_section">Tungkol sa</string>
-    <string name="about_droidspaces">Tungkol sa Droidspaces</string>
+    <string name="about_droidspaces">Tungkol sa ChDroid</string>
     <string name="about_description">LXC-Style na container manager para sa Android</string>
     <string name="developers">(Mga) Developer</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -122,7 +122,7 @@
     <string name="next_storage">Sunod: Storage</string>
     <string name="installation_complete">Tapos na ang Pag-install</string>
     <string name="installation_failed">Nabigo ang Pag-install</string>
-    <string name="installing_droidspaces">Ini-install ang Droidspaces</string>
+    <string name="installing_droidspaces">Ini-install ang ChDroid</string>
     <string name="backend_installed_success">Matagumpay na na-install ang backend</string>
     <string name="binary_installation_failed">Nabigo ang pag-install ng binary</string>
     <string name="no_containers_running">Walang container na gumagana</string>
@@ -199,7 +199,7 @@
     <string name="error_hostname_invalid">Ang hostname ay maaari lamang maglaman ng mga letra, numero, at gitling (-)</string>
     <string name="check_requirements">Suriin ang mga Kinakailangan</string>
     <string name="requirements_check_title">Pagsusuri ng mga Kinakailangan</string>
-    <string name="requirements_for_droidspaces">Mga Kinakailangan para sa Droidspaces</string>
+    <string name="requirements_for_droidspaces">Mga Kinakailangan para sa ChDroid</string>
     <string name="requirements_check_completed_successfully">Matagumpay na natapos ang pagsusuri ng mga kinakailangan</string>
     <string name="requirements_check_completed_with_errors">Natapos ang pagsusuri ng mga kinakailangan na may mga error</string>
     <string name="kernel_requirements_copied">Ang mga kinakailangan ng kernel ay nakopya sa clipboard</string>

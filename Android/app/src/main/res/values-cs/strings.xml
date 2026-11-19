@@ -39,7 +39,7 @@
     <string name="backend_not_installed">Backend: není nainstalován</string>
     <string name="backend_corrupted">Backend: poškozen</string>
     <string name="root_unavailable">Přístup roota není dostupný.</string>
-    <string name="grant_root_message">Chcete-li pokračovat v procházení aplikace Droidspaces, udělte přístup roota!</string>
+    <string name="grant_root_message">Chcete-li pokračovat v procházení aplikace ChDroid, udělte přístup roota!</string>
     <string name="unknown">Neznámé</string>
     <string name="update_available_message">Je dostupná aktualizace backendu, klepnutím ji nainstalujete</string>
     <string name="backend_attention_required">Backend: je vyžadován zásah</string>
@@ -67,11 +67,11 @@
     <string name="dynamic_color_description">Použije motiv Monet systému Android 12+ (Material You)</string>
     <string name="accent_color">Barva zvýraznění</string>
     <string name="daemon_mode">Režim démona</string>
-    <string name="daemon_mode_description">Spustí Droidspaces jako trvalého systémového démona, který obchází blokování seccomp v Magisku/APatchi, GrapheneOS apod. Získáváním a spouštěním příkazů z uživatelského prostoru tím umožní vysoce privilegované operace (vyžaduje restart).</string>
-    <string name="symlink_integration">Začlenit Droidspaces do systémové cesty</string>
-    <string name="symlink_integration_description">Vytvoří symbolický odkaz v /system/bin, aby byl příkaz droidspaces dostupný v rootovém shellu Androidu. VAROVÁNÍ: ZAPNUTÍ ZPŮSOBÍ BOOTLOOP, POKUD VÁŠ SYSTÉM PŘIPOJENÍ POUŽÍVÁ METAMODULY OVERLAYFS. Tuto možnost používejte pouze se systémem připojení založeným na Magic Mount nebo se systémem nomount implementovaným v jádře (vyžaduje restart)</string>
+    <string name="daemon_mode_description">Spustí ChDroid jako trvalého systémového démona, který obchází blokování seccomp v Magisku/APatchi, GrapheneOS apod. Získáváním a spouštěním příkazů z uživatelského prostoru tím umožní vysoce privilegované operace (vyžaduje restart).</string>
+    <string name="symlink_integration">Začlenit ChDroid do systémové cesty</string>
+    <string name="symlink_integration_description">Vytvoří symbolický odkaz v /system/bin, aby byl příkaz chdroid dostupný v rootovém shellu Androidu. VAROVÁNÍ: ZAPNUTÍ ZPŮSOBÍ BOOTLOOP, POKUD VÁŠ SYSTÉM PŘIPOJENÍ POUŽÍVÁ METAMODULY OVERLAYFS. Tuto možnost používejte pouze se systémem připojení založeným na Magic Mount nebo se systémem nomount implementovaným v jádře (vyžaduje restart)</string>
     <string name="about_section">O aplikaci</string>
-    <string name="about_droidspaces">O aplikaci Droidspaces</string>
+    <string name="about_droidspaces">O aplikaci ChDroid</string>
     <string name="about_description">Správce kontejnerů ve stylu LXC pro Android</string>
     <string name="developers">Vývojáři</string>
     <string name="developer_ravindu644_role">Správce projektu</string>
@@ -268,8 +268,8 @@
     <string name="installation_complete">Instalace byla dokončena</string>
     <string name="installation_failed">Instalace se nezdařila</string>
     <string name="done">Hotovo</string>
-    <string name="installing_droidspaces">Instaluje se Droidspaces</string>
-    <string name="backend_installed_success">Backend Droidspaces byl úspěšně nainstalován</string>
+    <string name="installing_droidspaces">Instaluje se ChDroid</string>
+    <string name="backend_installed_success">Backend ChDroid byl úspěšně nainstalován</string>
     <string name="binary_installation_failed">Instalace binárního souboru se nezdařila</string>
     <string name="filter_absolute_path_hint">Filtrujte nebo zadejte absolutní cestu…</string>
     <string name="no_matches">Žádné shody</string>
@@ -331,7 +331,7 @@
     <string name="supported_abis">Podporovaná ABI</string>
     <string name="loading">Načítá se...</string>
     <string name="backend_not_available">Backend není dostupný</string>
-    <string name="backend_not_available_description">Backend Droidspaces není nainstalován nebo je poškozený. Nejprve jej nainstalujte.</string>
+    <string name="backend_not_available_description">Backend ChDroid není nainstalován nebo je poškozený. Nejprve jej nainstalujte.</string>
     <string name="root_access_not_available">Přístup roota není dostupný</string>
     <string name="root_access_not_available_description">Tato stránka je zakázána, protože přístup roota není dostupný</string>
     <string name="operation_failed_title">Operace se nezdařila</string>
@@ -367,7 +367,7 @@
     <string name="error_hostname_invalid">Název hostitele smí obsahovat pouze písmena, číslice a spojovníky (-)</string>
     <string name="check_requirements">Zkontrolovat požadavky</string>
     <string name="requirements_check_title">Kontrola požadavků</string>
-    <string name="requirements_for_droidspaces">Požadavky pro Droidspaces</string>
+    <string name="requirements_for_droidspaces">Požadavky pro ChDroid</string>
     <string name="requirements_check_completed_successfully">Kontrola požadavků byla úspěšně dokončena</string>
     <string name="requirements_check_completed_with_errors">Kontrola požadavků byla dokončena s chybami</string>
     <string name="kernel_requirements_copied">Požadavky na jádro byly zkopírovány do schránky</string>
@@ -379,8 +379,8 @@
     <string name="open_terminal">Otevřít terminál</string>
     <string name="select_user_to_enter">Vyberte uživatele, pod kterým chcete vstoupit do kontejneru:</string>
     <string name="notification_permission_title">Oprávnění k oznámením</string>
-    <string name="notification_permission_rationale">Droidspaces musí zobrazovat trvalé oznámení, aby relace terminálu zůstaly spuštěné na pozadí. Bez něj může Android (zejména na zařízeních Samsung) službu terminálu neočekávaně ukončit.</string>
-    <string name="notification_title">Terminál Droidspaces</string>
+    <string name="notification_permission_rationale">ChDroid musí zobrazovat trvalé oznámení, aby relace terminálu zůstaly spuštěné na pozadí. Bez něj může Android (zejména na zařízeních Samsung) službu terminálu neočekávaně ukončit.</string>
+    <string name="notification_title">Terminál ChDroid</string>
     <string name="notification_action_exit">UKONČIT</string>
     <string name="notification_wakelock_on">Zámek probuzení: ZAPNUT</string>
     <string name="notification_wakelock_off">Zámek probuzení: VYPNUT</string>
@@ -397,7 +397,7 @@
     <string name="resize_dialog_message">Mění se velikost řídkého obrazu kontejneru „%1$s“. Zvětšení je bezpečnější než zmenšení. Zálohujte si data.</string>
     <string name="starting_migration">Spouští se převod...</string>
     <string name="starting_resizing">Spouští se změna velikosti...</string>
-    <string name="help_card_title">Začínáte s Droidspaces?</string>
+    <string name="help_card_title">Začínáte s ChDroid?</string>
     <string name="help_card_message">Klepnutím sem se dozvíte, jak nastavit svůj první linuxový kontejner!</string>
     <string name="privileged_mode">Privilegovaný režim</string>
     <string name="privileged_nomask_desc">Vypne ochranné maskování a povolí zápis do /proc a /sys. Poznámka: /sys zůstane jen pro čtení, pokud není zapnutý také přístup k hardwaru.</string>
@@ -409,17 +409,17 @@
     <string name="privileged_disclaimer">Zapnutím těchto možností ohrožujete zabezpečení svého zařízení. NENESEME odpovědnost za ztrátu dat, znefunkčněná zařízení ani podivné chyby. Potíže vzniklé při používání těchto režimů NEHLASTE.</string>
     <string name="privileged_confirm_instruction">Potvrďte zadáním přesné fráze „ŽÁDNÉ CHYBY HLÁSIT NEBUDU“ velkými písmeny:</string>
     <string name="i_understand_caps">ŽÁDNÉ CHYBY HLÁSIT NEBUDU</string>
-    <string name="hw_access_disclaimer">Od verze Droidspaces 6.1.0 má udevd skutečný přístup k subsystémům USB, blokových a vstupních zařízení, TTY a sítě. Kontejner může převzít hardware, který právě používá Android.\n\nPokud po spuštění kontejneru přestane v Androidu fungovat klávesnice, karta SD nebo zařízení USB, NEJDE o chybu. Hardware převzal kontejner. Vyžádali jste si plný přístup k hardwaru.\n\nPotíže způsobené konflikty hardwaru nebo panikou jádra při používání tohoto režimu NEHLASTE.</string>
+    <string name="hw_access_disclaimer">Od verze ChDroid 6.1.0 má udevd skutečný přístup k subsystémům USB, blokových a vstupních zařízení, TTY a sítě. Kontejner může převzít hardware, který právě používá Android.\n\nPokud po spuštění kontejneru přestane v Androidu fungovat klávesnice, karta SD nebo zařízení USB, NEJDE o chybu. Hardware převzal kontejner. Vyžádali jste si plný přístup k hardwaru.\n\nPotíže způsobené konflikty hardwaru nebo panikou jádra při používání tohoto režimu NEHLASTE.</string>
     <string name="repo_title">Repozitář rootfs</string>
     <string name="repo_fab_label">Repozitář</string>
     <string name="repo_refresh">Obnovit</string>
-    <string name="repo_banner_text">Archivy tar rootfs v části „Droidspaces developers“ jsou open source a jejich obsah je transparentní. Klepnutím na tuto kartu můžete naše změny ručně stáhnout nebo prozkoumat.</string>
+    <string name="repo_banner_text">Archivy tar rootfs v části „ChDroid developers“ jsou open source a jejich obsah je transparentní. Klepnutím na tuto kartu můžete naše změny ručně stáhnout nebo prozkoumat.</string>
     <string name="repo_failed_to_load">Repozitář se nepodařilo načíst</string>
     <string name="repo_download">Stáhnout</string>
     <string name="repo_cancel">Zrušit</string>
     <string name="repo_install">Nainstalovat</string>
     <string name="repo_retry">Zkusit znovu</string>
-    <string name="repo_notification_description">Stahování rootfs pro Droidspaces</string>
+    <string name="repo_notification_description">Stahování rootfs pro ChDroid</string>
     <string name="repo_error_no_assets">V nejnovějším vydání nebyly nalezeny žádné archivy tar rootfs</string>
     <string name="repo_dl_error_unknown">Neznámá chyba</string>
     <string name="repo_dl_error_file_error">Chyba souborového systému</string>
@@ -514,7 +514,7 @@
     <string name="experimental_section">Experimentální</string>
     <string name="treat_as_64bit">Použít 64bitový backend</string>
     <string name="treat_as_64bit_description">Váš operační systém je 32bitový, ale jádro je 64bitové. Nainstaluje se 64bitový backend a místo toho se zobrazí 64bitové obrazy rootfs.</string>
-    <string name="app_update_message">Droidspaces %1$s je připraven. Klepnutím otevřete toto vydání na GitHubu.</string>
+    <string name="app_update_message">ChDroid %1$s je připraven. Klepnutím otevřete toto vydání na GitHubu.</string>
     <string name="updates_section">Aktualizace</string>
     <string name="check_app_updates">Kontrolovat aktualizace aplikace</string>
     <string name="check_app_updates_description">Při otevření aplikace vyhledá nové vydání na GitHubu</string>
@@ -532,7 +532,7 @@
     <string name="repo_dl_complete">Stahování dokončeno, klepnutím zahájíte instalaci</string>
     <string name="repo_storage_permission_title">Oprávnění k úložišti</string>
     <string name="repo_storage_permission_rationale">Archivy tar s rootfs se ukládají do složky Stažené soubory a v této verzi Androidu je k tomu potřeba přístup k úložišti. Bez něj nelze stahování zahájit.</string>
-    <string name="repo_notification_permission_rationale">Droidspaces zobrazuje průběh stahování, tlačítko Zrušit a po dokončení stahování oznámení, na které můžete klepnout a zahájit instalaci. Stahování proběhne i bez tohoto oprávnění, jen nic z toho neuvidíte.</string>
+    <string name="repo_notification_permission_rationale">ChDroid zobrazuje průběh stahování, tlačítko Zrušit a po dokončení stahování oznámení, na které můžete klepnout a zahájit instalaci. Stahování proběhne i bez tohoto oprávnění, jen nic z toho neuvidíte.</string>
     <string name="disable_ipv6_description_isolated">Zakáže v tomto kontejneru IPv6.</string>
     <string name="cat_resource_limits">Limity prostředků</string>
     <string name="limit_memory">Omezit paměť</string>
@@ -558,11 +558,11 @@
         <item quantity="other">%1$s jader</item>
     </plurals>
     <string name="welcome_headline">Skutečný Linux ve vašem telefonu</string>
-    <string name="welcome_body">Droidspaces spouští plnohodnotné distribuce v kontejnerech na vlastním jádře vašeho zařízení. Bez emulátoru, bez virtuálního stroje.</string>
+    <string name="welcome_body">ChDroid spouští plnohodnotné distribuce v kontejnerech na vlastním jádře vašeho zařízení. Bez emulátoru, bez virtuálního stroje.</string>
     <string name="next">Další</string>
     <string name="page_counter">%1$d z %2$d</string>
     <string name="root_access_title">Přístup roota</string>
-    <string name="root_access_body">Droidspaces potřebuje k vytváření kontejnerů přístup roota. Váš správce roota vás požádá o povolení tohoto přístupu.</string>
+    <string name="root_access_body">ChDroid potřebuje k vytváření kontejnerů přístup roota. Váš správce roota vás požádá o povolení tohoto přístupu.</string>
     <string name="limit_memory_requirement">CONFIG_MEMCG a příkazový řádek jádra bez cgroup_disable=memory</string>
     <string name="limit_cpu_requirement">CONFIG_CFS_BANDWIDTH a příkazový řádek jádra bez cgroup_disable=cpu</string>
     <string name="limit_pids_requirement">CONFIG_CGROUP_PIDS a příkazový řádek jádra bez cgroup_disable=pids</string>
@@ -573,12 +573,12 @@
     <string name="memory_kb">%1$s KB</string>
     <string name="memory_mb_decimal">%1$s MB</string>
     <string name="installing_backend_message">Nastavuje se backend. Chvíli to potrvá.</string>
-    <string name="backend_installed_unsupported_kernel">Backend Droidspaces byl úspěšně nainstalován, ale toto jádro nepodporuje Droidspaces.</string>
+    <string name="backend_installed_unsupported_kernel">Backend ChDroid byl úspěšně nainstalován, ale toto jádro nepodporuje ChDroid.</string>
     <string name="ram_used_label">%1$s (%2$.1f%%)</string>
     <string name="ram_used_of_limit_label">%1$s / %2$s (%3$.0f%%)</string>
     <string name="kernel_unsupported">Jádro není podporováno</string>
-    <string name="kernel_unsupported_description">Tato stránka není dostupná, protože tomuto jádru chybějí funkce potřebné pro Droidspaces</string>
-    <string name="kernel_unsupported_message">Klepnutím zjistíte, jak nastavit jádro pro Droidspaces.</string>
+    <string name="kernel_unsupported_description">Tato stránka není dostupná, protože tomuto jádru chybějí funkce potřebné pro ChDroid</string>
+    <string name="kernel_unsupported_message">Klepnutím zjistíte, jak nastavit jádro pro ChDroid.</string>
     <string name="add_container">Přidat kontejner</string>
     <string name="install_from_file">Nainstalovat ze souboru</string>
     <string name="fab_menu_expanded">Rozbaleno</string>

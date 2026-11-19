@@ -35,7 +35,7 @@
     <string name="running">চলমান</string>
     <string name="backend_update_available">Backend: Update পাওয়া গেছে</string>
     <string name="root_unavailable">Root access এর অস্তিত্ব নেই।</string>
-    <string name="grant_root_message">droidspaces ঘুরে দেখা চালিয়ে যেতে root access দিন !</string>
+    <string name="grant_root_message">chdroid ঘুরে দেখা চালিয়ে যেতে root access দিন !</string>
     <string name="unknown">অজানা</string>
     <string name="update_available_message">Backend update পাওয়া গেছে, update করতে এখানে ক্লিক করুন</string>
     <string name="backend_attention_required">Backend: প্রয়োজনীয় পদক্ষেপ নিতে হবে</string>

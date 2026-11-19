@@ -28,7 +28,7 @@
     <string name="backend_not_installed">Backend: Не установлен</string>
     <string name="backend_corrupted">Backend: Повреждён</string>
     <string name="root_unavailable">Root-доступ недоступен.</string>
-    <string name="grant_root_message">Предоставьте root-доступ для продолжения работы с Droidspaces!</string>
+    <string name="grant_root_message">Предоставьте root-доступ для продолжения работы с ChDroid!</string>
     <string name="unknown">Неизвестно</string>
     <string name="update_available_message">Доступно обновление бэкенда, нажмите здесь для обновления</string>
     <!-- Settings Screen -->
@@ -50,7 +50,7 @@
     <string name="dynamic_color">Использовать системную цветовую палитру</string>
     <string name="dynamic_color_description">Использовать оформление Monet (Material You) Android 12+</string>
     <string name="about_section">О приложении</string>
-    <string name="about_droidspaces">О Droidspaces</string>
+    <string name="about_droidspaces">О ChDroid</string>
     <string name="about_description">Менеджер контейнеров в стиле LXC для Android</string>
     <string name="developers">Разработчики</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -135,7 +135,7 @@
     <!-- Installation Screen -->
     <string name="installation_complete">Установка завершена</string>
     <string name="installation_failed">Установка не удалась</string>
-    <string name="installing_droidspaces">Установка Droidspaces</string>
+    <string name="installing_droidspaces">Установка ChDroid</string>
     <string name="backend_installed_success">Бэкенд успешно установлен</string>
     <string name="binary_installation_failed">Не удалось установить бинарные файлы</string>
     <!-- Control Panel Screen -->
@@ -226,7 +226,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Проверить требования</string>
     <string name="requirements_check_title">Проверка требований</string>
-    <string name="requirements_for_droidspaces">Требования для Droidspaces</string>
+    <string name="requirements_for_droidspaces">Требования для ChDroid</string>
     <string name="requirements_check_completed_successfully">Проверка требований успешно завершена</string>
     <string name="requirements_check_completed_with_errors">Проверка требований завершена с ошибками</string>
     <string name="kernel_requirements_copied">Требования к ядру скопированы в буфер обмена</string>

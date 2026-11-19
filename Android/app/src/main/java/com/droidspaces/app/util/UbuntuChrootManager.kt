@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import java.util.zip.ZipInputStream
 
 /**
  * Drives the Ubuntu-Chroot v4.4 CLI release directly.
@@ -54,6 +55,40 @@ object UbuntuChrootManager {
         }
     }
 
+    /**
+     * Pull bin/busybox out of the release ZIP before the shell installer runs.
+     * The app's own busybox has no `unzip` applet, so it cannot be the bootstrap —
+     * the release ships its own unzip-capable busybox and that is what the
+     * installer needs for every later extraction. Read through the content
+     * resolver so Downloads/SAF URIs work without a world-readable file path.
+     */
+    private fun bootstrapBusybox(context: Context, zipUri: Uri): String? {
+        val input = context.contentResolver.openInputStream(zipUri) ?: return null
+        val temp = File(context.cacheDir, "chdroid-release-busybox")
+        return try {
+            ZipInputStream(input).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    if (entry.name == "bin/busybox") {
+                        FileOutputStream(temp).use { zis.copyTo(it) }
+                        break
+                    }
+                    zis.closeEntry()
+                    entry = zis.nextEntry
+                }
+            }
+            if (temp.length() == 0L) return null
+            // Native binaries cannot be exec'd from an app's cache on modern
+            // Android (W^X / SELinux). Install into the root-owned bin directory.
+            val target = "${Constants.INSTALL_PATH}/busybox-release"
+            val result = ContainerManager.installFileDurably(temp.absolutePath, target, "755")
+            temp.delete()
+            if (result.isSuccess) target else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     /** Install the CLI release ZIP into /data/local/ubuntu-chroot. */
     suspend fun install(
         context: Context,
@@ -71,14 +106,18 @@ object UbuntuChrootManager {
             }
             logger.i("rootfs ZIP: $zip")
 
+            val bootstrap = bootstrapBusybox(context, zipUri)
+                ?: throw Exception("release ZIP is missing bin/busybox")
+            logger.i("bootstrap busybox: $bootstrap")
+
             val installer = ContainerInstaller.deployAsset(context, "install_ubuntu_chroot_cli.sh")
             try {
                 val cacheDir = File(context.cacheDir, "ubuntu-chroot-install").also { it.mkdirs() }
                 val result = Shell.cmd(
-                    "BUSYBOX_PATH=${Constants.BUSYBOX_BINARY_PATH} " +
+                    "BUSYBOX_PATH=${ContainerCommandBuilder.quote(bootstrap)} " +
                         "${ContainerCommandBuilder.quote(installer.absolutePath)} " +
                         "${ContainerCommandBuilder.quote(zip)} " +
-                        "${Constants.BUSYBOX_BINARY_PATH} " +
+                        "${ContainerCommandBuilder.quote(bootstrap)} " +
                         "${ContainerCommandBuilder.quote(cacheDir.absolutePath)} 2>&1"
                 ).exec()
                 result.out.map { it.trim() }.filter { it.isNotEmpty() }.forEach { line ->

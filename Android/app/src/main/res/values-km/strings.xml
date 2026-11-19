@@ -24,7 +24,7 @@
     <string name="backend_not_installed">Backend: មិនត្រូវបានដំឡើង</string>
     <string name="backend_corrupted">Backend: ខូច</string>
     <string name="root_unavailable">មិនមានសិទ្ធិ Root ទេ។</string>
-    <string name="grant_root_message">ផ្តល់សិទ្ធិ Root ដើម្បីបន្តស្វែងយល់ពី Droidspaces!</string>
+    <string name="grant_root_message">ផ្តល់សិទ្ធិ Root ដើម្បីបន្តស្វែងយល់ពី ChDroid!</string>
     <string name="unknown">មិនស្គាល់</string>
     <string name="update_available_message">មានការធ្វើបច្ចុប្បន្នភាព Backend, ចុចទីនេះដើម្បីធ្វើបច្ចុប្បន្នភាព</string>
     <string name="backend_section">Backend</string>
@@ -56,7 +56,7 @@
     <string name="uninstall_container_title">លុបការដំឡើង Container?</string>
     <string name="uninstall_container_message">នេះនឹងលុប Container \"%1$s\" និងទិន្នន័យទាំងអស់ជាអចិន្ត្រៃយ៍។ សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយវិញបានទេ។\n\nប្រសិនបើ Container កំពុងដំណើរការ វានឹងត្រូវបញ្ឈប់ជាមុនសិន។</string>
     <string name="uninstalling_container">កំពុងលុបការដំឡើង...</string>
-    <string name="daemon_mode_description">ដំណើរការ Droidspaces ជា Daemon ប្រព័ន្ធអចិន្ត្រៃយ៍ ដើម្បីបញ្ចៀសការរារាំង seccomp ពី Magisk/APatch, GrapheneOS និងប្រព័ន្ធផ្សេងៗទៀត។ វានឹងអនុញ្ញាតឱ្យមានប្រតិបត្តិការដែលមានសិទ្ធិខ្ពស់ ដោយទាញយក និងដំណើរការរាល់ពាក្យបញ្ជាចេញពី userspace (តម្រូវឱ្យ Restart ឧបករណ៍ឡើងវិញ)។</string>
+    <string name="daemon_mode_description">ដំណើរការ ChDroid ជា Daemon ប្រព័ន្ធអចិន្ត្រៃយ៍ ដើម្បីបញ្ចៀសការរារាំង seccomp ពី Magisk/APatch, GrapheneOS និងប្រព័ន្ធផ្សេងៗទៀត។ វានឹងអនុញ្ញាតឱ្យមានប្រតិបត្តិការដែលមានសិទ្ធិខ្ពស់ ដោយទាញយក និងដំណើរការរាល់ពាក្យបញ្ជាចេញពី userspace (តម្រូវឱ្យ Restart ឧបករណ៍ឡើងវិញ)។</string>
     <string name="ok">យល់ព្រម</string>
     <string name="operation_completed_success">ប្រតិបត្តិការបានបញ្ចប់ដោយជោគជ័យ!</string>
     <string name="failed_to_stop_container">មិនអាចបញ្ឈប់ Container %1$s បានទេ</string>
@@ -95,14 +95,14 @@
     <string name="feat_autoboot_desc">បើកដំណើរការកុងតឺន័រដោយស្វ័យប្រវត្តិនៅពេលបើកឧបករណ៍ (Boot) ទោះបីជាអេក្រង់ត្រូវបានចាក់សោ និងទិន្នន័យត្រូវបានកូដនីយកម្ម (Encrypted) ក៏ដោយ។</string>
     <string name="feat_isolation_title">ការផ្តាច់ចេញទាំងស្រុង</string>
     <string name="status_running">កំពុងដំណើរការ</string>
-    <string name="symlink_integration">បញ្ជូល Droidspaces ទៅក្នុង System Path</string>
+    <string name="symlink_integration">បញ្ជូល ChDroid ទៅក្នុង System Path</string>
     <string name="cancel">បោះបង</string>
     <string name="feat_overhead_desc">ទាក់ទងទៅកាន់ Host Linux Kernel ដោយផ្ទាល់។ មិនមានការប្រើប្រាស់ Hypervisor ឬស្រទាប់ម៉ាស៊ីននិម្មិត (Virtual Machine Layer) ឡើយ។</string>
     <string name="feat_overhead_title">គ្មានការចំណាយធនធានលើសកម្រិត (Zero overhead)</string>
     <string name="feat_unkillable_desc">គាំទ្រការភ្ជាប់ជាមួយ native init.rc និង daemon កម្រិត userspace ចំនួន ២ ជាន់ (2-layer userspace daemons)។ មិនអាចរលត់បានជាដាច់ខាត (Completely unkillable)។</string>
     <string name="edit_container_configuration">កែសម្រួលការកំណត់រចនាសម្ព័ន្ធកុងតឺន័រ</string>
     <string name="feat_autoboot_title">ចាប់ផ្ដើមដំណើរការដោយស្វ័យប្រវត្តិនៅពេលបើកម៉ាស៊ីន</string>
-    <string name="symlink_integration_description">បង្កើត Symlink នៅត្រង់ /system/bin ដើម្បីចូលប្រើប្រាស់បញ្ជា (Command) droidspaces នៅក្នុង Android Root Shell។ការព្រមាន៖ ការបើកមុខងារនេះនឹងបង្កឱ្យមានបញ្ហាគាំងបើកឧបករណ៍មិនឡើង (Bootloop) ប្រសិនបើប្រព័ន្ធ Mount របស់អ្នកជាប្រភេទ OverlayFS Meta Modules។ សូមប្រើប្រាស់ជម្រើសនេះ តែក្នុងករណីដែលអ្នកកំពុងប្រើប្រាស់ប្រព័ន្ធ Mount ផ្អែកលើ Magic Mount តែប៉ុណ្ណោះ (តម្រូវឱ្យចាប់ផ្តើមឧបករណ៍ឡើងវិញ)។</string>
+    <string name="symlink_integration_description">បង្កើត Symlink នៅត្រង់ /system/bin ដើម្បីចូលប្រើប្រាស់បញ្ជា (Command) chdroid នៅក្នុង Android Root Shell។ការព្រមាន៖ ការបើកមុខងារនេះនឹងបង្កឱ្យមានបញ្ហាគាំងបើកឧបករណ៍មិនឡើង (Bootloop) ប្រសិនបើប្រព័ន្ធ Mount របស់អ្នកជាប្រភេទ OverlayFS Meta Modules។ សូមប្រើប្រាស់ជម្រើសនេះ តែក្នុងករណីដែលអ្នកកំពុងប្រើប្រាស់ប្រព័ន្ធ Mount ផ្អែកលើ Magic Mount តែប៉ុណ្ណោះ (តម្រូវឱ្យចាប់ផ្តើមឧបករណ៍ឡើងវិញ)។</string>
     <string name="feat_unkillable_title">រចនាឡើងមិនអាចបំផ្លាញបាន</string>
     <string name="kernel_requirements_nongki">តម្រូវការខឺណែលមិនមែន GKI (&lt;=4.19)</string>
     <string name="kernel_requirements_gki">តម្រូវការខឺណែល GKI (&gt;=5.4)</string>
@@ -222,8 +222,8 @@
     <string name="installation_complete">ការដំឡើងបានបញ្ចប់</string>
     <string name="installation_failed">ការដំឡើងបរាជ័យ</string>
     <string name="done">រួចរាល់</string>
-    <string name="installing_droidspaces">កំពុងដំឡើង Droidspaces</string>
-    <string name="backend_installed_success">បានដំឡើងផ្នែកខាងក្រោយ Droidspaces ដោយជោគជ័យ</string>
+    <string name="installing_droidspaces">កំពុងដំឡើង ChDroid</string>
+    <string name="backend_installed_success">បានដំឡើងផ្នែកខាងក្រោយ ChDroid ដោយជោគជ័យ</string>
     <string name="binary_installation_failed">ការដំឡើងប្រព័ន្ធគោលពីរបានបរាជ័យ</string>
     <string name="filter_absolute_path_hint">ត្រង ឬវាយបញ្ចូលផ្លូវដាច់ខាត…</string>
     <string name="no_matches">គ្មាន​ការ​ផ្គូផ្គង​ទេ</string>
@@ -279,7 +279,7 @@
     <string name="supported_abis">ABI ដែលគាំទ្រ</string>
     <string name="loading">កំពុងផ្ទុក...</string>
     <string name="backend_not_available">ផ្នែកខាងក្រោយមិនអាចប្រើបានទេ</string>
-    <string name="backend_not_available_description">កម្មវិធី​ខាងក្រោយ Droidspaces មិន​ត្រូវ​បាន​ដំឡើង ឬ​ខូច​ទេ។ សូម​ដំឡើង​វា​ជាមុន​សិន។</string>
+    <string name="backend_not_available_description">កម្មវិធី​ខាងក្រោយ ChDroid មិន​ត្រូវ​បាន​ដំឡើង ឬ​ខូច​ទេ។ សូម​ដំឡើង​វា​ជាមុន​សិន។</string>
     <string name="root_access_not_available">ការចូលប្រើជា root មិនអាចប្រើបានទេ</string>
     <string name="root_access_not_available_description">ទំព័រនេះត្រូវបានបិទព្រោះមិនអាចចូលប្រើសិទ្ធិជា root បានទេ</string>
     <string name="operation_failed_title">ប្រតិបត្តិការបរាជ័យ</string>
@@ -315,7 +315,7 @@
     <string name="error_hostname_invalid">ឈ្មោះម៉ាស៊ីន (Hostname) អាចមានត្រឹមតែ អក្សរ, លេខ និងសញ្ញាដក (-) តែប៉ុណ្ណោះ</string>
     <string name="check_requirements">ពិនិត្យតម្រូវការ</string>
     <string name="requirements_check_title">ការពិនិត្យលក្ខខណ្ឌតម្រូវ</string>
-    <string name="requirements_for_droidspaces">លក្ខខណ្ឌតម្រូវសម្រាប់ Droidspaces</string>
+    <string name="requirements_for_droidspaces">លក្ខខណ្ឌតម្រូវសម្រាប់ ChDroid</string>
     <string name="requirements_check_completed_successfully">ការពិនិត្យលក្ខខណ្ឌតម្រូវបានជោគជ័យ</string>
     <string name="requirements_check_completed_with_errors">ការពិនិត្យលក្ខខណ្ឌតម្រូវបានបញ្ចប់ ប៉ុន្តែមានកំហុស</string>
     <string name="kernel_requirements_copied">បានចម្លងលក្ខខណ្ឌតម្រូវ Kernel ទៅកាន់ក្តារតម្បៀតខ្ទាស់ហើយ</string>
@@ -327,8 +327,8 @@
     <string name="open_terminal">បើក Terminal</string>
     <string name="select_user_to_enter">ជ្រើសរើសគណនីអ្នកប្រើប្រាស់ដើម្បីចូលទៅក្នុងកុងតឺន័រ៖</string>
     <string name="notification_permission_title">ការអនុញ្ញាតការជូនដំណឹង</string>
-    <string name="notification_permission_rationale">Droidspaces ចាំបាច់ត្រូវបង្ហាញការជូនដំណឹងជាប្រចាំ ដើម្បីរក្សាដំណើរការវគ្គ Terminal របស់អ្នកឱ្យរត់នៅផ្ទៃខាងក្រោយ។ បើគ្មានការអនុញ្ញាតនេះទេ ប្រព័ន្ធ Android (ជាពិសេសនៅលើឧបករណ៍ Samsung) អាចនឹងបិទសេវាកម្ម Terminal ដោយមិនបានរំពឹងទុក។</string>
-    <string name="notification_title">Droidspaces Terminal</string>
+    <string name="notification_permission_rationale">ChDroid ចាំបាច់ត្រូវបង្ហាញការជូនដំណឹងជាប្រចាំ ដើម្បីរក្សាដំណើរការវគ្គ Terminal របស់អ្នកឱ្យរត់នៅផ្ទៃខាងក្រោយ។ បើគ្មានការអនុញ្ញាតនេះទេ ប្រព័ន្ធ Android (ជាពិសេសនៅលើឧបករណ៍ Samsung) អាចនឹងបិទសេវាកម្ម Terminal ដោយមិនបានរំពឹងទុក។</string>
+    <string name="notification_title">ChDroid Terminal</string>
     <string name="notification_action_exit">ចាកចេញ</string>
     <string name="notification_wakelock_on">ទប់ស្កាត់ការរលត់អេក្រង់ (Wake lock)៖ បើក</string>
     <string name="notification_wakelock_off">ទប់ស្កាត់ការរលត់អេក្រង់ (Wake lock)៖ បិទ</string>
@@ -345,7 +345,7 @@
     <string name="resize_dialog_message">កំពុងប្តូរទំហំ Sparse Image សម្រាប់ \"%1$s\"។ ការបង្កើនទំហំគឺមានសុវត្ថិភាពជាងការបង្រួមទំហំ។ សូមចម្លងទុកទិន្នន័យ (Backup) របស់អ្នកជាមុន។</string>
     <string name="starting_migration">កំពុងចាប់ផ្តើមដំណើរការផ្លាស់ទី...</string>
     <string name="starting_resizing">កំពុងចាប់ផ្តើមដំណើរការប្តូរទំហំ...</string>
-    <string name="help_card_title">ទើបតែប្រើប្រាស់ Droidspaces មែនទេ?</string>
+    <string name="help_card_title">ទើបតែប្រើប្រាស់ ChDroid មែនទេ?</string>
     <string name="help_card_message">ចុចទីនេះ ដើម្បីស្វែងយល់ពីរបៀបដំឡើងកុងតឺន័រ Linux ដំបូងរបស់អ្នក!</string>
     <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">របៀប Privileged</string>
@@ -358,19 +358,19 @@
     <string name="privileged_disclaimer">តាមរយៈការបើកដំណើរការជម្រើសទាំងនេះ អ្នកកំពុងធ្វើឱ្យប៉ះពាល់ដល់សន្តិសុខឧបករណ៍របស់អ្នកហើយ។ យើងមិនទទួលខុសត្រូវចំពោះការបាត់បង់ទិន្នន័យ ឧបករណ៍ខូចដំណើរការទាំងស្រុង (Bricked) ឬបញ្ហាបច្ចេកទេសចម្លែកៗ (Weird Bugs) ណាមួយឡើយ។ សូមកុំរាយការណ៍ពីបញ្ហាដែលបានកើតឡើង អំឡុងពេលកំពុងប្រើប្រាស់របៀប (Modes) ទាំងនេះ។</string>
     <string name="privileged_confirm_instruction">វាយពាក្យ \"I WON\'T REPORT ANY BUGS\" ឱ្យបានត្រឹមត្រូវជាអក្សរធំ ដើម្បីបញ្ជាក់៖</string>
     <string name="i_understand_caps">I WON\'T REPORT ANY BUGS</string>
-    <string name="hw_access_disclaimer">ចាប់ផ្តើមពី Droidspaces v6.1.0 ទៅ udevd មានសិទ្ធិចូលប្រើប្រាស់ពិតប្រាកដទៅលើ Subsystems របស់ USB, Block, Input, TTY, និង Network។ កុងតឺន័រ (Container) របស់អ្នកអាចកាន់កាប់ Hardware ដែល Android កំពុងប្រើប្រាស់នាពេលបច្ចុប្បន្នបាន។\n\nប្រសិនបើក្តារចុច (Keyboard) កាត SD ឬឧបករណ៍ USB របស់អ្នកឈប់ដំណើរការនៅក្នុង Android បន្ទាប់ពីបើកដំណើរការកុងតឺន័រ — នោះមិនមែនជាបញ្ហាបច្ចេកទេស (Bug) ឡើយ។ គឺកុងតឺន័របានយកវាទៅប្រើ។ អ្នកបានស្នើសុំសិទ្ធិចូលប្រើប្រាស់ Hardware ពេញលេញដោយខ្លួនឯង។\n\nសូមកុំរាយការណ៍ពីបញ្ហាដែលបង្កឡើងដោយការជម្លោះ Hardware ឬ Kernel Panics អំឡុងពេលកំពុងប្រើប្រាស់របៀប (Mode) នេះ។</string>
+    <string name="hw_access_disclaimer">ចាប់ផ្តើមពី ChDroid v6.1.0 ទៅ udevd មានសិទ្ធិចូលប្រើប្រាស់ពិតប្រាកដទៅលើ Subsystems របស់ USB, Block, Input, TTY, និង Network។ កុងតឺន័រ (Container) របស់អ្នកអាចកាន់កាប់ Hardware ដែល Android កំពុងប្រើប្រាស់នាពេលបច្ចុប្បន្នបាន។\n\nប្រសិនបើក្តារចុច (Keyboard) កាត SD ឬឧបករណ៍ USB របស់អ្នកឈប់ដំណើរការនៅក្នុង Android បន្ទាប់ពីបើកដំណើរការកុងតឺន័រ — នោះមិនមែនជាបញ្ហាបច្ចេកទេស (Bug) ឡើយ។ គឺកុងតឺន័របានយកវាទៅប្រើ។ អ្នកបានស្នើសុំសិទ្ធិចូលប្រើប្រាស់ Hardware ពេញលេញដោយខ្លួនឯង។\n\nសូមកុំរាយការណ៍ពីបញ្ហាដែលបង្កឡើងដោយការជម្លោះ Hardware ឬ Kernel Panics អំឡុងពេលកំពុងប្រើប្រាស់របៀប (Mode) នេះ។</string>
     <string name="read_only">មិនអាចកែបាន</string>
     <string name="repo_not_found_in_repo">រកមិនឃើញទិន្នន័យ %1$s</string>
     <string name="repo_title">ឃ្លាំងផ្ទុក Rootfs</string>
     <string name="repo_fab_label">ឃ្លាំងផ្ទុក</string>
     <string name="repo_refresh">ផ្ទុកឡើងវិញ</string>
-    <string name="repo_banner_text">Rootfs tarballs នៅក្រោម \"Droidspaces developers\" គឺជាកូដបើកចំហ (Open-source) និងមានតម្លាភាព។ អ្នកអាចទាញយកដោយដៃ ឬពិនិត្យមើលការផ្លាស់ប្តូររបស់យើង ដោយចុចលើកាតនេះ។</string>
+    <string name="repo_banner_text">Rootfs tarballs នៅក្រោម \"ChDroid developers\" គឺជាកូដបើកចំហ (Open-source) និងមានតម្លាភាព។ អ្នកអាចទាញយកដោយដៃ ឬពិនិត្យមើលការផ្លាស់ប្តូររបស់យើង ដោយចុចលើកាតនេះ។</string>
     <string name="repo_failed_to_load">មិនអាចផ្ទុកឃ្លាំងផ្ទុកបានទេ</string>
     <string name="repo_download">ទាញយក</string>
     <string name="repo_cancel">បោះបង់</string>
     <string name="repo_install">ដំឡើង</string>
     <string name="repo_retry">ព្យាយាមម្តងទៀត</string>
-    <string name="repo_notification_description">ទាញយក Droidspaces rootfs</string>
+    <string name="repo_notification_description">ទាញយក ChDroid rootfs</string>
     <string name="repo_error_no_assets">រកមិនឃើញ rootfs tarballs នៅក្នុងការចេញផ្សាយចុងក្រោយបំផុតទេ</string>
     <string name="repo_dl_error_unknown">កំហុសមិនស្គាល់ ឬ មានកំហុសមិនស្គាល់អត្តសញ្ញាណ</string>
     <string name="repo_dl_error_file_error">កំហុសប្រព័ន្ធឯកសារ</string>

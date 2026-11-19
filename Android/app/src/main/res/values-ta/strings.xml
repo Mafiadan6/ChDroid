@@ -17,7 +17,7 @@
     <string name="developer_ravindu644_role">பராமரிப்பாளர்</string>
     <string name="save_changes">மாற்றங்களைச் சேமிக்கவும்</string>
     <string name="migrate_dialog_message">\"%1$s\" ஐ ஒரு சிறிய படத்திற்கு மாற்றுவது ஒரு பிரத்யேக ext4 கோப்பு முறைமையை உருவாக்கும். இந்த செயல்பாடு குறுக்கிடப்பட்டால் அழிவுகரமானது. உங்கள் தரவை காப்புப் பிரதி எடுக்கவும்.</string>
-    <string name="help_card_title">Droidspacesக்கு புதியதா?</string>
+    <string name="help_card_title">ChDroidக்கு புதியதா?</string>
     <string name="repo_custom_remove">அகற்று</string>
     <string name="backend_attention_required">பின்தளம்: நடவடிக்கை தேவை</string>
     <string name="unknown_legend">தெரியவில்லை</string>
@@ -52,10 +52,10 @@
     <string name="selinux_permissive_description">SELinux அனுமதியை அமைக்கவும்</string>
     <string name="get_started">தொடங்குங்கள்</string>
     <string name="open_terminal">முனையத்தைத் திறக்கவும்</string>
-    <string name="requirements_for_droidspaces">Droidspaces க்கான தேவைகள்</string>
+    <string name="requirements_for_droidspaces">ChDroid க்கான தேவைகள்</string>
     <string name="privileged_nomask_desc">/proc மற்றும் /sys க்கு எழுதும் அணுகலை அனுமதிக்க சிறை முகமூடிகளை முடக்கவும். குறிப்பு: வன்பொருள் அணுகலும் இயக்கப்பட்டாலன்றி, /sys படிக்க மட்டுமே இருக்கும்.</string>
     <string name="hw_option">HW</string>
-    <string name="hw_access_disclaimer">Droidspaces v6.1.0 இலிருந்து தொடங்கி, udevd ஆனது USB, block, input, TTY மற்றும் பிணைய துணை அமைப்புகளுக்கான உண்மையான அணுகலைக் கொண்டுள்ளது. உங்கள் கன்டெய்னர் ஆண்ட்ராய்டு தற்போது பயன்படுத்தும் வன்பொருளை சொந்தமாக வைத்திருக்க முடியும். \n\nஉங்கள் விசைப்பலகை, SD அட்டை அல்லது USB சாதனம் ஒரு கண்டெய்னரை அறிமுகப்படுத்திய பிறகு ஆண்ட்ராய்டு இல் வேலை செய்வதை நிறுத்தினால் - அது ஒரு பிழை அல்ல. கொள்கலன் அதை எடுத்தது. முழு வன்பொருள் அணுகலைக் கேட்டுள்ளீர்கள். \n\nஇந்த பயன்முறையைப் பயன்படுத்தும் போது வன்பொருள் முரண்பாடுகள் அல்லது கர்னல் பீதியால் ஏற்படும் சிக்கல்களைப் புகாரளிக்க வேண்டாம்.</string>
+    <string name="hw_access_disclaimer">ChDroid v6.1.0 இலிருந்து தொடங்கி, udevd ஆனது USB, block, input, TTY மற்றும் பிணைய துணை அமைப்புகளுக்கான உண்மையான அணுகலைக் கொண்டுள்ளது. உங்கள் கன்டெய்னர் ஆண்ட்ராய்டு தற்போது பயன்படுத்தும் வன்பொருளை சொந்தமாக வைத்திருக்க முடியும். \n\nஉங்கள் விசைப்பலகை, SD அட்டை அல்லது USB சாதனம் ஒரு கண்டெய்னரை அறிமுகப்படுத்திய பிறகு ஆண்ட்ராய்டு இல் வேலை செய்வதை நிறுத்தினால் - அது ஒரு பிழை அல்ல. கொள்கலன் அதை எடுத்தது. முழு வன்பொருள் அணுகலைக் கேட்டுள்ளீர்கள். \n\nஇந்த பயன்முறையைப் பயன்படுத்தும் போது வன்பொருள் முரண்பாடுகள் அல்லது கர்னல் பீதியால் ஏற்படும் சிக்கல்களைப் புகாரளிக்க வேண்டாம்.</string>
     <string name="privileged_full_desc">அனைத்து சலுகை பெற்ற கொடிகளையும் ஒரே நேரத்தில் இயக்கவும்.</string>
     <string name="resize_sparse_image">அரிதான படத்தின் அளவை மாற்றவும்</string>
     <string name="masked_legend">முகமூடி</string>
@@ -77,7 +77,7 @@
     <string name="uninstall_container_menu">கொள்கலனை நிறுவல் நீக்கவும்</string>
     <string name="no_local_users_found">உள்ளக பயனர்கள் இல்லை</string>
     <string name="container_path_placeholder">எ.கா. /mnt/sdcard</string>
-    <string name="installing_droidspaces">Droidspaces ஐ நிறுவுதல்</string>
+    <string name="installing_droidspaces">ChDroid ஐ நிறுவுதல்</string>
     <string name="saved">சேமிக்கப்பட்டது</string>
     <string name="bug_report_title">பிழை அறிக்கை</string>
     <string name="no_containers_installed">கொள்கலன்கள் நிறுவப்படவில்லை</string>
@@ -85,7 +85,7 @@
     <string name="error_gateway_required">நுழைவாயில் கொள்கலனைத் தேர்ந்தெடுக்கவும்</string>
     <string name="feat_init_title">systemd / OpenWrt procd / OpenRC என PID 1</string>
     <string name="ip_address">ஐபி முகவரி</string>
-    <string name="repo_banner_text">\"Droidspaces உருவாக்குபவர்கள்\" கீழ் Rootfs tarballs திறந்த மூல மற்றும் வெளிப்படையானவை. இந்தக் கார்டைத் தட்டுவதன் மூலம் எங்கள் மாற்றங்களை நீங்கள் கைமுறையாகப் பதிவிறக்கலாம் அல்லது ஆய்வு செய்யலாம்.</string>
+    <string name="repo_banner_text">\"ChDroid உருவாக்குபவர்கள்\" கீழ் Rootfs tarballs திறந்த மூல மற்றும் வெளிப்படையானவை. இந்தக் கார்டைத் தட்டுவதன் மூலம் எங்கள் மாற்றங்களை நீங்கள் கைமுறையாகப் பதிவிறக்கலாம் அல்லது ஆய்வு செய்யலாம்.</string>
     <string name="disable_ipv6_description">இந்த கொள்கலனில் IPv6 ஐ முடக்கவும். IPv6 ஐ முடக்குவது ஓச்டில் இயங்கும் VPN பயன்பாடுகளை உடைக்கக்கூடும்.</string>
     <string name="error_gateway_self">ஒரு கொள்கலன் அதன் சொந்த நுழைவாயிலாக இருக்க முடியாது</string>
     <string name="custom_init_option">விருப்ப துவக்கம்</string>
@@ -99,7 +99,7 @@
     <string name="gpu_access_description">GPU முனைகளை தனிமைப்படுத்தப்பட்ட / dev இல் பிரதிபலிக்கவும் (முழு வன்பொருள் பாச்த்ரூ இல்லை)</string>
     <string name="feat_privileged_title">முழு சலுகை பெற்ற கொள்கலன்கள்</string>
     <string name="gateway_iface_hint">eth1</string>
-    <string name="repo_notification_description">Droidspaces rootfs பதிவிறக்கம்</string>
+    <string name="repo_notification_description">ChDroid rootfs பதிவிறக்கம்</string>
     <string name="unknown">தெரியவில்லை</string>
     <string name="error_start_must_be_less_than_end">தொடக்கம் முடிவை விட குறைவாக இருக்க வேண்டும்</string>
     <string name="error_ports_must_be_numbers">துறைமுகங்கள் எண்களாக இருக்க வேண்டும்</string>
@@ -153,11 +153,11 @@
     <string name="init_system_not_available_desc">இந்த கொள்கலனில் systemd, OpenWrt/procd அல்லது OpenRC நிறுவப்படவில்லை</string>
     <string name="octet_label">ஆக்டெட் %1$d</string>
     <string name="feat_containers_desc">LXC, Podman மற்றும் Docker போன்ற அதே கர்னல் பெயர்வெளி தொழில்நுட்பம். எமுலேசன் இல்லை, க்ரூட் இல்லை.</string>
-    <string name="backend_installed_success">Droidspaces பின்தளம் வெற்றிகரமாக நிறுவப்பட்டது</string>
+    <string name="backend_installed_success">ChDroid பின்தளம் வெற்றிகரமாக நிறுவப்பட்டது</string>
     <string name="network_mode">பிணையம் பயன்முறை</string>
     <string name="check_requirements">தேவைகளை சரிபார்க்கவும்</string>
     <string name="source_code">மூலக் குறியீடு</string>
-    <string name="notification_permission_rationale">Droidspaces ஆனது உங்கள் முனைய அமர்வுகளை பின்னணியில் இயங்க வைப்பதற்கு ஒரு நிலையான அறிவிப்பைக் காட்ட வேண்டும். இது இல்லாமல், ஆண்ட்ராய்டு (குறிப்பாக சாம்சங் சாதனங்களில்) எதிர்பாராத விதமாக டெர்மினல் சேவையை அழிக்கக்கூடும்.</string>
+    <string name="notification_permission_rationale">ChDroid ஆனது உங்கள் முனைய அமர்வுகளை பின்னணியில் இயங்க வைப்பதற்கு ஒரு நிலையான அறிவிப்பைக் காட்ட வேண்டும். இது இல்லாமல், ஆண்ட்ராய்டு (குறிப்பாக சாம்சங் சாதனங்களில்) எதிர்பாராத விதமாக டெர்மினல் சேவையை அழிக்கக்கூடும்.</string>
     <string name="uninstall_container_title">கொள்கலனை நிறுவல் நீக்கவா?</string>
     <string name="invalid_number">தவறான எண்</string>
     <string name="filter_absolute_path_hint">முழுமையான பாதையை வடிகட்டவும் அல்லது தட்டச்சு செய்யவும்…</string>
@@ -172,7 +172,7 @@
     <string name="hardware_access">வன்பொருள் அணுகல்</string>
     <string name="back">பின்</string>
     <string name="start_container_first">அதை இங்கே பார்க்க முதலில் ஒரு கொள்கலனைத் தொடங்கவும்</string>
-    <string name="daemon_mode_description">Magisk/APatch, GrapheneOS, போன்றவற்றிலிருந்து seccomp பிளாக்சைத் தவிர்க்க, Droidspaces ஒரு நிலையான கணினி-நிலை டீமானாக இயக்கவும். இது பயனர் இடத்திலிருந்து கட்டளைகளைப் பெற்று இயக்குவதன் மூலம் உயர்-சலுகை செயல்பாடுகளை செயல்படுத்துகிறது (மறுதொடக்கம் தேவை).</string>
+    <string name="daemon_mode_description">Magisk/APatch, GrapheneOS, போன்றவற்றிலிருந்து seccomp பிளாக்சைத் தவிர்க்க, ChDroid ஒரு நிலையான கணினி-நிலை டீமானாக இயக்கவும். இது பயனர் இடத்திலிருந்து கட்டளைகளைப் பெற்று இயக்குவதன் மூலம் உயர்-சலுகை செயல்பாடுகளை செயல்படுத்துகிறது (மறுதொடக்கம் தேவை).</string>
     <string name="reorder_handle">மறுவரிசைப்படுத்த இழுக்கவும்</string>
     <string name="disk_usage_calculating">கணக்கிடுகிறது…</string>
     <string name="gateway_configure_intro">கேட்வேயின் மெய்நிகர் LAN இல் இந்தக் கொள்கலன் எவ்வாறு செருகப்படுகிறது என்பதை இவை கட்டுப்படுத்துகின்றன. இயல்புநிலைகள் ஒரு நுழைவாயிலுக்குப் பின்னால் ஒரு லேனுக்கு வேலை செய்கின்றன - பல லேன் பிரிவுகள் அல்லது ஒன்றுக்கு மேற்பட்ட கேட்வேகளை இயக்கும் போது மட்டுமே அவற்றை மாற்றவும்.</string>
@@ -271,7 +271,7 @@
     <string name="repo_title">ரூட்ஃப்ச் களஞ்சியம்</string>
     <string name="privileged_mode">சலுகை பெற்ற பயன்முறை</string>
     <string name="dns_servers_placeholder">எ.கா. 1.1.1.1,8.8.8.8 (விரும்பினால்)</string>
-    <string name="backend_not_available_description">Droidspaces பின்தளம் நிறுவப்படவில்லை அல்லது சிதைக்கப்படவில்லை. முதலில் அதை நிறுவவும்.</string>
+    <string name="backend_not_available_description">ChDroid பின்தளம் நிறுவப்படவில்லை அல்லது சிதைக்கப்படவில்லை. முதலில் அதை நிறுவவும்.</string>
     <string name="status_running">ஓடுகிறது</string>
     <string name="uptime_label">%1$s: %2$s</string>
     <string name="enable_service">இயக்கு</string>
@@ -282,7 +282,7 @@
     <string name="failed_to_uninstall_container">%1$s கண்டெய்னரை நிறுவல் நீக்குவதில் தோல்வி</string>
     <string name="error_invalid_range_format">தவறான வரம்பு வடிவம் (START-END)</string>
     <string name="terminal">முனையத்தில்</string>
-    <string name="symlink_integration">கணினி பாதையில் Droidspaces ஐ ஒருங்கிணைக்கவும்</string>
+    <string name="symlink_integration">கணினி பாதையில் ChDroid ஐ ஒருங்கிணைக்கவும்</string>
     <string name="operation_failed_title">ஆபரேசன் தோல்வியடைந்தது</string>
     <string name="repo_manager_subtitle">தனிப்பயன் rootfs.json ஊட்டங்களுக்கு குழுசேரவும்.</string>
     <string name="enable_virgl_description">VirGL வழியாக 3D வன்பொருள் முடுக்கத்தை இயக்கவும்</string>
@@ -383,7 +383,7 @@
     <string name="hostname_hint">காலியாக இருந்தால், கொள்கலன் பெயரை ஓச்ட்பெயராகப் பயன்படுத்தும்</string>
     <string name="not_configured">கட்டமைக்கப்படவில்லை</string>
     <string name="failed_to_update_config">உள்ளமைவைப் புதுப்பிக்க முடியவில்லை</string>
-    <string name="about_droidspaces">Droidspaces பற்றி</string>
+    <string name="about_droidspaces">ChDroid பற்றி</string>
     <string name="disk_usage">வட்டு பயன்பாடு</string>
     <string name="installing_container">கொள்கலனை நிறுவுதல்</string>
     <string name="repo_add_custom">தனிப்பயன் களஞ்சியத்தைச் சேர்க்கவும்</string>
@@ -407,7 +407,7 @@
     <string name="requirements">தேவைகள்</string>
     <string name="custom_init_error_absolute">பாதை முழுமையானதாக இருக்க வேண்டும் (/ உடன் தொடங்கவும்)</string>
     <string name="root_unavailable">ரூட் அணுகல் இல்லை.</string>
-    <string name="symlink_integration_description">ஆண்ட்ராய்டு ரூட் செல்லில் droidspaces கட்டளையை அணுக /system/bin இல் ஒரு சிம்லிங்கை உருவாக்கவும். எச்சரிக்கை: உங்கள் மவுண்ட் சிச்டம் ஓவர்லேஃப்ச் மேவு மாட்யூல்களாக இருந்தால், இதை இயக்குவது பூட்லூப்பை ஏற்படுத்துகிறது. மேசிக் மவுண்ட் அடிப்படையிலான மவுண்ட் சிச்டத்தைப் பயன்படுத்தும் போது மட்டுமே இந்த விருப்பத்தைப் பயன்படுத்தவும் (மறுதொடக்கம் தேவை)</string>
+    <string name="symlink_integration_description">ஆண்ட்ராய்டு ரூட் செல்லில் chdroid கட்டளையை அணுக /system/bin இல் ஒரு சிம்லிங்கை உருவாக்கவும். எச்சரிக்கை: உங்கள் மவுண்ட் சிச்டம் ஓவர்லேஃப்ச் மேவு மாட்யூல்களாக இருந்தால், இதை இயக்குவது பூட்லூப்பை ஏற்படுத்துகிறது. மேசிக் மவுண்ட் அடிப்படையிலான மவுண்ட் சிச்டத்தைப் பயன்படுத்தும் போது மட்டுமே இந்த விருப்பத்தைப் பயன்படுத்தவும் (மறுதொடக்கம் தேவை)</string>
     <string name="custom_init_label">தனிப்பயன் தொடக்க பைனரி</string>
     <string name="installation_setup_summary">நிறுவல் சுருக்கம்</string>
     <string name="checking_root">ரூட் அணுகலைச் சரிபார்க்கிறது...</string>
@@ -423,7 +423,7 @@
     <string name="error_unknown">பிழை: %1$s</string>
     <string name="terminal_card_desc">இந்த கொள்கலனுக்குள் ஒரு ஊடாடும் செல்லைத் திறக்கவும்</string>
     <string name="cat_advanced">மேம்பட்ட விருப்பங்கள்</string>
-    <string name="notification_title">Droidspaces டெர்மினல்</string>
+    <string name="notification_title">ChDroid டெர்மினல்</string>
     <string name="system_default">கணினி இயல்புநிலை</string>
     <string name="restart_service">சேவையை மீண்டும் தொடங்கவும்</string>
     <string name="error_gateway_not_installed">இந்த நுழைவாயில் கொள்கலன் நிறுவப்படவில்லை</string>

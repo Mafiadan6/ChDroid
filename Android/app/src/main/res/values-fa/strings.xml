@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="welcome_headline">تجربه Linux واقعی بر روی گوشی خود</string>
-    <string name="welcome_body">Droidspaces توزیع‌های کامل را درون کانتینرها و بر روی کرنل دستگاه شما اجرا می‌کند؛ بدون نیاز به شبیه‌ساز یا ماشین مجازی.</string>
+    <string name="welcome_body">ChDroid توزیع‌های کامل را درون کانتینرها و بر روی کرنل دستگاه شما اجرا می‌کند؛ بدون نیاز به شبیه‌ساز یا ماشین مجازی.</string>
     <string name="get_started">شروع کنید</string>
     <string name="next">بعدی</string>
     <string name="page_counter">%1$d از %2$d</string>
@@ -26,7 +26,7 @@
     <string name="root_denied">دسترسی روت رد شد</string>
     <string name="root_required_message">برای مدیریت کانتینرها، دسترسی روت مورد نیاز است.</string>
     <string name="check_root_access">بررسی دسترسی روت</string>
-    <string name="root_access_body">Droidspaces برای ایجاد کانتینرها به دسترسی روت نیاز دارد. مدیر روت شما از شما می‌خواهد که به آن اجازه دهید.</string>
+    <string name="root_access_body">ChDroid برای ایجاد کانتینرها به دسترسی روت نیاز دارد. مدیر روت شما از شما می‌خواهد که به آن اجازه دهید.</string>
     <string name="skip">رد شدن</string>
     <string name="continue_button">ادامه دادن</string>
     <string name="home_title">صفحه اصلی</string>
@@ -45,7 +45,7 @@
     <string name="backend_not_installed">بک‌اند: نصب‌نشده</string>
     <string name="backend_corrupted">بک‌اند: آسیب‌دیده</string>
     <string name="root_unavailable">دسترسی روت ناموجود است.</string>
-    <string name="grant_root_message">برای ادامه کاوش در droidspaces، دسترسی روت را اعطا کنید!</string>
+    <string name="grant_root_message">برای ادامه کاوش در chdroid، دسترسی روت را اعطا کنید!</string>
     <string name="unknown">ناشناس</string>
     <string name="easter_egg_warning">بک‌اند مشکلی ندارد، نیازی به اسپم کردن آن نیست 🙂</string>
     <string name="easter_egg_reward">خودت خواستیش 🎵</string>
@@ -145,9 +145,9 @@
     <string name="telegram_channel">کانال تلگرام</string>
     <string name="generate_bug_report">ایجاد یک گزارش خطا</string>
     <string name="stopping_container">درحال توقف کانتینر...</string>
-    <string name="about_droidspaces">درباره Droidspaces</string>
+    <string name="about_droidspaces">درباره ChDroid</string>
     <string name="developers">توسعه دهنده(گان)</string>
-    <string name="symlink_integration_description">یک symlink در مسیر \"/system/bin\" ایجاد می‌کند تا بتوانید به دستور \"droidspaces\" از طریق شل روت اندروید دسترسی داشته باشید. هشدار: فعال‌کردن این گزینه در صورت استفاده از سیستم مونت مبتنی بر متاماژول های OverlayFS باعث bootloop می‌شود. این گزینه را فقط در صورت استفاده از سیستم مونت مبتنی بر Magic Mount یا سیستم مونت nomount مبتنی بر کرنل فعال کنید (نیاز به راه‌اندازی مجدد دستگاه)</string>
+    <string name="symlink_integration_description">یک symlink در مسیر \"/system/bin\" ایجاد می‌کند تا بتوانید به دستور \"chdroid\" از طریق شل روت اندروید دسترسی داشته باشید. هشدار: فعال‌کردن این گزینه در صورت استفاده از سیستم مونت مبتنی بر متاماژول های OverlayFS باعث bootloop می‌شود. این گزینه را فقط در صورت استفاده از سیستم مونت مبتنی بر Magic Mount یا سیستم مونت nomount مبتنی بر کرنل فعال کنید (نیاز به راه‌اندازی مجدد دستگاه)</string>
     <string name="pulseaudio_option">PulseAudio</string>
     <string name="selinux_permissive_option">SELinux Permissive</string>
     <string name="volatile_option">Volatile</string>

@@ -142,7 +142,7 @@ fun DroidspacesStatusCard(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = when {
-                        isWorking || status == DroidspacesStatus.UpdateAvailable -> "DROIDSPACES"
+                        isWorking || status == DroidspacesStatus.UpdateAvailable -> "CHDROID"
                         !isRootAvailable -> context.getString(R.string.root_unavailable)
                         kernelBlocked -> context.getString(R.string.kernel_unsupported)
                         status == DroidspacesStatus.NotInstalled -> context.getString(R.string.backend_not_installed)

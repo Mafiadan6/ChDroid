@@ -39,12 +39,12 @@
     <string name="backend_corrupted">الخلفية: تالفة</string>
     <string name="unknown">غير معروف</string>
     <string name="welcome_headline">لينكس حقيقي في هاتفك</string>
-    <string name="welcome_body">Droidspaces يقوم بتشغيل توزيعات كاملة في حاويات داخل نواة جهازك بدون أي محاكاة.</string>
+    <string name="welcome_body">ChDroid يقوم بتشغيل توزيعات كاملة في حاويات داخل نواة جهازك بدون أي محاكاة.</string>
     <string name="next">التالي</string>
     <string name="page_counter">%1$d من أصل %2$d</string>
     <string name="feat_init_title">systemd / OpenWrt procd / OpenRC كـ PID 1</string>
     <string name="root_access_title">صلاحيات الروت</string>
-    <string name="root_access_body">Droidspaces يحتاج الروت لإنشاء الحاويات، مدير الروت سيقوم بسؤالك للسماح به.</string>
+    <string name="root_access_body">ChDroid يحتاج الروت لإنشاء الحاويات، مدير الروت سيقوم بسؤالك للسماح به.</string>
     <string name="root_unavailable">صلاحيات الروت غير متاحة.</string>
     <string name="grant_root_message">اسمح صلاحية الجذر لاستكشاف درويدسبيس !</string>
     <string name="easter_egg_warning">الباك اند يعمل لا يحتاج الى تكرارة</string>

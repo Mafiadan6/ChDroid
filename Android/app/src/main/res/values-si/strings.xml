@@ -23,7 +23,7 @@
     <string name="backend_not_installed">Backend: ස්ථාපනය කර නැත</string>
     <string name="backend_corrupted">Backend: දෝෂ සහිතයි</string>
     <string name="root_unavailable">Root ප්‍රවේශය ලබාගත නොහැක.</string>
-    <string name="grant_root_message">Droidspaces ගවේෂණය කිරීමට Root ප්‍රවේශය ලබා දෙන්න !</string>
+    <string name="grant_root_message">ChDroid ගවේෂණය කිරීමට Root ප්‍රවේශය ලබා දෙන්න !</string>
     <string name="unknown">හඳුනාගත නොහැක</string>
     <string name="update_available_message">Backend යාවත්කාලීනයක් පවතී, යාවත්කාලීන කිරීමට මෙතැන ක්ලික් කරන්න</string>
     <string name="backend_section">Backend</string>
@@ -44,9 +44,9 @@
     <string name="dynamic_color">පද්ධතියේ වර්ණ මාලාව භාවිතා කරන්න</string>
     <string name="dynamic_color_description">Android 12+ Monet තේමාව (Material You) භාවිතා කරන්න</string>
     <string name="daemon_mode">Daemon Mode</string>
-    <string name="daemon_mode_description">Run Droidspaces as a persistent system-level daemon to bypass seccomp blocks from Magisk/APatch, GrapheneOS, etc. This enables high-privilege operations by fetching and running commands from userspace (Reboot required).</string>
+    <string name="daemon_mode_description">Run ChDroid as a persistent system-level daemon to bypass seccomp blocks from Magisk/APatch, GrapheneOS, etc. This enables high-privilege operations by fetching and running commands from userspace (Reboot required).</string>
     <string name="about_section">පිළිබඳව</string>
-    <string name="about_droidspaces">Droidspaces පිළිබඳව</string>
+    <string name="about_droidspaces">ChDroid පිළිබඳව</string>
     <string name="about_description">ඇන්ඩ්‍රොයිඩ් වලින් Linux containers කළමනාකරණය කරමු !</string>
     <string name="developers">සංවර්ධකයින්</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -172,8 +172,8 @@
     <string name="next_storage">මීළඟ පියවර: ආචායනය</string>
     <string name="installation_complete">ස්ථාපනය සම්පූර්ණයි</string>
     <string name="installation_failed">ස්ථාපනය අසාර්ථක විය</string>
-    <string name="installing_droidspaces">Droidspaces ස්ථාපනය වෙමින් පවතී</string>
-    <string name="backend_installed_success">Droidspaces backend එක සාර්ථකව ස්ථාපනය කරන ලදී</string>
+    <string name="installing_droidspaces">ChDroid ස්ථාපනය වෙමින් පවතී</string>
+    <string name="backend_installed_success">ChDroid backend එක සාර්ථකව ස්ථාපනය කරන ලදී</string>
     <string name="binary_installation_failed">Backend එක ස්ථාපනය අසාර්ථක විය</string>
     <string name="no_containers_running">කිසිඳු කන්ටේනරයක් ධාවනය නොවේ</string>
     <string name="start_container_first">මෙතන බලන්න මුලින්ම කන්ටේනරයක් ආරම්භ කරන්න</string>
@@ -214,7 +214,7 @@
     <string name="supported_abis">සහාය දක්වන ABI</string>
     <string name="loading">පූරණය වෙමින්...</string>
     <string name="backend_not_available">Backend එක නොමැත</string>
-    <string name="backend_not_available_description">Droidspaces backend එක ස්ථාපනය කර නොමැත හෝ විකෘති වී නැත. කරුණාකර, පළමුව එය ස්ථාපනය කරන්න.</string>
+    <string name="backend_not_available_description">ChDroid backend එක ස්ථාපනය කර නොමැත හෝ විකෘති වී නැත. කරුණාකර, පළමුව එය ස්ථාපනය කරන්න.</string>
     <string name="root_access_not_available">Root ප්‍රවේශය නොමැත</string>
     <string name="root_access_not_available_description">Root ප්‍රවේශය නොමැති බැවින් මෙම පිටුව අක්‍රිය කර ඇත</string>
     <string name="operation_failed_title">ක්‍රියාව අසාර්ථක විය</string>
@@ -249,7 +249,7 @@
     <string name="error_hostname_invalid">සත්කාරක නාමයේ අඩංගු විය හැක්කේ අකුරු, අංක සහ ඉරි (-) පමණි</string>
     <string name="check_requirements">අවශ්‍යතා පරීක්ෂා කරන්න</string>
     <string name="requirements_check_title">අවශ්‍යතා පරීක්ෂාව</string>
-    <string name="requirements_for_droidspaces">Droidspaces සඳහා අවශ්‍යතා පරීක්ෂා කරන්න</string>
+    <string name="requirements_for_droidspaces">ChDroid සඳහා අවශ්‍යතා පරීක්ෂා කරන්න</string>
     <string name="requirements_check_completed_successfully">අවශ්‍යතා පරීක්ෂාව සාර්ථකව නිම කරන ලදී</string>
     <string name="requirements_check_completed_with_errors">අවශ්‍යතා පරීක්ෂාව දෝෂ සහිතව සම්පූර්ණ කර ඇත</string>
     <string name="kernel_requirements_copied">කර්නල් අවශ්‍යතාclipboard එකට පිටපත් කරන ලදී</string>
@@ -260,7 +260,7 @@
     <string name="open_terminal">ටර්මිනලය විවෘත කරන්න</string>
     <string name="select_user_to_enter">කන්ටේනරයට ඇතුළු වීමට පරිශීලකයා තෝරන්න:</string>
     <string name="notification_permission_title">Notifications සඳහා අවසරය</string>
-    <string name="notification_permission_rationale">Droidspaces ටර්මිනලය පසුබිමේ ක්‍රියා කරවීම සඳහා මෙම උපාංගයෙන් notification අවසරය අත්‍යාවශ්‍ය වේ. නැතහොත්, ඇන්ඩ්‍රොයිඩ් මගින් ඔබ විවෘත කළ ටර්මිනල වසා දැමීමට ඉඩ ඇත.</string>
+    <string name="notification_permission_rationale">ChDroid ටර්මිනලය පසුබිමේ ක්‍රියා කරවීම සඳහා මෙම උපාංගයෙන් notification අවසරය අත්‍යාවශ්‍ය වේ. නැතහොත්, ඇන්ඩ්‍රොයිඩ් මගින් ඔබ විවෘත කළ ටර්මිනල වසා දැමීමට ඉඩ ඇත.</string>
     <string name="migrate_to_sparse_image">Sparse image ක්‍රමයට මාරු වෙන්න</string>
     <string name="resize_sparse_image">Sparse image එකේ ප්‍රමාණය වෙනස් කරන්න</string>
     <string name="migrate_dialog_title">Sparse image ක්‍රමයට මාරු වෙන්න</string>
@@ -269,7 +269,7 @@
     <string name="resize_dialog_message">මෙහිදී, \"%1$s\" කන්ටේනරයේ sparse image එකෙහි ප්‍රමාණය වෙනස් කෙරේ. ප්‍රමාණය වැඩි කිරීම හැකිලීමට වඩා ආරක්ෂිත වේ. මෙය සිදු කිරීමට පෙර, කරුණාකර ඔබගේ දත්ත backup කර ගන්න.</string>
     <string name="starting_migration">Migrate ක්‍රියාවලිය ආරම්භ කරමින්...</string>
     <string name="starting_resizing">ප්‍රමාණය වෙනස් කිරීමේ ක්‍රියාවලිය ආරම්භ කරමින්...</string>
-    <string name="help_card_title">Droidspaces වලට අලුත් ද?</string>
+    <string name="help_card_title">ChDroid වලට අලුත් ද?</string>
     <string name="help_card_message">ඔබේ පළමු Linux කන්ටේනරය සකසන්නේ කෙසේදැයි ඉගෙන ගැනීමට මෙතන ක්ලික් කරන්න!</string>
     <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
     <string name="app_name" translatable="false">ChDroid</string>
@@ -282,8 +282,8 @@
     <string name="options">විකල්ප</string>
     <string name="gpu_access">GPU ප්‍රවේශය</string>
     <string name="gpu_access_description">සම්පූර්ණ Hardware Passthrough එකක් සිදු නොකර, GPU nodes පමණක් හුදකලා වූ /dev නාමාවලියක නිර්මාණය කිරීම</string>
-    <string name="symlink_integration">Droidspaces, system path එකට එකතු කරන්න</string>
-    <string name="symlink_integration_description">Android root shell එක හරහා droidspaces විධානය භාවිතා කිරීමට /system/bin තුළ symlink එකක් සාදන්න. අවවාදයයි: ඔබගේ mount පද්ධතිය OverlayFS meta modules මත පදනම් වූවක් නම්, මෙය සක්‍රීය කිරීමෙන් Bootloop ඇති විය හැක. මෙම විකල්පය Magic Mount මත පදනම් වූ mount පද්ධති සඳහා පමණක් භාවිතා කරන්න (Reboot කිරීමක් අවශ්‍ය වේ)</string>
+    <string name="symlink_integration">ChDroid, system path එකට එකතු කරන්න</string>
+    <string name="symlink_integration_description">Android root shell එක හරහා chdroid විධානය භාවිතා කිරීමට /system/bin තුළ symlink එකක් සාදන්න. අවවාදයයි: ඔබගේ mount පද්ධතිය OverlayFS meta modules මත පදනම් වූවක් නම්, මෙය සක්‍රීය කිරීමෙන් Bootloop ඇති විය හැක. මෙම විකල්පය Magic Mount මත පදනම් වූ mount පද්ධති සඳහා පමණක් භාවිතා කරන්න (Reboot කිරීමක් අවශ්‍ය වේ)</string>
     <string name="feat_containers_title">සත්‍ය Linux කන්ටේනර්</string>
     <string name="feat_containers_desc">Same kernel namespace tech as LXC, Podman and Docker. No emulation, no chroot.</string>
     <string name="feat_overhead_title">Zero overhead</string>

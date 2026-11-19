@@ -330,7 +330,7 @@
     <string name="repo_not_found_in_repo">%1$s はリポジトリ内では見つかりませんでした</string>
     <string name="please_wait_hint">要求を処理しています。しばらくお待ちください…</string>
     <string name="restore">復元</string>
-    <string name="notification_title">Droidspaces ターミナル</string>
+    <string name="notification_title">ChDroid ターミナル</string>
     <string name="notification_action_exit">終了</string>
     <string name="notification_wakelock_on">画面起動ロック: 有効</string>
     <string name="notification_wakelock_off">画面起動ロック: 無効</string>

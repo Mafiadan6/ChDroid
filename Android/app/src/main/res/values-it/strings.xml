@@ -30,7 +30,7 @@
     <string name="backend_not_installed">Backend: Non installato</string>
     <string name="backend_corrupted">Backend: Corrotto</string>
     <string name="root_unavailable">L\'accesso root non è disponibile.</string>
-    <string name="grant_root_message">Concedi l\'accesso root per continuare a esplorare Droidspaces !</string>
+    <string name="grant_root_message">Concedi l\'accesso root per continuare a esplorare ChDroid !</string>
     <string name="unknown">Sconosciuto</string>
     <string name="update_available_message">Aggiornamento backend disponibile, clicca qui per aggiornare</string>
     <!-- Settings Screen -->
@@ -52,11 +52,11 @@
     <string name="dynamic_color">Applica la palette di colori predefinita del sistema</string>
     <string name="dynamic_color_description">Usa il tema Monet di Android 12+ (Material You)</string>
     <string name="daemon_mode">Modalità Daemon</string>
-    <string name="daemon_mode_description">Esegui Droidspaces come daemon persistente a livello di sistema per bypassare i blocchi seccomp di Magisk/APatch, GrapheneOS, ecc. Questo abilita operazioni ad alto privilegio recuperando ed eseguendo comandi dallo spazio utente (Riavvio richiesto).</string>
-    <string name="symlink_integration">Integra Droidspaces nel percorso di sistema</string>
-    <string name="symlink_integration_description">Crea un symlink in /system/bin per accedere al comando droidspaces nella shell root Android. ATTENZIONE: ABILITARE QUESTO CAUSA UN BOOTLOOP SE IL TUO SISTEMA DI MOUNT È OVERLAYFS meta modules. Usa questa opzione solo con un sistema di mount basato su Magic Mount o un sistema di montaggio nomount basato sul kernel (Riavvio richiesto)</string>
+    <string name="daemon_mode_description">Esegui ChDroid come daemon persistente a livello di sistema per bypassare i blocchi seccomp di Magisk/APatch, GrapheneOS, ecc. Questo abilita operazioni ad alto privilegio recuperando ed eseguendo comandi dallo spazio utente (Riavvio richiesto).</string>
+    <string name="symlink_integration">Integra ChDroid nel percorso di sistema</string>
+    <string name="symlink_integration_description">Crea un symlink in /system/bin per accedere al comando chdroid nella shell root Android. ATTENZIONE: ABILITARE QUESTO CAUSA UN BOOTLOOP SE IL TUO SISTEMA DI MOUNT È OVERLAYFS meta modules. Usa questa opzione solo con un sistema di mount basato su Magic Mount o un sistema di montaggio nomount basato sul kernel (Riavvio richiesto)</string>
     <string name="about_section">Informazioni</string>
-    <string name="about_droidspaces">Informazioni su Droidspaces</string>
+    <string name="about_droidspaces">Informazioni su ChDroid</string>
     <string name="about_description">Gestore di contenitori LXC-Style per Android</string>
     <string name="developers">Sviluppatore/i</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -199,8 +199,8 @@
     <!-- Installation Screen -->
     <string name="installation_complete">Installazione completata</string>
     <string name="installation_failed">Installazione fallita</string>
-    <string name="installing_droidspaces">Installazione di Droidspaces</string>
-    <string name="backend_installed_success">Backend Droidspaces installato con successo</string>
+    <string name="installing_droidspaces">Installazione di ChDroid</string>
+    <string name="backend_installed_success">Backend ChDroid installato con successo</string>
     <string name="binary_installation_failed">Installazione del binario fallita</string>
     <!-- Control Panel Screen -->
     <string name="no_containers_running">Nessun contenitore in esecuzione</string>
@@ -245,7 +245,7 @@
     <string name="loading">Caricamento...</string>
     <!-- Empty State -->
     <string name="backend_not_available">Backend non disponibile</string>
-    <string name="backend_not_available_description">Il backend Droidspaces non è installato o è corrotto. Installalo prima.</string>
+    <string name="backend_not_available_description">Il backend ChDroid non è installato o è corrotto. Installalo prima.</string>
     <string name="root_access_not_available">Accesso root non disponibile</string>
     <string name="root_access_not_available_description">Questa pagina è disabilitata poiché l\'accesso root non è disponibile</string>
     <!-- Dialog Utils -->
@@ -290,7 +290,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Verifica requisiti</string>
     <string name="requirements_check_title">Verifica Requisiti</string>
-    <string name="requirements_for_droidspaces">Requisiti per Droidspaces</string>
+    <string name="requirements_for_droidspaces">Requisiti per ChDroid</string>
     <string name="requirements_check_completed_successfully">Verifica dei requisiti completata con successo</string>
     <string name="requirements_check_completed_with_errors">Verifica dei requisiti completata con errori</string>
     <string name="kernel_requirements_copied">Requisiti del kernel copiati negli appunti</string>
@@ -303,7 +303,7 @@
     <string name="select_user_to_enter">Seleziona l\'utente con cui accedere al contenitore:</string>
     <!-- Notification Permission -->
     <string name="notification_permission_title">Permesso Notifiche</string>
-    <string name="notification_permission_rationale">Droidspaces deve mostrare una notifica persistente per mantenere le sessioni del terminale in esecuzione in background. Senza questo, Android (specialmente sui dispositivi Samsung) potrebbe terminare inaspettatamente il servizio del terminale.</string>
+    <string name="notification_permission_rationale">ChDroid deve mostrare una notifica persistente per mantenere le sessioni del terminale in esecuzione in background. Senza questo, Android (specialmente sui dispositivi Samsung) potrebbe terminare inaspettatamente il servizio del terminale.</string>
     <!-- Sparse Image Management -->
     <string name="migrate_to_sparse_image">Migra verso una sparse image</string>
     <string name="resize_sparse_image">Ridimensiona la sparse image</string>
@@ -313,7 +313,7 @@
     <string name="resize_dialog_message">Ridimensionamento della sparse image per \"%1$s\". Aumentare la dimensione è più sicuro che ridurla. Esegui un backup dei tuoi dati.</string>
     <string name="starting_migration">Avvio operazione di migrazione...</string>
     <string name="starting_resizing">Avvio operazione di ridimensionamento...</string>
-    <string name="help_card_title">Nuovo su Droidspaces?</string>
+    <string name="help_card_title">Nuovo su ChDroid?</string>
     <string name="help_card_message">Tocca qui per imparare come configurare il tuo primo contenitore Linux!</string>
     <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">Modalità Privilegiata</string>
@@ -378,10 +378,10 @@
     <string name="cgroup_v1_option">Cgroup V1</string>
     <string name="privileged_option">Privilegiato</string>
     <string name="custom_init_warning">Non modificare questo valore a meno che non si sappia esattamente cosa si sta facendo. L\'impostazione di un binario init errato impedirà l\'avvio del contenitore.</string>
-    <string name="hw_access_disclaimer">A partire da Droidspaces v6.1.0, udevd ha accesso effettivo ai sottosistemi USB, a blocchi, di input, TTY e di rete. Il tuo contenitore può avere il controllo dell\'hardware attualmente in uso da Android.\n\nSe la tastiera, la scheda SD o il dispositivo USB smettono di funzionare su Android dopo l\'avvio di un contenitore, NON si tratta di un bug. Il contenitore ne ha preso il controllo. Hai richiesto l\'accesso completo all\'hardware.\n\nNON segnalare problemi causati da conflitti hardware o kernel panic durante l\'utilizzo di questa modalità.</string>
+    <string name="hw_access_disclaimer">A partire da ChDroid v6.1.0, udevd ha accesso effettivo ai sottosistemi USB, a blocchi, di input, TTY e di rete. Il tuo contenitore può avere il controllo dell\'hardware attualmente in uso da Android.\n\nSe la tastiera, la scheda SD o il dispositivo USB smettono di funzionare su Android dopo l\'avvio di un contenitore, NON si tratta di un bug. Il contenitore ne ha preso il controllo. Hai richiesto l\'accesso completo all\'hardware.\n\nNON segnalare problemi causati da conflitti hardware o kernel panic durante l\'utilizzo di questa modalità.</string>
     <string name="custom_init_option">Init personalizzato</string>
     <string name="repo_retry">Riprova</string>
-    <string name="repo_notification_description">Download Droidspaces rootfs</string>
+    <string name="repo_notification_description">Download ChDroid rootfs</string>
     <string name="repo_refresh">Aggiorna</string>
     <string name="repo_dl_error_not_found">File non trovato (404)</string>
     <string name="network_mode_host_short">Host</string>
@@ -410,13 +410,13 @@
     <string name="custom_init_error_absolute">Il percorso deve essere assoluto (inizia con /)</string>
     <string name="custom_init_label">Binario Init personalizzato</string>
     <string name="repo_dl_error_unknown">Errore sconosciuto</string>
-    <string name="notification_title">Terminale Droidspaces</string>
+    <string name="notification_title">Terminale ChDroid</string>
     <string name="welcome_headline">Linux reale sul tuo telefono</string>
-    <string name="welcome_body">Droidspaces esegue distribuzioni complete all\'interno di container, sfruttando il kernel del tuo dispositivo. Nessun emulatore, nessuna macchina virtuale.</string>
+    <string name="welcome_body">ChDroid esegue distribuzioni complete all\'interno di container, sfruttando il kernel del tuo dispositivo. Nessun emulatore, nessuna macchina virtuale.</string>
     <string name="next">Prossimo</string>
     <string name="page_counter">%1$d di %2$d</string>
     <string name="root_access_title">Accesso root</string>
-    <string name="root_access_body">Droidspaces richiede i privilegi di root per creare container. Il tuo gestore root ti chiederà di concedere l\'autorizzazione.</string>
+    <string name="root_access_body">ChDroid richiede i privilegi di root per creare container. Il tuo gestore root ti chiederà di concedere l\'autorizzazione.</string>
     <string name="easter_egg_warning">Il backend è a posto, non c\'è bisogno di spammare 🙂</string>
     <string name="easter_egg_reward">Te la sei cercata 🎵</string>
     <string name="termux_requirements">Requisiti Termux</string>
@@ -553,7 +553,7 @@
     <string name="bind_mounts_intro">Cartelle sul telefono che appaiono all\'interno del contenitore.</string>
     <string name="debugging_section">Debugging</string>
     <string name="repo_custom_remove">Rimuovere</string>
-    <string name="repo_notification_permission_rationale">Droidspaces mostra l\'avanzamento del download, un pulsante Annulla e una notifica su cui è possibile toccare per procedere all\'installazione una volta completato il download. Il download prosegue comunque anche senza questi elementi, semplicemente, non li visualizzerai.</string>
+    <string name="repo_notification_permission_rationale">ChDroid mostra l\'avanzamento del download, un pulsante Annulla e una notifica su cui è possibile toccare per procedere all\'installazione una volta completato il download. Il download prosegue comunque anche senza questi elementi, semplicemente, non li visualizzerai.</string>
     <string name="storage_location_needs_space">Qui è richiesto almeno %1$d GB di spazio libero.</string>
     <string name="unknown_legend">Sconosciuto</string>
     <string name="repo_storage_permission_rationale">Gli archivi tar della rootfs vengono salvati nella cartella Download, su questa versione di Android, ciò richiede l\'accesso alla memoria. Senza tale permesso, il download non può avviarsi.</string>
@@ -579,12 +579,12 @@
     <string name="reload_service">Ricarica servizio</string>
     <string name="override_placeholder">[Service]\nEnvironment=FOO=bar</string>
     <string name="add_container">Aggiungi contenitore</string>
-    <string name="repo_banner_text">I tarball del rootfs di \"Droidspaces developers\" sono open source e trasparenti. Puoi scaricare manualmente i file o esaminare le nostre modifiche toccando questa scheda.</string>
+    <string name="repo_banner_text">I tarball del rootfs di \"ChDroid developers\" sono open source e trasparenti. Puoi scaricare manualmente i file o esaminare le nostre modifiche toccando questa scheda.</string>
     <string name="network_mode_gateway_desc">Tramite un altro container che funge da router</string>
     <string name="saving_override">Salvataggio dell\'override…</string>
     <string name="experimental_section">Sperimentale</string>
     <string name="storage_location_custom">Scegli una cartella</string>
-    <string name="app_update_message">Droidspaces %1$s è pronto. Tocca per aprire la release su GitHub.</string>
+    <string name="app_update_message">ChDroid %1$s è pronto. Tocca per aprire la release su GitHub.</string>
     <string name="discard_edits_title">Scartare le modifiche?</string>
     <string name="export_container_title">Esporta %1$s</string>
     <string name="network_mode_host_desc">Condivide la rete del telefono</string>
@@ -659,12 +659,12 @@
     <string name="network_summary_macvlan">Su %1$s</string>
     <string name="property_enablement">Abilitazione</string>
     <string name="fetching_distros">Recupero delle distribuzioni dal repo rootfs...</string>
-    <string name="kernel_unsupported_description">Questa pagina è disabilitata perché a questo kernel mancano funzionalità necessarie a Droidspaces</string>
+    <string name="kernel_unsupported_description">Questa pagina è disabilitata perché a questo kernel mancano funzionalità necessarie a ChDroid</string>
     <string name="network_mode_none_desc">Nessuna rete, solo loopback</string>
     <string name="repo_custom_url_hint">URL rootfs.json</string>
     <string name="storage_location_fs_only">%1$s</string>
     <string name="properties_section">Proprietà</string>
-    <string name="backend_installed_unsupported_kernel">Il backend di Droidspaces è stato installato correttamente, ma questo kernel non supporta Droidspaces.</string>
+    <string name="backend_installed_unsupported_kernel">Il backend di ChDroid è stato installato correttamente, ma questo kernel non supporta ChDroid.</string>
     <string name="host_port">Porta host</string>
     <string name="storage_location_checking">Controllo questa posizione...</string>
     <string name="installing_backend_message">Configurazione del backend in corso. Ci vorrà un attimo.</string>
@@ -693,7 +693,7 @@
     <string name="journal_line_count_label">Linee</string>
     <string name="override_removed">Override rimosso.</string>
     <string name="repo_add_custom">Aggiungi Repository Personalizzato</string>
-    <string name="kernel_unsupported_message">Tocca per scoprire come configurare il kernel per Droidspaces.</string>
+    <string name="kernel_unsupported_message">Tocca per scoprire come configurare il kernel per ChDroid.</string>
     <string name="property_cpu_time">Tempo CPU (ns)</string>
     <string name="not_now">Non adesso</string>
     <string name="inspect_unit">Ispeziona unità</string>

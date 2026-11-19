@@ -30,7 +30,7 @@
     <string name="backend_not_installed">Backend: Nicht installiert</string>
     <string name="backend_corrupted">Backend: Beschädigt</string>
     <string name="root_unavailable">Root-Zugriff ist nicht verfügbar.</string>
-    <string name="grant_root_message">Root-Zugriff gewähren, um Droidspaces weiter zu verwenden!</string>
+    <string name="grant_root_message">Root-Zugriff gewähren, um ChDroid weiter zu verwenden!</string>
     <string name="unknown">Unbekannt</string>
     <string name="update_available_message">Backend-Update verfügbar - zum Aktualisieren hier tippen</string>
     <!-- Settings Screen -->
@@ -52,7 +52,7 @@
     <string name="dynamic_color">System-Standardfarbpalette anwenden</string>
     <string name="dynamic_color_description">Android 12+ Monet-Theming (Material You) verwenden</string>
     <string name="about_section">Über</string>
-    <string name="about_droidspaces">Über Droidspaces</string>
+    <string name="about_droidspaces">Über ChDroid</string>
     <string name="about_description">LXC-ähnlicher Container-Manager für Android</string>
     <string name="developers">Entwickler</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -137,8 +137,8 @@
     <!-- Installation Screen -->
     <string name="installation_complete">Installation abgeschlossen</string>
     <string name="installation_failed">Installation fehlgeschlagen</string>
-    <string name="installing_droidspaces">Droidspaces wird installiert</string>
-    <string name="backend_installed_success">Droidspaces-Backend erfolgreich installiert</string>
+    <string name="installing_droidspaces">ChDroid wird installiert</string>
+    <string name="backend_installed_success">ChDroid-Backend erfolgreich installiert</string>
     <string name="binary_installation_failed">Binary-Installation fehlgeschlagen</string>
     <!-- Control Panel Screen -->
     <string name="no_containers_running">Keine laufenden Container</string>
@@ -183,7 +183,7 @@
     <string name="loading">Wird geladen...</string>
     <!-- Empty State -->
     <string name="backend_not_available">Backend nicht verfügbar</string>
-    <string name="backend_not_available_description">Droidspaces-Backend ist nicht installiert oder beschädigt. Bitte zuerst installieren.</string>
+    <string name="backend_not_available_description">ChDroid-Backend ist nicht installiert oder beschädigt. Bitte zuerst installieren.</string>
     <string name="root_access_not_available">Root-Zugriff nicht verfügbar</string>
     <string name="root_access_not_available_description">Diese Seite ist deaktiviert, da Root-Zugriff nicht verfügbar ist</string>
     <!-- Dialog Utils -->
@@ -228,7 +228,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Anforderungen prüfen</string>
     <string name="requirements_check_title">Anforderungsprüfung</string>
-    <string name="requirements_for_droidspaces">Anforderungen für Droidspaces</string>
+    <string name="requirements_for_droidspaces">Anforderungen für ChDroid</string>
     <string name="requirements_check_completed_successfully">Anforderungsprüfung erfolgreich abgeschlossen</string>
     <string name="requirements_check_completed_with_errors">Anforderungsprüfung mit Fehlern abgeschlossen</string>
     <string name="kernel_requirements_copied">Kernel-Anforderungen in die Zwischenablage kopiert</string>
@@ -254,9 +254,9 @@
     <string name="kernel_requirements_gki">Anforderungen an GKI-Kernel (&gt;=5.4)</string>
     <string name="guide">Anleitung</string>
     <string name="daemon_mode">Daemon Modus</string>
-    <string name="daemon_mode_description">Führt Droidspaces als permanenten Daemon auf Systemebene aus, um Seccomp-Sperren von Magisk/APatch, GrapheneOS usw. zu umgehen. Dies ermöglicht Vorgänge mit hohen Berechtigungen, indem Befehle aus dem Userspace abgerufen und ausgeführt werden (Neustart erforderlich).</string>
-    <string name="symlink_integration">Droidspaces in den Systempfad integrieren</string>
-    <string name="symlink_integration_description">Erstellt einen Symlink unter /system/bin, um in der Android-Root-Shell auf den Befehl „droidspaces“ zugreifen zu können. WARNUNG: DIE AKTIVIERUNG DIESER OPTION FÜHRT ZU EINEM BOOTLOOP, WENN IHR MOUNT-SYSTEM AUF OVERLAYFS-Meta-Modulen BASIERT. Verwenden Sie diese Option nur, wenn Sie ein auf Magic Mount basierendes Mount-System nutzen (Neustart erforderlich)</string>
+    <string name="daemon_mode_description">Führt ChDroid als permanenten Daemon auf Systemebene aus, um Seccomp-Sperren von Magisk/APatch, GrapheneOS usw. zu umgehen. Dies ermöglicht Vorgänge mit hohen Berechtigungen, indem Befehle aus dem Userspace abgerufen und ausgeführt werden (Neustart erforderlich).</string>
+    <string name="symlink_integration">ChDroid in den Systempfad integrieren</string>
+    <string name="symlink_integration_description">Erstellt einen Symlink unter /system/bin, um in der Android-Root-Shell auf den Befehl „chdroid“ zugreifen zu können. WARNUNG: DIE AKTIVIERUNG DIESER OPTION FÜHRT ZU EINEM BOOTLOOP, WENN IHR MOUNT-SYSTEM AUF OVERLAYFS-Meta-Modulen BASIERT. Verwenden Sie diese Option nur, wenn Sie ein auf Magic Mount basierendes Mount-System nutzen (Neustart erforderlich)</string>
     <string name="source_code">Quellcode</string>
     <string name="generate_bug_report">Fehlerbericht erstellen</string>
     <string name="generate_bug_report_description">Systeminformationen und Protokolle zur Fehlerbehebung erfassen</string>
@@ -357,8 +357,8 @@
     <string name="open_terminal">Terminal öffnen</string>
     <string name="select_user_to_enter">Benutzer auswählen, mit welcher der Container aufgerufen werden soll:</string>
     <string name="notification_permission_title">Benachrichtigungsberechtigung</string>
-    <string name="notification_permission_rationale">Droidspaces muss eine permanente Benachrichtigung anzeigen, damit die Terminalsitzungen im Hintergrund weiterlaufen können. Ohne diese Benachrichtigung könnte Android (insbesondere auf Samsung-Geräten) den Terminaldienst unerwartet beenden.</string>
-    <string name="notification_title">Droidspaces Terminal</string>
+    <string name="notification_permission_rationale">ChDroid muss eine permanente Benachrichtigung anzeigen, damit die Terminalsitzungen im Hintergrund weiterlaufen können. Ohne diese Benachrichtigung könnte Android (insbesondere auf Samsung-Geräten) den Terminaldienst unerwartet beenden.</string>
+    <string name="notification_title">ChDroid Terminal</string>
     <string name="notification_action_exit">BEENDEN</string>
     <string name="notification_wakelock_on">Wake Lock: EIN</string>
     <string name="notification_wakelock_off">Wake Lock: AUS</string>
@@ -375,7 +375,7 @@
     <string name="resize_dialog_message">Die Größe des Sparse-Images für \"%1$s“ wird angepasst. Eine Vergrößerung ist sicherer als eine Verkleinerung. Bitte sichern Sie Ihre Daten.</string>
     <string name="starting_migration">Migrationsvorgang wird gestartet...</string>
     <string name="starting_resizing">Größenänderung wird gestartet...</string>
-    <string name="help_card_title">Neu bei Droidspaces?</string>
+    <string name="help_card_title">Neu bei ChDroid?</string>
     <string name="help_card_message">Hier tippen, um zu erfahren, wie Sie Ihren ersten Linux-Container einrichten!</string>
     <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">Privilegierter Modus</string>
@@ -383,11 +383,11 @@
     <string name="privileged_nocaps_desc">Auf keinerlei Linux-Funktionen verzichten (vollständige Root-Rechte).</string>
     <string name="privileged_noseccomp_desc">Seccomp-Syscall-Filterung deaktivieren. Dadurch werden erweiterte Kernel-Funktionen wie nicht privilegierte Benutzernamensräume aktiviert, die für verschachtelte Sandboxing-Umgebungen (Bubblewrap, Flatpak) zwingend erforderlich sind, und es wird das Laden von Kernel-Modulen außerhalb des Kernel-Baums ermöglicht.</string>
     <string name="i_understand_caps">ICH WERDE KEINE FEHLER MELDEN</string>
-    <string name="hw_access_disclaimer">Ab Droidspaces v6.1.0 hat udevd direkten Zugriff auf die USB-, Block-, Eingabe-, TTY- und Netzwerk-Subsysteme. Dein Container kann Hardware nutzen, die Android gerade verwendet.\n\nWenn Ihre Tastatur, SD-Karte oder Ihr USB-Gerät nach dem Starten eines Containers unter Android nicht mehr funktioniert, handelt es sich dabei NICHT um einen Fehler. Der Container hat die Kontrolle übernommen. Sie haben um vollen Hardwarezugriff gebeten.\n\nMelden Sie KEINE Probleme, die durch Hardwarekonflikte oder Kernel-Panic während der Nutzung dieses Modus verursacht werden.</string>
+    <string name="hw_access_disclaimer">Ab ChDroid v6.1.0 hat udevd direkten Zugriff auf die USB-, Block-, Eingabe-, TTY- und Netzwerk-Subsysteme. Dein Container kann Hardware nutzen, die Android gerade verwendet.\n\nWenn Ihre Tastatur, SD-Karte oder Ihr USB-Gerät nach dem Starten eines Containers unter Android nicht mehr funktioniert, handelt es sich dabei NICHT um einen Fehler. Der Container hat die Kontrolle übernommen. Sie haben um vollen Hardwarezugriff gebeten.\n\nMelden Sie KEINE Probleme, die durch Hardwarekonflikte oder Kernel-Panic während der Nutzung dieses Modus verursacht werden.</string>
     <string name="privileged_full_desc">Alle Berechtigungsflags auf einmal aktivieren.</string>
     <string name="privileged_warning_title">GEFÄHRLICHE EINSTELLUNGEN</string>
     <string name="repo_retry">Wiederholen</string>
-    <string name="repo_notification_description">Droidspaces rootfs herunterladen</string>
+    <string name="repo_notification_description">ChDroid rootfs herunterladen</string>
     <string name="repo_refresh">Aktualisieren</string>
     <string name="privileged_disclaimer">Durch die Aktivierung dieser Optionen gefährden Sie die Sicherheit Ihres Geräts. Wir übernehmen KEINE Haftung für Datenverluste, unbrauchbar gewordene Geräte oder seltsame Fehler. Bitte melden Sie KEINE Probleme, die bei der Nutzung dieser Modi auftreten.</string>
     <string name="repo_dl_error_not_found">Datei nicht gefunden (404)</string>
@@ -408,7 +408,7 @@
     <string name="repo_status_failed">FEHLGESCHLAGEN</string>
     <string name="repo_dl_error_unknown">Unbekannter Fehler</string>
     <string name="repo_not_found_in_repo">%1$s nicht in der Repository gefunden</string>
-    <string name="repo_banner_text">Die Rootfs-Tarballs unter \"Droidspaces developers“ sind Open Source und transparent. Du kannst unsere Änderungen manuell herunterladen oder einsehen, indem du auf diese Karte tippst.</string>
+    <string name="repo_banner_text">Die Rootfs-Tarballs unter \"ChDroid developers“ sind Open Source und transparent. Du kannst unsere Änderungen manuell herunterladen oder einsehen, indem du auf diese Karte tippst.</string>
     <string name="repo_add_custom">Benutzerdefiniertes Repository hinzufügen</string>
     <string name="repo_manage_custom">Repositories verwalten</string>
     <string name="repo_manager_subtitle">Benutzerdefinierte rootfs.json-Feeds abonnieren.</string>
