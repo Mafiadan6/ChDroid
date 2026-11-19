@@ -36,7 +36,7 @@ object UbuntuChrootManager {
     /** Start the namespace and mounts without consuming a terminal. */
     suspend fun start(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            check(isInstalled()) { "Ubuntu-Chroot CLI is not installed" }
+            check(isInstalled()) { "rootfs is not installed" }
             val result = Shell.cmd(
                 "sh '${Constants.UBUNTU_CHROOT_SCRIPT}' start --no-shell 2>&1"
             ).exec()
@@ -62,14 +62,14 @@ object UbuntuChrootManager {
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val zip = FilePickerUtils.realPath(context, zipUri) ?: run {
-                logger.i("Copying Ubuntu-Chroot ZIP to temporary location...")
-                val copy = File("${context.cacheDir}/ubuntu-chroot-cli.zip")
+                logger.i("Copying rootfs ZIP to temporary location...")
+                val copy = File("${context.cacheDir}/chdroid-rootfs.zip")
                 context.contentResolver.openInputStream(zipUri)?.use { input ->
                     FileOutputStream(copy).use { input.copyTo(it) }
-                } ?: throw Exception("Failed to open Ubuntu-Chroot ZIP")
+                } ?: throw Exception("Failed to open rootfs ZIP")
                 copy.absolutePath
             }
-            logger.i("Ubuntu-Chroot ZIP: $zip")
+            logger.i("rootfs ZIP: $zip")
 
             val installer = ContainerInstaller.deployAsset(context, "install_ubuntu_chroot_cli.sh")
             try {
@@ -87,8 +87,8 @@ object UbuntuChrootManager {
                 if (!result.isSuccess) {
                     throw Exception(result.err.joinToString("\n").ifEmpty { "CLI install failed" })
                 }
-                check(isInstalled()) { "installer finished but Ubuntu-Chroot CLI is not usable" }
-                logger.i("Ubuntu-Chroot CLI ready at ${Constants.UBUNTU_CHROOT_SCRIPT}")
+                check(isInstalled()) { "installer finished but rootfs is not usable" }
+                logger.i("rootfs ready at ${Constants.UBUNTU_CHROOT_SCRIPT}")
             } finally {
                 installer.delete()
             }

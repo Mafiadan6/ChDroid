@@ -791,8 +791,8 @@
     <string name="keep_editing">Keep editing</string>
 
     <!-- ChDroid rootfs sources -->
-    <string name="chdroid_rootfs_title">Ubuntu rootfs</string>
-    <string name="chdroid_rootfs_fab">Get Ubuntu rootfs</string>
+    <string name="chdroid_rootfs_title">Rootfs</string>
+    <string name="chdroid_rootfs_fab">Get rootfs</string>
     <string name="chdroid_rootfs_download">Download</string>
     <string name="chdroid_rootfs_download_size">Download (%1$s MB)</string>
     <string name="chdroid_rootfs_size_mb">%1$d MB</string>
@@ -806,9 +806,9 @@
     <string name="chdroid_rootfs_add_link">Download link</string>
     <string name="chdroid_rootfs_import">Import from file</string>
     <string name="chdroid_rootfs_note">ZIP files install straight to /data/local/ubuntu-chroot. Files stay in Downloads until you remove them.</string>
-    <string name="chdroid_install_title">Installing Ubuntu chroot</string>
+    <string name="chdroid_install_title">Installing %1$s</string>
     <string name="chdroid_install_running">Installing the CLI release and rootfs…</string>
-    <string name="chdroid_install_done">Ubuntu chroot is ready. Open the terminal to use it.</string>
+    <string name="chdroid_install_done">%1$s is ready. Open the terminal to use it.</string>
     <string name="chdroid_install_failed">Install failed</string>
     <string name="chdroid_install_logs">Install log</string>
     <string name="chdroid_install_back">Done</string>

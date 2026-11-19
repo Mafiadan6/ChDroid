@@ -28,7 +28,20 @@ import com.droidspaces.app.util.UbuntuChrootManager
 
 private enum class ChDroidInstallPhase { INSTALLING, DONE, ERROR }
 
-/** Direct Ubuntu-Chroot CLI ZIP install. No Droidspaces container wizard. */
+/**
+ * Friendly distro label from the release filename, used only for display. The
+ * install itself is distro-agnostic — the ZIP's manifest and rootfs decide what
+ * actually lands in /data/local/ubuntu-chroot.
+ */
+private fun rootfsLabel(uri: Uri): String {
+    val file = uri.lastPathSegment.orEmpty().substringBefore('?')
+    val clean = file.substringBeforeLast('.').ifBlank { "rootfs" }
+    val known = listOf("Artix", "Arch", "Ubuntu", "Alpine", "Debian", "Kali", "OpenWrt", "Azure", "Fedora")
+    return known.firstOrNull { clean.contains(it, ignoreCase = true) }
+        ?: clean.replace('-', ' ').replace('_', ' ')
+}
+
+/** Direct rootfs ZIP install. No Droidspaces container wizard. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChDroidInstallScreen(
@@ -36,6 +49,7 @@ fun ChDroidInstallScreen(
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    val label = remember(zipUri) { rootfsLabel(zipUri) }
     val logs = remember { mutableStateListOf<String>() }
     val phase = remember { mutableStateOf(ChDroidInstallPhase.INSTALLING) }
     val error = remember { mutableStateOf("") }
@@ -46,10 +60,10 @@ fun ChDroidInstallScreen(
 
     LaunchedEffect(zipUri) {
         if (phase.value != ChDroidInstallPhase.INSTALLING || logs.isNotEmpty()) return@LaunchedEffect
-        logger.i("Installing Ubuntu-Chroot CLI from ${zipUri}")
+        logger.i("Installing $label from ${zipUri.lastPathSegment.orEmpty()}")
         val result = UbuntuChrootManager.install(context, zipUri, logger)
         if (result.isSuccess) {
-            logger.i("Ubuntu-Chroot CLI ready")
+            logger.i("$label ready")
             phase.value = ChDroidInstallPhase.DONE
         } else {
             error.value = result.exceptionOrNull()?.message.orEmpty()
@@ -60,7 +74,7 @@ fun ChDroidInstallScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text(context.getString(R.string.chdroid_install_title)) })
+            TopAppBar(title = { Text(context.getString(R.string.chdroid_install_title, label)) })
         }
     ) { padding ->
         Column(
@@ -75,7 +89,7 @@ fun ChDroidInstallScreen(
                     style = MaterialTheme.typography.titleMedium
                 )
                 ChDroidInstallPhase.DONE -> Text(
-                    text = context.getString(R.string.chdroid_install_done),
+                    text = context.getString(R.string.chdroid_install_done, label),
                     style = MaterialTheme.typography.titleMedium
                 )
                 ChDroidInstallPhase.ERROR -> {
