@@ -789,4 +789,27 @@
     <string name="upstream_max">Up to %1$d interfaces. Untick one to add another.</string>
     <string name="bind_path_separator">Paths cannot contain , or :</string>
     <string name="keep_editing">Keep editing</string>
+
+    <!-- ChDroid rootfs sources -->
+    <string name="chdroid_rootfs_title">Ubuntu rootfs</string>
+    <string name="chdroid_rootfs_fab">Get Ubuntu rootfs</string>
+    <string name="chdroid_rootfs_download">Download</string>
+    <string name="chdroid_rootfs_download_size">Download (%1$s MB)</string>
+    <string name="chdroid_rootfs_size_mb">%1$d MB</string>
+    <string name="chdroid_rootfs_downloading">Downloading %1$d%%</string>
+    <string name="chdroid_rootfs_cancel">Cancel</string>
+    <string name="chdroid_rootfs_install">Install</string>
+    <string name="chdroid_rootfs_retry">Retry</string>
+    <string name="chdroid_rootfs_from_link">Download from a link</string>
+    <string name="chdroid_rootfs_url_hint">https://example.com/rootfs.zip</string>
+    <string name="chdroid_rootfs_invalid_url">Enter an http:// or https:// link</string>
+    <string name="chdroid_rootfs_add_link">Download link</string>
+    <string name="chdroid_rootfs_import">Import from file</string>
+    <string name="chdroid_rootfs_note">ZIP files install straight to /data/local/ubuntu-chroot. Files stay in Downloads until you remove them.</string>
+    <string name="chdroid_install_title">Installing Ubuntu chroot</string>
+    <string name="chdroid_install_running">Installing the CLI release and rootfs…</string>
+    <string name="chdroid_install_done">Ubuntu chroot is ready. Open the terminal to use it.</string>
+    <string name="chdroid_install_failed">Install failed</string>
+    <string name="chdroid_install_logs">Install log</string>
+    <string name="chdroid_install_back">Done</string>
 </resources>

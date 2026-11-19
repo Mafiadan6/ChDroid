@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.sp
 
 /**
  * Small "status pill": a colored dot + bold label in a tinted rounded chip.
- * Previously copy-pasted verbatim in ContainerCard, DroidspacesStatusCard and
- * RootfsRepoSheet. The caller supplies the already-formatted [label] (some sites
+ * Previously copy-pasted verbatim in ContainerCard and DroidspacesStatusCard.
+ * The caller supplies the already-formatted [label] (some sites
  * uppercase it, some don't) and the accent [color].
  *
  * [busy] spins the dot in place while an operation runs. It deliberately occupies

@@ -55,28 +55,6 @@ object RootfsRepository {
     private const val CONNECT_TIMEOUT = 10_000
     private const val READ_TIMEOUT    = 15_000
 
-    /*
-     * Ubuntu-Chroot CLI v4.4 is the only release this fork targets. The ZIP is
-     * the Magisk module: it carries rootfs.tar.gz plus chroot.sh and busybox.
-     * We install those files directly - no module flash, no boot script.
-     */
-    private const val UC_VERSION = "v4.4"
-    private const val UC_TAG = "20260323"
-    private const val UC_RELEASE =
-        "https://github.com/ravindu644/Ubuntu-Chroot/releases/download/$UC_VERSION"
-    private val UBUNTU_CHROOT_ASSET = RootfsAsset(
-        name = "Ubuntu Chroot 24.04 (CLI)",
-        description = "Ubuntu-Chroot $UC_VERSION CLI: chroot manager + Ubuntu 24.04 rootfs. " +
-            "Installed to /data/local/ubuntu-chroot and driven by the app's terminal.",
-        architecture = "aarch64",
-        downloadUrl = "$UC_RELEASE/Ubuntu-Chroot-$UC_VERSION-$UC_TAG-CLI.zip",
-        sizeBytes = 537_517_628L,
-        buildDate = UC_TAG,
-        author = "ravindu644 · Ubuntu-Chroot",
-        sourceRepoName = "Ubuntu-Chroot $UC_VERSION (CLI)"
-    )
-    private val UBUNTU_CHROOT_ASSETS = listOf(UBUNTU_CHROOT_ASSET)
-
     suspend fun fetchAllAssets(context: Context): RepoResult = withContext(Dispatchers.IO) {
         val prefs = PreferencesManager.getInstance(context)
         val customRepos = prefs.getCustomRepos()
@@ -91,10 +69,6 @@ object RootfsRepository {
 
         val allAssets = mutableListOf<RootfsAsset>()
         val errors = mutableListOf<String>()
-
-        // Always present, even offline: the fork's target rootfs and the reason
-        // it is here. The network repos below are additive.
-        allAssets.addAll(UBUNTU_CHROOT_ASSETS)
 
         results.forEach { result ->
             when (result) {

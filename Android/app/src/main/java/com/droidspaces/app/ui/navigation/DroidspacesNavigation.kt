@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -34,6 +35,7 @@ import com.droidspaces.app.ui.screen.SparseImageConfigScreen
 import com.droidspaces.app.ui.screen.ContainerConfigScreen
 import com.droidspaces.app.ui.screen.InstallationSummaryScreen
 import com.droidspaces.app.ui.screen.InstallationProgressScreen
+import com.droidspaces.app.ui.screen.ChDroidInstallScreen
 import com.droidspaces.app.ui.screen.EditContainerScreen
 import com.droidspaces.app.ui.screen.ContainerDetailsScreen
 import com.droidspaces.app.ui.screen.SystemdScreen
@@ -85,6 +87,11 @@ sealed class Screen(val route: String) {
     data object ContainerConfig : Screen("container_config")
     data object InstallationSummary : Screen("installation_summary")
     data object InstallationProgress : Screen("installation_progress")
+
+    // ChDroid CLI ZIP install: no Droidspaces container wizard.
+    data object ChDroidInstall : Screen("chdroid_install/{zipUri}") {
+        fun createRoute(zipUri: String) = "chdroid_install/${Uri.encode(zipUri)}"
+    }
 
     // Container editing screen
     data object EditContainer : Screen("edit_container/{containerName}") {
@@ -149,6 +156,7 @@ fun DroidspacesNavigation(
     onShortcutHandled: () -> Unit = {}
 ) {
     val context = LocalContext.current
+    val navScope = rememberCoroutineScope()
     val prefsManager = remember { PreferencesManager.getInstance(context) }
 
     // Tab requested by a launcher shortcut (Containers / Panel). Fed into
@@ -185,11 +193,17 @@ fun DroidspacesNavigation(
         if (prefsManager.isSetupCompleted) {
             when {
                 // Tap on a "download complete" notification, carries the tarball's URI
-                shortcut.startsWith("install:") -> navController.navigate(
-                    Screen.ContainerName.createRoute(shortcut.removePrefix("install:"))
-                ) {
-                    popUpTo(Screen.Home.route) { inclusive = false }
-                    launchSingleTop = true
+                shortcut.startsWith("install:") -> navScope.launch {
+                    val uriString = shortcut.removePrefix("install:")
+                    val isCliZip = FilePickerUtils.getFileName(context, Uri.parse(uriString))
+                        ?.endsWith(".zip", ignoreCase = true) == true
+                    navController.navigate(
+                        if (isCliZip) Screen.ChDroidInstall.createRoute(uriString)
+                        else Screen.ContainerName.createRoute(uriString)
+                    ) {
+                        popUpTo(Screen.Home.route) { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
                 shortcut == "settings" -> navController.navigate(Screen.Settings.route) {
                     popUpTo(Screen.Home.route) { inclusive = false }
@@ -328,7 +342,14 @@ fun DroidspacesNavigation(
                     navController.navigate(Screen.Installation.route)
                 },
                 onNavigateToContainerInstallation = { uri ->
-                    navController.navigate(Screen.ContainerName.createRoute(uri.toString()))
+                    navScope.launch {
+                        val isCliZip = FilePickerUtils.getFileName(context, uri)
+                            ?.endsWith(".zip", ignoreCase = true) == true
+                        navController.navigate(
+                            if (isCliZip) Screen.ChDroidInstall.createRoute(uri.toString())
+                            else Screen.ContainerName.createRoute(uri.toString())
+                        )
+                    }
                 },
                 onNavigateToEditContainer = { containerName ->
                     navController.navigate(Screen.EditContainer.createRoute(containerName))
@@ -339,6 +360,18 @@ fun DroidspacesNavigation(
                 onNavigateToTerminal = { containerName ->
                     navController.navigate(Screen.Terminal.createRoute(containerName))
                 }
+            )
+        }
+
+        // ChDroid CLI ZIP install - no container wizard
+        composable(
+            route = Screen.ChDroidInstall.route,
+            arguments = listOf(navArgument("zipUri") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val zipUri = Uri.parse(backStackEntry.arguments?.getString("zipUri").orEmpty())
+            ChDroidInstallScreen(
+                zipUri = zipUri,
+                onBack = { navController.popBackStack() }
             )
         }
 

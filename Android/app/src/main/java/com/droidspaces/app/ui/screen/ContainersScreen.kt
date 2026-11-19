@@ -67,7 +67,7 @@ import com.droidspaces.app.ui.component.EmptyState
 import com.droidspaces.app.ui.component.ErrorState
 import com.droidspaces.app.ui.component.KernelUnsupportedState
 import com.droidspaces.app.ui.component.RootUnavailableState
-import com.droidspaces.app.ui.component.RootfsRepoSheet
+import com.droidspaces.app.ui.component.ChDroidRootfsSheet
 import com.droidspaces.app.ui.viewmodel.ContainerViewModel
 import com.droidspaces.app.ui.viewmodel.ContainerOperationsViewModel
 import com.droidspaces.app.ui.viewmodel.UninstallState
@@ -108,7 +108,7 @@ fun ContainersScreen(
     var pendingExportContainer by remember { mutableStateOf<ContainerInfo?>(null) }
     var pendingExportEnv by remember { mutableStateOf(false) }
     var askExportEnv by remember { mutableStateOf<ContainerInfo?>(null) }
-    var showRepoSheet by remember { mutableStateOf(false) }
+    var showRootfsSheet by remember { mutableStateOf(false) }
     var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     // File picker launcher - CreateDocument for saving the export archive
@@ -134,8 +134,11 @@ fun ContainersScreen(
     ) { uri: Uri? ->
         if (uri != null) {
             scope.launch {
-                val (isValid, fileName) = FilePickerUtils.isValidTarball(context, uri)
-                if (isValid && fileName != null) {
+                val fileName = FilePickerUtils.getFileName(context, uri)
+                // ChDroid installs the Ubuntu-Chroot CLI ZIP directly, no container wizard.
+                val isCliZip = fileName?.endsWith(".zip", ignoreCase = true) == true
+                val (isValid, checkedName) = FilePickerUtils.isValidTarball(context, uri)
+                if (isCliZip || (isValid && checkedName != null)) {
                     onNavigateToInstallation(uri)
                 } else {
                     val errorMessage = if (fileName != null) {
@@ -301,10 +304,10 @@ fun ContainersScreen(
                 FloatingActionButtonMenuItem(
                     onClick = {
                         fabMenuExpanded = false
-                        showRepoSheet = true
+                        showRootfsSheet = true
                     },
                     icon = { Icon(Icons.Default.CloudDownload, contentDescription = null) },
-                    text = { Text(context.getString(R.string.repo_fab_label)) }
+                    text = { Text(context.getString(R.string.chdroid_rootfs_fab)) }
                 )
                 // Last item, nearest the thumb. TalkBack reaches the close button before the
                 // first item, so the last one offers a close action of its own.
@@ -328,13 +331,17 @@ fun ContainersScreen(
             }
         }
 
-        // Repo bottom sheet
-        if (showRepoSheet) {
+        // ChDroid rootfs sources: built-in link, custom link, file import
+        if (showRootfsSheet) {
             val orientation = LocalConfiguration.current.orientation
             key(orientation) {
-                RootfsRepoSheet(
-                    onDismiss = { showRepoSheet = false },
-                    onInstall = { uri -> onNavigateToInstallation(uri) }
+                ChDroidRootfsSheet(
+                    onDismiss = { showRootfsSheet = false },
+                    onInstall = { uri -> onNavigateToInstallation(uri) },
+                    onImport = {
+                        showRootfsSheet = false
+                        filePickerLauncher.launch("*/*")
+                    }
                 )
             }
         }
