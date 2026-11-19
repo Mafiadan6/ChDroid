@@ -30,7 +30,7 @@ object RootSessionManager {
 
     /**
      * Start the Droidspaces backend by hand. The Ubuntu chroot itself is driven
-     * by UbuntuChrootManager; this keeps the app's backend status honest.
+     * by ChDroidRootfsManager; this keeps the app's backend status honest.
      */
     suspend fun ensureDaemon(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {

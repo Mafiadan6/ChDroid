@@ -63,7 +63,7 @@ import com.droidspaces.app.util.SymlinkInstaller
 import com.droidspaces.app.util.DeviceArch
 import com.droidspaces.app.util.HostCapabilities
 import com.droidspaces.app.util.RootSessionManager
-import com.droidspaces.app.util.UbuntuChrootManager
+import com.droidspaces.app.util.ChDroidRootfsManager
 import androidx.core.content.edit
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -242,7 +242,7 @@ fun SettingsScreen(
                     enabled = isRootAvailable,
                     onClick = {
                         scope.launch {
-                            val text = UbuntuChrootManager.start().fold(
+                            val text = ChDroidRootfsManager.start().fold(
                                 onSuccess = { context.getString(R.string.uc_started) },
                                 onFailure = { it.message ?: context.getString(R.string.uc_failed) }
                             )
@@ -260,7 +260,7 @@ fun SettingsScreen(
                     enabled = isRootAvailable,
                     onClick = {
                         scope.launch {
-                            val text = UbuntuChrootManager.stop().fold(
+                            val text = ChDroidRootfsManager.stop().fold(
                                 onSuccess = { context.getString(R.string.uc_stopped) },
                                 onFailure = { it.message ?: context.getString(R.string.uc_failed) }
                             )
@@ -278,7 +278,7 @@ fun SettingsScreen(
                     icon = Icons.Default.Terminal,
                     title = context.getString(R.string.uc_open_terminal),
                     summary = context.getString(R.string.uc_open_terminal_description),
-                    value = UbuntuChrootManager.terminalCommand(),
+                    value = ChDroidRootfsManager.terminalCommand(),
                     enabled = isRootAvailable,
                     onClick = {
                         scope.launch {

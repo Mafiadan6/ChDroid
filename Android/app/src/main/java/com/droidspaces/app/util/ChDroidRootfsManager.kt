@@ -18,20 +18,37 @@ import java.util.zip.ZipInputStream
  * chroot's namespace, mounts, DNS and login shell all come from chroot.sh -
  * Droidspaces is only the UI and the terminal in this mode.
  */
-object UbuntuChrootManager {
+object ChDroidRootfsManager {
 
     /** True when the CLI manager and a usable rootfs are on the device. */
     suspend fun isInstalled(): Boolean = withContext(Dispatchers.IO) {
         Shell.cmd(
-            "test -x '${Constants.UBUNTU_CHROOT_SCRIPT}' && " +
-                "test -x '${Constants.UBUNTU_CHROOT_ROOTFS}/bin/sh'"
+            "test -x '${Constants.CHDROID_ROOTFS_SCRIPT}' && " +
+                "test -x '${Constants.CHDROID_ROOTFS_DIR}/bin/sh'"
         ).exec().isSuccess
     }
 
     suspend fun status(): String = withContext(Dispatchers.IO) {
         if (!isInstalled()) return@withContext "not installed"
-        Shell.cmd("sh '${Constants.UBUNTU_CHROOT_SCRIPT}' status 2>&1").exec()
+        Shell.cmd("sh '${Constants.CHDROID_ROOTFS_SCRIPT}' status 2>&1").exec()
             .out.joinToString(" ").trim().ifEmpty { "unknown" }
+    }
+
+    /** Distro id written by the installer into the rootfs base. */
+    suspend fun distro(): String = withContext(Dispatchers.IO) {
+        Shell.cmd("cat '${Constants.CHDROID_ROOTFS_BASE}/distro-id' 2>/dev/null").exec()
+            .out.firstOrNull()?.trim().orEmpty()
+    }
+
+    /**
+     * Hostname baked into the installed rootfs, not a hardcoded app value.
+     * Ubuntu ships /etc/hostname; Arch does not, so fall back to the distro id
+     * recorded at install time, which is still a property of the installed tarball.
+     */
+    suspend fun hostname(): String = withContext(Dispatchers.IO) {
+        val baked = Shell.cmd("head -n 1 '${Constants.CHDROID_ROOTFS_DIR}/etc/hostname' 2>/dev/null").exec()
+            .out.firstOrNull()?.trim().orEmpty()
+        baked.ifEmpty { distro().ifEmpty { "localhost" } }
     }
 
     /** Start the namespace and mounts without consuming a terminal. */
@@ -39,7 +56,7 @@ object UbuntuChrootManager {
         runCatching {
             check(isInstalled()) { "rootfs is not installed" }
             val result = Shell.cmd(
-                "sh '${Constants.UBUNTU_CHROOT_SCRIPT}' start --no-shell 2>&1"
+                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell 2>&1"
             ).exec()
             val output = result.out.joinToString("\n").trim()
             if (!result.isSuccess) throw Exception(output.ifEmpty { "chroot start failed" })
@@ -48,7 +65,7 @@ object UbuntuChrootManager {
 
     suspend fun stop(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val result = Shell.cmd("sh '${Constants.UBUNTU_CHROOT_SCRIPT}' stop 2>&1").exec()
+            val result = Shell.cmd("sh '${Constants.CHDROID_ROOTFS_SCRIPT}' stop 2>&1").exec()
             if (!result.isSuccess) {
                 throw Exception(result.out.joinToString("\n").ifEmpty { "chroot stop failed" })
             }
@@ -127,7 +144,7 @@ object UbuntuChrootManager {
                     throw Exception(result.err.joinToString("\n").ifEmpty { "CLI install failed" })
                 }
                 check(isInstalled()) { "installer finished but rootfs is not usable" }
-                logger.i("rootfs ready at ${Constants.UBUNTU_CHROOT_SCRIPT}")
+                logger.i("rootfs ready at ${Constants.CHDROID_ROOTFS_SCRIPT}")
             } finally {
                 installer.delete()
             }
@@ -135,5 +152,5 @@ object UbuntuChrootManager {
     }
 
     /** Printed in the terminal-facing Settings row. */
-    fun terminalCommand(): String = "sh '${Constants.UBUNTU_CHROOT_SCRIPT}' start root"
+    fun terminalCommand(): String = "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root"
 }

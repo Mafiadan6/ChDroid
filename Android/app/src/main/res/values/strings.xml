@@ -119,19 +119,19 @@
     <string name="uc_daemon_running">daemon running</string>
     <string name="uc_daemon_failed">daemon failed to start</string>
     <string name="uc_install_helper">Install root-shell helper</string>
-    <string name="uc_install_helper_description">Copies ubuntu-chroot-bootstrap.sh into the in-app terminal\'s PATH.</string>
+    <string name="uc_install_helper_description">Copies the root-shell helper into the in-app terminal path.</string>
     <string name="uc_helper_installed">helper ready: %1$s</string>
     <string name="uc_helper_failed">could not install the root-shell helper</string>
-    <string name="uc_open_terminal">Open Ubuntu terminal</string>
-    <string name="uc_open_terminal_description">Opens the app\'s terminal directly in the Ubuntu chroot via chroot.sh.</string>
-    <string name="uc_terminal_hostname">ubuntu</string>
-    <string name="uc_start">Start Ubuntu chroot</string>
-    <string name="uc_start_description">Set up the namespace and mounts through Ubuntu-Chroot\'s own chroot.sh, without entering a shell.</string>
-    <string name="uc_started">Ubuntu chroot started</string>
-    <string name="uc_stop">Stop Ubuntu chroot</string>
+    <string name="uc_open_terminal">Open ChDroid terminal</string>
+    <string name="uc_open_terminal_description">Opens the app\'s terminal directly in the installed rootfs via chroot.sh.</string>
+    <string name="uc_terminal_hostname">chdroid</string>
+    <string name="uc_start">Start rootfs</string>
+    <string name="uc_start_description">Set up the namespace and mounts through chroot.sh, without entering a shell.</string>
+    <string name="uc_started">Rootfs started</string>
+    <string name="uc_stop">Stop rootfs</string>
     <string name="uc_stop_description">Kill chroot processes and unmount the environment.</string>
-    <string name="uc_stopped">Ubuntu chroot stopped</string>
-    <string name="uc_failed">Ubuntu chroot command failed</string>
+    <string name="uc_stopped">Rootfs stopped</string>
+    <string name="uc_failed">Rootfs command failed</string>
     <string name="symlink_integration">Integrate ChDroid to the system path</string>
     <string name="symlink_integration_description">Create a symlink at /system/bin to access the chdroid command in Android root shell. WARNING: ENABLING THIS CAUSES BOOTLOOP IF YOUR MOUNT SYSTEM IS OVERLAYFS meta modules. Only use this option when using Magic Mount-based mount system or kernel based "nomount" mount system (Reboot required)</string>
     <string name="about_section">About</string>
@@ -812,4 +812,12 @@
     <string name="chdroid_install_failed">Install failed</string>
     <string name="chdroid_install_logs">Install log</string>
     <string name="chdroid_install_back">Done</string>
+    <!-- Installed-rootfs card in the Containers tab -->
+    <string name="chdroid_rootfs_card_title">ChDroid rootfs</string>
+    <string name="chdroid_rootfs_card_path">/data/local/ubuntu-chroot</string>
+    <string name="chdroid_rootfs_card_terminal">Terminal</string>
+    <string name="chdroid_rootfs_card_start">Start</string>
+    <string name="chdroid_rootfs_card_stop">Stop</string>
+    <string name="chdroid_rootfs_card_running">Running</string>
+    <string name="chdroid_rootfs_card_stopped">Stopped</string>
 </resources>

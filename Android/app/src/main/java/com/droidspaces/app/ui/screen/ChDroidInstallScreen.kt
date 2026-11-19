@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.droidspaces.app.R
 import com.droidspaces.app.util.FilePickerUtils
 import com.droidspaces.app.util.ViewModelLogger
-import com.droidspaces.app.util.UbuntuChrootManager
+import com.droidspaces.app.util.ChDroidRootfsManager
 
 private enum class ChDroidInstallPhase { INSTALLING, DONE, ERROR }
 
@@ -67,7 +67,7 @@ fun ChDroidInstallScreen(
             ?: zipUri.lastPathSegment.orEmpty()
         label.value = rootfsLabel(fileName)
         logger.i("Installing ${label.value} from $fileName")
-        val result = UbuntuChrootManager.install(context, zipUri, logger)
+        val result = ChDroidRootfsManager.install(context, zipUri, logger)
         if (result.isSuccess) {
             logger.i("${label.value} ready")
             phase.value = ChDroidInstallPhase.DONE

@@ -68,6 +68,8 @@ import com.droidspaces.app.ui.component.ErrorState
 import com.droidspaces.app.ui.component.KernelUnsupportedState
 import com.droidspaces.app.ui.component.RootUnavailableState
 import com.droidspaces.app.ui.component.ChDroidRootfsSheet
+import com.droidspaces.app.ui.component.ChDroidRootfsCard
+import com.droidspaces.app.util.ChDroidRootfsManager
 import com.droidspaces.app.ui.viewmodel.ContainerViewModel
 import com.droidspaces.app.ui.viewmodel.ContainerOperationsViewModel
 import com.droidspaces.app.ui.viewmodel.UninstallState
@@ -87,6 +89,7 @@ fun ContainersScreen(
     onNavigateToInstallation: (Uri) -> Unit = {},
     onNavigateToEditContainer: (String) -> Unit = {},
     onNavigateToContainerDetails: (String) -> Unit = {},
+    onOpenChDroidTerminal: () -> Unit = {},
     containerViewModel: ContainerViewModel,
     expandedContainerName: String?,
     onExpandedContainerNameChange: (String?) -> Unit,
@@ -110,6 +113,47 @@ fun ContainersScreen(
     var askExportEnv by remember { mutableStateOf<ContainerInfo?>(null) }
     var showRootfsSheet by remember { mutableStateOf(false) }
     var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
+
+    // The ChDroid CLI rootfs lives at /data/local/ubuntu-chroot, outside the
+    // Droidspaces container directory, so it needs its own listing and actions.
+    var chdroidInstalled by remember { mutableStateOf(false) }
+    var chdroidRunning by remember { mutableStateOf(false) }
+    var chdroidDistro by remember { mutableStateOf("") }
+    var chdroidBusy by remember { mutableStateOf(false) }
+
+    suspend fun loadChdroidRootfs() {
+        val installed = ChDroidRootfsManager.isInstalled()
+        chdroidInstalled = installed
+        if (!installed) {
+            chdroidDistro = ""
+            chdroidRunning = false
+            return
+        }
+        val distro = ChDroidRootfsManager.distro()
+        chdroidDistro = distro.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        chdroidRunning = ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
+    }
+
+    // Re-read on mount and whenever a pull-to-refresh settles.
+    LaunchedEffect(containerViewModel.isRefreshing) {
+        if (!containerViewModel.isRefreshing) loadChdroidRootfs()
+    }
+
+    fun chdroidAction(start: Boolean) = scope.launch {
+        chdroidBusy = true
+        val result = if (start) ChDroidRootfsManager.start() else ChDroidRootfsManager.stop()
+        chdroidBusy = false
+        result.fold(
+            onSuccess = {
+                scope.showSuccess(
+                    snackbarHostState,
+                    context.getString(if (start) R.string.uc_started else R.string.uc_stopped)
+                )
+            },
+            onFailure = { scope.showError(snackbarHostState, it.message ?: context.getString(R.string.uc_failed)) }
+        )
+        loadChdroidRootfs()
+    }
 
     // File picker launcher - CreateDocument for saving the export archive
     val exportFileLauncher = rememberLauncherForActivityResult(
@@ -171,7 +215,7 @@ fun ContainersScreen(
             !isKernelSupported -> {
                 KernelUnsupportedState(modifier = Modifier.padding(bottom = bottomBarInset))
             }
-            entries.isEmpty() -> {
+            entries.isEmpty() && !chdroidInstalled -> {
                 if (containerViewModel.isRefreshing) {
                     FullScreenLoading(modifier = Modifier.padding(bottom = bottomBarInset))
                 } else {
@@ -202,6 +246,19 @@ fun ContainersScreen(
                     // Each card carries its own 16dp gap (AnimatedListEntry) on top of this
                     contentPadding = PaddingValues(top = 8.dp, bottom = bottomBarInset + 16.dp),
                 ) {
+                    if (chdroidInstalled) {
+                        item(key = "chdroid-rootfs-card") {
+                            ChDroidRootfsCard(
+                                distro = chdroidDistro,
+                                isRunning = chdroidRunning,
+                                isBusy = chdroidBusy,
+                                onOpenTerminal = onOpenChDroidTerminal,
+                                onStart = { chdroidAction(start = true) },
+                                onStop = { chdroidAction(start = false) }
+                            )
+                        }
+                    }
+
                     items(entries, key = { it.key }) { entry ->
                         val container = entry.item
                         // Console button is always visible - logs persist for each container

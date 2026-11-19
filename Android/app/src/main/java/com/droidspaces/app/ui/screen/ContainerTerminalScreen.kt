@@ -47,6 +47,7 @@ import com.droidspaces.app.ui.terminal.virtualkeys.VirtualKeysView
 import android.graphics.Typeface
 import com.droidspaces.app.util.AnimationUtils
 import com.droidspaces.app.util.ContainerOSInfoManager
+import com.droidspaces.app.util.ChDroidRootfsManager
 import com.droidspaces.app.util.ContainerUsersManager
 import com.droidspaces.app.util.FontInfo
 import com.droidspaces.app.util.PreferencesManager
@@ -126,19 +127,21 @@ fun ContainerTerminalScreen(
     var tabPendingClose by remember { mutableStateOf<TerminalTab?>(null) }
 
     // Resolve hostname reactively; picker is shown only after binder+hostname are both ready
-    // A blank container name is the Ubuntu-Chroot CLI shell: chroot.sh owns the
-    // environment, so there is no Droidspaces container metadata to resolve.
+    // A blank container name is the ChDroid CLI rootfs: chroot.sh owns the
+    // environment, and the hostname is read from the installed rootfs itself.
     val isHostShell = containerName.isBlank()
     var hostname by remember(containerName) {
         mutableStateOf(
-            if (isHostShell) context.getString(R.string.uc_terminal_hostname)
+            if (isHostShell) ""
             else ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
                 ?: containerName.take(12)
         )
     }
-    var hostnameReady by remember { mutableStateOf(isHostShell || hostname != containerName.take(12)) }
+    var hostnameReady by remember { mutableStateOf(!isHostShell && hostname != containerName.take(12)) }
     LaunchedEffect(containerName) {
-        if (!isHostShell) {
+        if (isHostShell) {
+            hostname = ChDroidRootfsManager.hostname()
+        } else {
             val resolved = ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
                 ?: ContainerOSInfoManager.fetchAll(context)[containerName]?.hostname
             if (resolved != null) hostname = resolved

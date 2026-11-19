@@ -301,6 +301,7 @@ fun MainTabScreen(
                                 onNavigateToInstallation = onNavigateToContainerInstallation,
                                 onNavigateToEditContainer = onNavigateToEditContainer,
                                 onNavigateToContainerDetails = onNavigateToContainerDetails,
+                                onOpenChDroidTerminal = { onNavigateToTerminal("") },
                                 containerViewModel = containerViewModel,
                                 expandedContainerName = expandedContainerName,
                                 onExpandedContainerNameChange = { expandedContainerName = it },

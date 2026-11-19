@@ -34,7 +34,7 @@ object ContainerInstaller {
                 ?.endsWith(".zip", ignoreCase = true) == true
         ) {
             logger.i("Ubuntu-Chroot CLI ZIP detected - installing chroot directly")
-            return@withContext UbuntuChrootManager.install(context, tarballUri, logger)
+            return@withContext ChDroidRootfsManager.install(context, tarballUri, logger)
         }
 
         // Use sanitized name for directory (spaces -> dashes)

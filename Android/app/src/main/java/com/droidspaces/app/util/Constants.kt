@@ -27,9 +27,9 @@ object Constants {
     const val SESSION_BOOTSTRAP_SCRIPT = "$INSTALL_PATH/ubuntu-chroot-bootstrap.sh"
     // Ubuntu-Chroot CLI v4.4 installs itself here. Its own chroot.sh - not a
     // Droidspaces container - owns the namespace, mounts and login shell.
-    const val UBUNTU_CHROOT_BASE = "/data/local/ubuntu-chroot"
-    const val UBUNTU_CHROOT_SCRIPT = "$UBUNTU_CHROOT_BASE/chroot.sh"
-    const val UBUNTU_CHROOT_ROOTFS = "$UBUNTU_CHROOT_BASE/rootfs"
+    const val CHDROID_ROOTFS_BASE = "/data/local/ubuntu-chroot"
+    const val CHDROID_ROOTFS_SCRIPT = "$CHDROID_ROOTFS_BASE/chroot.sh"
+    const val CHDROID_ROOTFS_DIR = "$CHDROID_ROOTFS_BASE/rootfs"
     const val CONTAINER_CONFIG_FILE = "container.config"
     // Default network mode, the single source of truth for both the ContainerInfo
     // model default and the config parser default (they used to disagree).

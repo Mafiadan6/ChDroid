@@ -52,7 +52,7 @@ object DroidspacesTerminalSession {
         // payload. safeName cannot hold " ' $ or `, the escape is belt-and-suspenders.
         val shArg = if (safeName == null) {
             if (containerName.isNullOrBlank()) {
-                "sh '${Constants.UBUNTU_CHROOT_SCRIPT}' start root"
+                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root"
             } else {
                 "su"
             }
