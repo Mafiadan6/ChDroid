@@ -34,11 +34,11 @@ android {
 
     defaultConfig {
         // Fork identity: installable beside upstream Droidspaces.
-        applicationId = "com.droidspaces.ubuntuchroot"
+        applicationId = "com.chdroid.app"
         minSdk = 26
         targetSdk = 34
         versionCode = dsVersionCodeVal
-        versionName = "$dsVersionName-ubuntuchroot"
+        versionName = "$dsVersionName-chdroid"
     }
 
     signingConfigs {

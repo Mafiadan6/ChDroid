@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Droidspaces</string>
+    <string name="app_name" translatable="false">ChDroid</string>
     <string name="get_started">始める</string>
     <string name="checking_root">ルートアクセス権限を確認中…</string>
     <string name="root_denied">ルートアクセス権限が拒否されました</string>

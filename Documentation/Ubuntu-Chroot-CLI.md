@@ -1,14 +1,14 @@
 # Ubuntu-Chroot CLI on any rooted phone
 
-This fork turns Droidspaces into a front end for the **Ubuntu-Chroot v4.4 CLI** release. It runs on any rooted device — Magisk, KernelSU, APatch, a late-loaded `su`, or a plain root shell. There is no root-method detection, no mode toggle, and no branch in the code that behaves differently per root solution.
+ChDroid turns Droidspaces-OSS into a front end for the **Ubuntu-Chroot v4.4 CLI** release. It runs on any rooted device — Magisk, KernelSU, APatch, a late-loaded `su`, or a plain root shell. There is no root-method detection, no mode toggle, and no branch in the code that behaves differently per root solution.
 
-Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts, DNS and login shell. Droidspaces is the UI and the terminal in front of it.
+Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts, DNS and login shell. ChDroid is the UI and the terminal in front of it.
 
 ## Design
 
-| Area | Stock Droidspaces | This fork |
+| Area | Stock Droidspaces | ChDroid |
 |------|-------------------|-----------|
-| App id | `com.droidspaces.app` | `com.droidspaces.ubuntuchroot` (installs beside stock) |
+| App id | `com.droidspaces.app` | `com.chdroid.app` (installs beside stock) |
 | Backend status | requires `/data/adb/modules/droidspaces` | both binaries present and executable is enough |
 | Installation | writes boot module, suggests reboot | copies binaries, starts the daemon in-session |
 | Boot module | `post-fs-data.sh`, `service.sh`, `sepolicy.rule` | not shipped, not installed, not needed |
@@ -61,7 +61,7 @@ su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh binaries'
 su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh all /sdcard/Download/Ubuntu-Chroot-v4.4-20260323-CLI.zip'
 ```
 
-It discovers the fork APK through `pm path com.droidspaces.ubuntuchroot`, streams the correct-arch backend and BusyBox out of `assets/binaries`, writes the session marker, starts the daemon, and installs the Ubuntu-Chroot CLI files.
+It discovers the fork APK through `pm path com.chdroid.app`, streams the correct-arch backend and BusyBox out of `assets/binaries`, writes the session marker, starts the daemon, and installs the Ubuntu-Chroot CLI files.
 
 ## Ubuntu-Chroot commands
 
@@ -88,4 +88,4 @@ cd Android
 ./gradlew :app:assembleDebug
 ```
 
-The app id is `com.droidspaces.ubuntuchroot`, so both APKs can coexist.
+The app id is `com.chdroid.app`, so both APKs can coexist.

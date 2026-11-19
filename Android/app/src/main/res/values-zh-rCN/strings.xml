@@ -18,7 +18,7 @@
     <string name="terminal">终端</string>
     <string name="open">打开</string>
     <string name="loading">加载中…</string>
-    <string name="app_name" translatable="false">Droidspaces</string>
+    <string name="app_name" translatable="false">ChDroid</string>
     <string name="check_root_access">检查 Root 权限</string>
     <string name="backend_not_installed">后端：未安装</string>
     <string name="language">语言</string>

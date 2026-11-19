@@ -18,7 +18,7 @@ LOGS_DIR=$DS_DIR/Logs
 DS_BIN=$BIN_DIR/droidspaces
 BB=$BIN_DIR/busybox
 MARKER=$DS_DIR/.ubuntu-chroot-cli
-PKG_TEMP=com.droidspaces.ubuntuchroot
+PKG_FORK=com.chdroid.app
 PKG_STOCK=com.droidspaces.app
 UC_BASE=/data/local/ubuntu-chroot
 UC_SH=$UC_BASE/chroot.sh
@@ -31,7 +31,7 @@ mkdir -p "$BIN_DIR" "$CONTAINERS_DIR" "$LOGS_DIR"
 echo 1 > "$MARKER"
 
 apk_path() {
-    for pkg in "$PKG_TEMP" "$PKG_STOCK"; do
+    for pkg in "$PKG_FORK" "$PKG_STOCK"; do
         line=$(pm path "$pkg" 2>/dev/null | head -1)
         case "$line" in package:*) echo "${line#package:}"; return 0 ;; esac
     done

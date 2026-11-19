@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Droidspaces</string>
+    <string name="app_name" translatable="false">ChDroid</string>
     <string name="checking_root">Se verifică accesul permisiunilor de root...</string>
     <string name="root_denied">Permisiunile de root nu au fost acordate</string>
     <string name="root_required_message">Permmisiunile de root sunt necesare pentru a gestiona containere.</string>

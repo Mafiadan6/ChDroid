@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name" translatable="false">Droidspaces</string>
+    <string name="app_name" translatable="false">ChDroid</string>
     <string name="get_started">ចាប់ផ្តើម</string>
     <string name="checking_root">កំពុងពិនិត្យសិទ្ធិ Root...</string>
     <string name="root_denied">សិទ្ធិ Root ត្រូវបានបដិសេធ</string>

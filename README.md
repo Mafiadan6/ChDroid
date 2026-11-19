@@ -7,9 +7,11 @@ English | [简体中文](./Documentation/zh-CN/README.md)
 [![Website](https://img.shields.io/badge/Website-droidspaces.org-1F6FEB?style=for-the-badge&logo=googlechrome&logoColor=white)](https://www.droidspaces.org)
 [![Telegram channel](https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/Droidspaces)
 
-# Droidspaces
+# ChDroid
 
-Droidspaces runs full Linux distributions as containers on a rooted Android phone or a Linux PC. Each container boots its own init system, whether systemd, OpenRC or any other, on the host's kernel.
+ChDroid is a Droidspaces-OSS fork that drives the **Ubuntu-Chroot v4.4 CLI** release on any rooted phone. Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts and login shell; ChDroid is the UI and the terminal in front of it. No boot module, no root-method detection, no reboot dependency.
+
+The stock Droidspaces container runtime remains in the tree for container builds and Linux use.
 
 **There is no emulation and no virtual machine**, so programs run at native speed. One static binary under 400 KB does all of it, and the Android app drives that binary so you never need a terminal to get started.
 
@@ -38,9 +40,9 @@ Droidspaces runs full Linux distributions as containers on a rooted Android phon
 
 **Android**
 
-This fork is a front end for the **Ubuntu-Chroot v4.4 CLI** release. Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts and shell; Droidspaces provides the UI and the terminal. No boot module, no `post-fs-data`, no `service.sh`, no reboot dependency.
+This fork is a front end for the **Ubuntu-Chroot v4.4 CLI** release. Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts and shell; ChDroid provides the UI and the terminal. No boot module, no `post-fs-data`, no `service.sh`, no reboot dependency.
 
-1. Install the fork APK (`com.droidspaces.ubuntuchroot`), grant root, open it, and let it install the backend. Nothing is written to `/data/adb/modules`.
+1. Install the fork APK (`com.chdroid.app`), grant root, open it, and let it install the backend. Nothing is written to `/data/adb/modules`.
 2. Open **Containers → + → Repository** and pick **Ubuntu Chroot 24.04 (CLI)**. Download it (537 MB), then install it. The release files land in `/data/local/ubuntu-chroot`.
 3. Use **Settings → Start Ubuntu chroot** to set up the namespace, or **Open Ubuntu terminal** to drop straight into the Ubuntu shell.
 
