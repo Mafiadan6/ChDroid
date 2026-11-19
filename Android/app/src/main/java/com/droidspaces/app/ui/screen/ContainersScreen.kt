@@ -130,7 +130,9 @@ fun ContainersScreen(
             return
         }
         val distro = ChDroidRootfsManager.distro()
-        chdroidDistro = distro.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        val name = ChDroidRootfsManager.containerName()
+        val title = name.ifBlank { distro }
+        chdroidDistro = title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         chdroidRunning = ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
     }
 

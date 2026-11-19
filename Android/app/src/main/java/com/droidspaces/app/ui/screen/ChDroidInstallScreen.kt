@@ -41,11 +41,14 @@ private fun rootfsLabel(fileName: String): String {
         ?: clean.replace('-', ' ').replace('_', ' ')
 }
 
-/** Direct rootfs ZIP install. No Droidspaces container wizard. */
+/** Direct rootfs ZIP install, using the name and hostname from the setup screen. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChDroidInstallScreen(
     zipUri: Uri,
+    containerName: String = "",
+    hostname: String = "",
+    mountAndroidRoot: Boolean = false,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -66,8 +69,8 @@ fun ChDroidInstallScreen(
         val fileName = path?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
             ?: zipUri.lastPathSegment.orEmpty()
         label.value = rootfsLabel(fileName)
-        logger.i("Installing ${label.value} from $fileName")
-        val result = ChDroidRootfsManager.install(context, zipUri, logger)
+        logger.i("Installing ${label.value} from $fileName as $containerName ($hostname)")
+        val result = ChDroidRootfsManager.install(context, zipUri, containerName, hostname, mountAndroidRoot, logger)
         if (result.isSuccess) {
             logger.i("${label.value} ready")
             phase.value = ChDroidInstallPhase.DONE

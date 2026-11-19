@@ -40,6 +40,12 @@ object ChDroidRootfsManager {
             .out.firstOrNull()?.trim().orEmpty()
     }
 
+    /** Container name chosen in the setup screen and written at install time. */
+    suspend fun containerName(): String = withContext(Dispatchers.IO) {
+        Shell.cmd("cat '${Constants.CHDROID_ROOTFS_BASE}/container-name' 2>/dev/null").exec()
+            .out.firstOrNull()?.trim().orEmpty()
+    }
+
     /**
      * Hostname baked into the installed rootfs, not a hardcoded app value.
      * Ubuntu ships /etc/hostname; Arch does not, so fall back to the distro id
@@ -51,12 +57,23 @@ object ChDroidRootfsManager {
         baked.ifEmpty { distro().ifEmpty { "localhost" } }
     }
 
+    /**
+     * Shell fragment that applies the optional full-Android-root bind, if the
+     * setup screen enabled it. Safe on installs that never deployed the script —
+     * a missing or disabled script is a no-op and never breaks the start chain.
+     */
+    private fun androidRootMountCmd(): String {
+        val script = ContainerCommandBuilder.quote(Constants.CHDROID_MOUNT_SCRIPT)
+        return "[ -f $script ] && sh $script 2>/dev/null || true"
+    }
+
     /** Start the namespace and mounts without consuming a terminal. */
     suspend fun start(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             check(isInstalled()) { "rootfs is not installed" }
             val result = Shell.cmd(
-                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell 2>&1"
+                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell 2>&1; " +
+                    androidRootMountCmd()
             ).exec()
             val output = result.out.joinToString("\n").trim()
             if (!result.isSuccess) throw Exception(output.ifEmpty { "chroot start failed" })
@@ -110,6 +127,9 @@ object ChDroidRootfsManager {
     suspend fun install(
         context: Context,
         zipUri: Uri,
+        containerName: String,
+        hostname: String,
+        mountAndroidRoot: Boolean,
         logger: ViewModelLogger,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
@@ -144,6 +164,49 @@ object ChDroidRootfsManager {
                     throw Exception(result.err.joinToString("\n").ifEmpty { "CLI install failed" })
                 }
                 check(isInstalled()) { "installer finished but rootfs is not usable" }
+
+                val q = ContainerCommandBuilder::quote
+
+                // Apply the setup screen's choices to the installed rootfs so the
+                // terminal hostname and the Containers card reflect what He picked.
+                if (hostname.isNotBlank()) {
+                    val apply = Shell.cmd(
+                        "printf '%s\\n' ${q(hostname)} > ${q("${Constants.CHDROID_ROOTFS_DIR}/etc/hostname")} " +
+                            "&& printf '%s\\n' ${q(hostname)} >> ${q("${Constants.CHDROID_ROOTFS_DIR}/etc/hosts")} " +
+                            "&& printf '%s\\n' ${q(containerName.ifBlank { hostname })} > " +
+                            "${q("${Constants.CHDROID_ROOTFS_BASE}/container-name")} 2>&1"
+                    ).exec()
+                    if (!apply.isSuccess) logger.e("could not apply hostname: ${apply.errorText()}")
+                    else logger.i("hostname set to $hostname")
+                } else if (containerName.isNotBlank()) {
+                    Shell.cmd(
+                        "printf '%s\\n' ${q(containerName)} > " +
+                            "${q("${Constants.CHDROID_ROOTFS_BASE}/container-name")} 2>&1"
+                    ).exec()
+                }
+
+                // Optional full-Android-root bind mount. The flag is what the
+                // mount script checks at every start; deploying the script here
+                // keeps it alongside the other CLI tools, outside the app APK.
+                val flagSetup = if (mountAndroidRoot) {
+                    "mkdir -p ${q(Constants.CHDROID_ROOTFS_BASE)} && " +
+                        "printf '1\\n' > ${q(Constants.CHDROID_MOUNT_FLAG)}"
+                } else {
+                    "rm -f ${q(Constants.CHDROID_MOUNT_FLAG)}"
+                }
+                Shell.cmd("$flagSetup 2>&1").exec()
+
+                val mountScript = ContainerInstaller.deployAsset(context, "android_root_mount.sh")
+                val scriptSetup = ContainerManager.installFileDurably(
+                    mountScript.absolutePath, Constants.CHDROID_MOUNT_SCRIPT, "755"
+                )
+                mountScript.delete()
+                if (!scriptSetup.isSuccess) {
+                    logger.e("could not deploy android-root mount script: ${scriptSetup.err.joinToString(" ")}")
+                } else {
+                    logger.i("android-root bind mount ${if (mountAndroidRoot) "enabled" else "disabled"}")
+                }
+
                 logger.i("rootfs ready at ${Constants.CHDROID_ROOTFS_SCRIPT}")
             } finally {
                 installer.delete()
@@ -151,6 +214,14 @@ object ChDroidRootfsManager {
         }
     }
 
-    /** Printed in the terminal-facing Settings row. */
-    fun terminalCommand(): String = "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root"
+    /**
+     * The terminal entry command. Bring the namespace up in no-shell mode first
+     * so the holder PID exists, apply the Android-root bind inside that namespace,
+     * then enter the login shell. Re-running `start root` sees the chroot already
+     * running and only enters, so nothing is mounted twice.
+     */
+    fun terminalCommand(): String =
+        "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell 2>/dev/null; " +
+            "${androidRootMountCmd()}; " +
+            "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root"
 }

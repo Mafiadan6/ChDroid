@@ -30,6 +30,9 @@ object Constants {
     const val CHDROID_ROOTFS_BASE = "/data/local/ubuntu-chroot"
     const val CHDROID_ROOTFS_SCRIPT = "$CHDROID_ROOTFS_BASE/chroot.sh"
     const val CHDROID_ROOTFS_DIR = "$CHDROID_ROOTFS_BASE/rootfs"
+    // Optional full-Android-root bind mount chosen in the setup screen.
+    const val CHDROID_MOUNT_FLAG = "$CHDROID_ROOTFS_BASE/mount-android-root"
+    const val CHDROID_MOUNT_SCRIPT = "$INSTALL_PATH/android-root-mount.sh"
     const val CONTAINER_CONFIG_FILE = "container.config"
     // Default network mode, the single source of truth for both the ContainerInfo
     // model default and the config parser default (they used to disagree).
