@@ -43,7 +43,7 @@ The stock Droidspaces container runtime remains in the tree for container builds
 This fork is a front end for the **Ubuntu-Chroot v4.4 CLI** release. Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts and shell; ChDroid provides the UI and the terminal. No boot module, no `post-fs-data`, no `service.sh`, no reboot dependency.
 
 1. Install the fork APK (`com.chdroid.app`), grant root, open it, and let it install the backend. Nothing is written to `/data/adb/modules`.
-2. Open **Containers → + → Get Ubuntu rootfs**. ChDroid fetches its own [rootfs repo](https://github.com/Mafiadan6/ChDroid-rootfs) manifest. Download the built-in **Ubuntu 24.04 CLI rootfs** (520 MB clean ZIP), then install it. The release files land in `/data/local/ubuntu-chroot` — no module packaging, no root-method logic.
+2. Open **Containers → + → Get Ubuntu rootfs**. ChDroid fetches its own [rootfs repo](https://github.com/Mafiadan6/ChDroid-rootfs) manifest. Pick a clean release — **Ubuntu 24.04 CLI rootfs** (520 MB) or **Arch Linux Minimal** (108 MB, kernel 5.10+) — download it, then install it. The release files land in `/data/local/ubuntu-chroot` — no module packaging, no root-method logic. Installing a different distro replaces the old rootfs; reinstalling the same one keeps your data.
 3. Use **Settings → Start Ubuntu chroot** to set up the namespace, or **Open Ubuntu terminal** to drop straight into the Ubuntu shell.
 
 See [Ubuntu-Chroot CLI on any rooted phone](Documentation/Ubuntu-Chroot-CLI.md) for the full flow, the headless bootstrap and the commands available in the in-app terminal.

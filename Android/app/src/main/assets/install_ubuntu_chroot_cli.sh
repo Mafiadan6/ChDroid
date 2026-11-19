@@ -1,6 +1,6 @@
 #!/system/bin/sh
-# ChDroid rootfs installer. Installs a clean Ubuntu chroot release: a plain
-# rootfs tarball plus chroot tools, directly to /data/local/ubuntu-chroot.
+# ChDroid rootfs installer. Installs a clean rootfs release: a plain rootfs
+# tarball plus chroot tools, directly to /data/local/ubuntu-chroot.
 # No module flashing, no META-INF, no module.prop, no boot scripts, no root
 # method detection — that logic is not part of this build.
 #
@@ -11,6 +11,7 @@ BUSYBOX="$2"
 CACHE="$3"
 BASE=/data/local/ubuntu-chroot
 ROOTFS=$BASE/rootfs
+DISTRO_FILE=$BASE/distro-id
 
 say() { echo "[UC-INSTALL] $1"; }
 fail() { echo "[UC-INSTALL] ERROR: $1" >&2; exit 1; }
@@ -39,25 +40,55 @@ say "installing chroot tools"
 chmod 755 "$BASE/chroot.sh" "$BASE/post_exec.sh" "$BASE/start-hotspot" \
     "$BASE/sparsemgr.sh" "$BASE/forward-nat.sh" 2>/dev/null
 
-# Record the release version from our own manifest. No module.prop anywhere.
+# Release metadata comes from our own manifest. No module.prop anywhere.
 "$BB" unzip -oj "$ZIP" 'manifest.json' -d "$CACHE" >/dev/null 2>&1
 ver=$("$BB" grep -o '"versionCode"[[:space:]]*:[[:space:]]*[0-9]*' "$CACHE/manifest.json" 2>/dev/null | "$BB" grep -o '[0-9]*$')
 [ -n "$ver" ] && echo "$ver" > "$BASE/version"
+distro=$("$BB" grep -o '"id"[[:space:]]*:[[:space:]]*"[^"]*"' "$CACHE/manifest.json" 2>/dev/null | "$BB" head -1 | "$BB" cut -d'"' -f4)
+[ -n "$distro" ] || distro=unknown
 rm -f "$CACHE/manifest.json"
 
-# Never overwrite an existing rootfs — that is user data.
+# Decide what to do with an existing rootfs. Same distro = keep user data.
+# Different distro = stop the chroot, clear the old rootfs, install the new one.
+existing=$(cat "$DISTRO_FILE" 2>/dev/null)
 if [ -x "$ROOTFS/bin/sh" ] || [ -x "$ROOTFS/bin/busybox" ]; then
-    say "rootfs already installed at $ROOTFS - keeping existing data"
-else
-    member=$("$BB" unzip -l "$ZIP" 2>/dev/null | "$BB" grep -E 'rootfs\.tar\.gz$' | "$BB" head -1 | "$BB" rev | "$BB" cut -d' ' -f1 | "$BB" rev)
-    [ -n "$member" ] || fail "no rootfs.tar.gz member in $ZIP"
-    say "found rootfs member: $member"
-
-    "$BB" unzip -oq "$ZIP" "$member" -d "$CACHE" || fail "could not extract $member from ZIP"
-    say "extracting rootfs to $ROOTFS"
-    "$BB" tar -xpf "$CACHE/$member" -C "$ROOTFS" || fail "rootfs extraction failed"
-    rm -f "$CACHE/$member"
+    if [ "$existing" = "$distro" ]; then
+        say "rootfs $distro already installed - keeping existing data"
+        echo 1 > "$BASE/.ubuntu-chroot-cli"
+        say "ready: sh $BASE/chroot.sh start root"
+        exit 0
+    fi
+    say "switching rootfs: ${existing:-unknown} -> $distro"
+    if [ -f "$BASE/chroot.sh" ]; then
+        sh "$BASE/chroot.sh" stop >/dev/null 2>&1 || true
+    fi
+    if grep -q "$ROOTFS" /proc/mounts 2>/dev/null; then
+        fail "old rootfs is still mounted - run 'sh $BASE/chroot.sh stop' and retry"
+    fi
+    rm -rf "$ROOTFS" "$BASE/rootfs.img" || fail "could not remove old rootfs"
+    mkdir -p "$ROOTFS" || fail "could not recreate $ROOTFS"
 fi
+
+# Find the rootfs tarball (.tar.gz or .tar.xz) in the clean ZIP.
+member=$("$BB" unzip -l "$ZIP" 2>/dev/null | "$BB" grep -E 'rootfs\.tar\.(gz|xz)$' | "$BB" head -1 | "$BB" rev | "$BB" cut -d' ' -f1 | "$BB" rev)
+[ -n "$member" ] || fail "no rootfs.tar.gz or rootfs.tar.xz member in $ZIP"
+say "found rootfs member: $member"
+"$BB" unzip -oq "$ZIP" "$member" -d "$CACHE" || fail "could not extract $member from ZIP"
+
+say "extracting rootfs to $ROOTFS"
+case "$member" in
+    *.tar.xz)
+        "$BB" tar -xJf "$CACHE/$member" -C "$ROOTFS" || \
+        tar -xJf "$CACHE/$member" -C "$ROOTFS" || \
+        "$BB" tar -xpf "$CACHE/$member" -C "$ROOTFS" || fail "xz rootfs extraction failed"
+        ;;
+    *)
+        "$BB" tar -xzf "$CACHE/$member" -C "$ROOTFS" || \
+        "$BB" tar -xpf "$CACHE/$member" -C "$ROOTFS" || fail "gzip rootfs extraction failed"
+        ;;
+esac
+rm -f "$CACHE/$member"
+echo "$distro" > "$DISTRO_FILE"
 
 # chroot.sh sets up namespaces, mounts and DNS itself. No container.config,
 # no Droidspaces init, no boot service: that is the whole point of this path.

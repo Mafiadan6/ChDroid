@@ -24,9 +24,10 @@ Nothing is written to `/data/adb/modules`. Nothing depends on a reboot. Root can
 
 1. Install the fork APK. Grant root when prompted.
 2. Open **Installation** and install the backend. Binaries are copied to `/data/local/Droidspaces/bin` and the daemon is started in the current root session. No module is written, no reboot is suggested.
-3. Open **Containers → + → Get Ubuntu rootfs**. ChDroid fetches the manifest from ChDroid-rootfs. One built-in entry exists:
+3. Open **Containers → + → Get Ubuntu rootfs**. ChDroid fetches the manifest from ChDroid-rootfs. Two built-in entries exist:
    - `Ubuntu 24.04 CLI rootfs (ChDroid)` — 520 MB ZIP (`ChDroid-rootfs-v4.4-20260323.zip`), build `20260323`
-4. Download it, then install it. `install_ubuntu_chroot_cli.sh` extracts the static busybox, `chroot.sh`, `post_exec.sh`, the helper tools and `rootfs.tar.gz` straight from the clean ZIP into `/data/local/ubuntu-chroot`. No module packaging, no `module.prop` — the version comes from `manifest.json`. An existing rootfs is left alone — it is user data.
+   - `Arch Linux Minimal (ChDroid)` — 108 MB ZIP (`ChDroid-arch-rootfs-minimal-20261029.zip`), kernel 5.10+ required
+4. Download it, then install it. `install_ubuntu_chroot_cli.sh` extracts the static busybox, `chroot.sh`, `post_exec.sh`, the helper tools and the rootfs tarball (`.tar.gz` for Ubuntu, `.tar.xz` for Arch) straight from the clean ZIP into `/data/local/ubuntu-chroot`. No module packaging, no `module.prop` — metadata comes from `manifest.json`. Reinstalling the same distro keeps your rootfs data; installing a different one stops the chroot and replaces the old rootfs.
 5. Use **Settings → Start Ubuntu chroot** to set up the namespace and mounts, or **Open Ubuntu terminal** to drop straight into the Ubuntu shell.
 
 The app never creates a Droidspaces `container.config` for this rootfs and never writes an init. That is deliberate: `chroot.sh` does all of it.
