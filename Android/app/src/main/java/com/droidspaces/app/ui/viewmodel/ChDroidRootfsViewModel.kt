@@ -14,19 +14,26 @@ import com.droidspaces.app.util.ChDroidRootfs
 import com.droidspaces.app.util.RootfsAsset
 import kotlinx.coroutines.launch
 
-/** Only the download plumbing for ChDroid's own rootfs sources. No repo fetch. */
+/** Download plumbing for ChDroid's own rootfs sources. Fetches our repo manifest. */
 class ChDroidRootfsViewModel(application: Application) : AndroidViewModel(application) {
 
     var downloadStates by mutableStateOf<Map<String, AssetDownloadState>>(emptyMap())
         private set
 
-    /** Links added in this session, newest first. The built-in entry is always shown separately. */
+    /** Assets from the ChDroid-rootfs manifest. Falls back to the built-in release. */
+    var assets by mutableStateOf<List<RootfsAsset>>(listOf(ChDroidRootfs.BUILTIN))
+        private set
+
+    /** Links added in this session, newest first. */
     var customAssets by mutableStateOf<List<RootfsAsset>>(emptyList())
         private set
 
     init {
         viewModelScope.launch {
             RootfsDownloadService.states.collect { downloadStates = it }
+        }
+        viewModelScope.launch {
+            assets = ChDroidRootfs.fetchAssets()
         }
     }
 

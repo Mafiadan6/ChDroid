@@ -58,7 +58,6 @@ import com.droidspaces.app.R
 import com.droidspaces.app.service.AssetDownloadState
 import com.droidspaces.app.ui.util.ClearFocusOnClickOutside
 import com.droidspaces.app.ui.viewmodel.ChDroidRootfsViewModel
-import com.droidspaces.app.util.ChDroidRootfs
 import com.droidspaces.app.util.RootfsAsset
 
 /**
@@ -159,15 +158,18 @@ private fun ChDroidRootfsSheetContent(
                 }
 
                 Spacer(Modifier.height(16.dp))
-                RootfsSourceCard(
-                    asset = ChDroidRootfs.BUILTIN,
-                    state = vm.downloadStates[ChDroidRootfs.BUILTIN.downloadUrl]
-                        ?: downloadedState(vm, ChDroidRootfs.BUILTIN),
-                    onDownload = { startDownload(ChDroidRootfs.BUILTIN) },
-                    onCancel = { vm.cancelDownload(ChDroidRootfs.BUILTIN) },
-                    onInstall = onInstall,
-                    onRetry = { vm.resetAsset(ChDroidRootfs.BUILTIN.downloadUrl) }
-                )
+                vm.assets.forEach { asset ->
+                    RootfsSourceCard(
+                        asset = asset,
+                        state = vm.downloadStates[asset.downloadUrl]
+                            ?: downloadedState(vm, asset),
+                        onDownload = { startDownload(asset) },
+                        onCancel = { vm.cancelDownload(asset) },
+                        onInstall = onInstall,
+                        onRetry = { vm.resetAsset(asset.downloadUrl) }
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
 
                 if (vm.customAssets.isNotEmpty()) {
                     Spacer(Modifier.height(12.dp))

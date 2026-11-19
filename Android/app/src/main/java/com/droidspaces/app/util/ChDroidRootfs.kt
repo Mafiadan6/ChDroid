@@ -1,28 +1,58 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 package com.droidspaces.app.util
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.json.JSONArray
+
 /**
- * ChDroid's rootfs sources. These are the only downloads the app offers: the
- * built-in Ubuntu-Chroot v4.4 CLI release and links the user supplies. The
- * stock Droidspaces rootfs repository is not part of this fork's flow.
+ * ChDroid's own rootfs sources, fetched from the ChDroid-rootfs repo manifest.
+ * The stock Droidspaces repository is not part of this fork's flow. The
+ * manifest is a flat JSON array using the same schema as RootfsRepository.
  */
 object ChDroidRootfs {
-    const val VERSION = "v4.4"
-    const val TAG = "20260323"
-    const val RELEASE = "https://github.com/ravindu644/Ubuntu-Chroot/releases/download/$VERSION"
-    const val DOWNLOAD_URL = "$RELEASE/Ubuntu-Chroot-$VERSION-$TAG-CLI.zip"
+    const val MANIFEST_URL =
+        "https://raw.githubusercontent.com/Mafiadan6/ChDroid-rootfs/main/rootfs.json"
 
+    /** Offline fallback: the release this fork targets, matching the manifest. */
     val BUILTIN = RootfsAsset(
-        name = "Ubuntu Chroot 24.04 (CLI)",
-        description = "Ubuntu-Chroot $VERSION CLI: chroot manager and Ubuntu 24.04 rootfs. " +
-            "Installed to /data/local/ubuntu-chroot and driven by ChDroid's terminal.",
+        name = "Ubuntu 24.04 CLI rootfs (ChDroid)",
+        description = "Clean Ubuntu 24.04 chroot for ChDroid. Plain rootfs tarball and " +
+            "chroot tools - no Magisk, KernelSU or APatch module, no boot scripts, " +
+            "no root-method detection. Installs to /data/local/ubuntu-chroot.",
         architecture = "aarch64",
-        downloadUrl = DOWNLOAD_URL,
-        sizeBytes = 537_517_628L,
-        buildDate = TAG,
-        author = "ravindu644 · Ubuntu-Chroot",
-        sourceRepoName = "Ubuntu-Chroot $VERSION (CLI)"
+        downloadUrl = "https://github.com/Mafiadan6/ChDroid-rootfs/releases/download/" +
+            "v4.4/ChDroid-rootfs-v4.4-20260323.zip",
+        sizeBytes = 544_309_102L,
+        buildDate = "20260323",
+        author = "ChDroid",
+        sourceRepoName = "ChDroid rootfs"
     )
+
+    /** Fetch the manifest; returns the offline fallback if unreachable or empty. */
+    suspend fun fetchAssets(): List<RootfsAsset> = withContext(Dispatchers.IO) {
+        val json = RootfsRepository.httpGet(MANIFEST_URL) ?: return@withContext listOf(BUILTIN)
+        runCatching {
+            val arr = JSONArray(json)
+            buildList {
+                for (i in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(i)
+                    add(
+                        RootfsAsset(
+                            name = obj.optString("name", ""),
+                            description = obj.optString("description", ""),
+                            architecture = obj.optString("architecture", ""),
+                            downloadUrl = obj.optString("download_url", ""),
+                            sizeBytes = obj.optLong("size_bytes", 0L),
+                            buildDate = obj.optString("build_date", ""),
+                            author = obj.optString("author", "ChDroid"),
+                            sourceRepoName = "ChDroid rootfs"
+                        )
+                    )
+                }
+            }.filter { it.downloadUrl.startsWith("https://") }
+        }.getOrDefault(listOf(BUILTIN)).ifEmpty { listOf(BUILTIN) }
+    }
 
     /** A user-supplied download link, given a stable identity for the downloader. */
     fun fromUrl(url: String): RootfsAsset {

@@ -1,7 +1,8 @@
 #!/system/bin/sh
-# Ubuntu-Chroot v4.4 CLI installer, without module flashing or boot scripts.
-# Mirrors META-INF/com/google/android/util_functions.sh from the release ZIP:
-# the tools land in /data/local/ubuntu-chroot and the rootfs in its rootfs/.
+# ChDroid rootfs installer. Installs a clean Ubuntu chroot release: a plain
+# rootfs tarball plus chroot tools, directly to /data/local/ubuntu-chroot.
+# No module flashing, no META-INF, no module.prop, no boot scripts, no root
+# method detection — that logic is not part of this build.
 #
 # usage: install_ubuntu_chroot_cli.sh <release.zip> <busybox> <cache-dir>
 
@@ -18,44 +19,37 @@ fail() { echo "[UC-INSTALL] ERROR: $1" >&2; exit 1; }
 [ -n "$BUSYBOX" ] && [ -x "$BUSYBOX" ] || fail "busybox not executable"
 [ -n "$CACHE" ] || fail "cache directory not given"
 
-mkdir -p "$BASE/bin" "$BASE/ota" "$ROOTFS" "$CACHE" || fail "could not create $BASE"
+mkdir -p "$BASE/bin" "$ROOTFS" "$CACHE" || fail "could not create $BASE"
 
-# The ZIP carries its own static busybox. Use it for every extraction after
-# this point so a missing system busybox cannot break the install.
-"$BUSYBOX" unzip -oj "$ZIP" 'tools/bin/busybox' -d "$BASE/bin" >/dev/null 2>&1 || \
-    fail "could not extract tools/bin/busybox"
+# Use the bundled static busybox for every extraction once it is available,
+# so a missing system busybox cannot break the install.
+"$BUSYBOX" unzip -oj "$ZIP" 'bin/busybox' -d "$BASE/bin" >/dev/null 2>&1 || \
+    fail "could not extract bin/busybox"
 chmod 755 "$BASE/bin/busybox" || fail "could not chmod busybox"
 BB=$BASE/bin/busybox
 
-say "installing chroot manager"
+say "installing chroot tools"
 "$BB" unzip -oj "$ZIP" \
-    'tools/chroot.sh' \
-    'tools/post_exec.sh' \
-    'tools/start-hotspot' \
-    'tools/sparsemgr.sh' \
-    'tools/forward-nat.sh' \
-    'tools/update-status.sh' \
+    'chroot.sh' \
+    'post_exec.sh' \
+    'start-hotspot' \
+    'sparsemgr.sh' \
+    'forward-nat.sh' \
     -d "$BASE" >/dev/null 2>&1 || fail "could not extract chroot tools"
-
-"$BB" unzip -oj "$ZIP" 'tools/updater.sh' 'tools/updates.sh' -d "$BASE/ota" >/dev/null 2>&1 || \
-    say "OTA tools not present (CLI install continues)"
-
 chmod 755 "$BASE/chroot.sh" "$BASE/post_exec.sh" "$BASE/start-hotspot" \
-    "$BASE/sparsemgr.sh" "$BASE/forward-nat.sh" "$BASE/update-status.sh" \
-    "$BASE/ota/updater.sh" "$BASE/ota/updates.sh" 2>/dev/null
+    "$BASE/sparsemgr.sh" "$BASE/forward-nat.sh" 2>/dev/null
 
-# Record the release version the same way the module installer does.
-"$BB" unzip -oj "$ZIP" 'module.prop' -d "$CACHE" >/dev/null 2>&1
-ver=$("$BB" grep '^versionCode=' "$CACHE/module.prop" 2>/dev/null | "$BB" cut -d= -f2)
+# Record the release version from our own manifest. No module.prop anywhere.
+"$BB" unzip -oj "$ZIP" 'manifest.json' -d "$CACHE" >/dev/null 2>&1
+ver=$("$BB" grep -o '"versionCode"[[:space:]]*:[[:space:]]*[0-9]*' "$CACHE/manifest.json" 2>/dev/null | "$BB" grep -o '[0-9]*$')
 [ -n "$ver" ] && echo "$ver" > "$BASE/version"
-rm -f "$CACHE/module.prop"
+rm -f "$CACHE/manifest.json"
 
-# Skip a second extraction when a rootfs is already in place - that is user
-# data, and the upstream installer refuses to overwrite it as well.
+# Never overwrite an existing rootfs — that is user data.
 if [ -x "$ROOTFS/bin/sh" ] || [ -x "$ROOTFS/bin/busybox" ]; then
     say "rootfs already installed at $ROOTFS - keeping existing data"
 else
-    member=$("$BB" unzip -l "$ZIP" 2>/dev/null | "$BB" grep -E '\.tar\.gz$' | "$BB" head -1 | "$BB" rev | "$BB" cut -d' ' -f1 | "$BB" rev)
+    member=$("$BB" unzip -l "$ZIP" 2>/dev/null | "$BB" grep -E 'rootfs\.tar\.gz$' | "$BB" head -1 | "$BB" rev | "$BB" cut -d' ' -f1 | "$BB" rev)
     [ -n "$member" ] || fail "no rootfs.tar.gz member in $ZIP"
     say "found rootfs member: $member"
 
