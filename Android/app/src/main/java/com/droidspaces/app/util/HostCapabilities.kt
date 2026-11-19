@@ -108,10 +108,17 @@ data class HostCapabilities(
         private fun parse(context: Context, json: String): HostCapabilities? = try {
             val obj = JSONObject(json)
             val flags = buildMap {
-                for (key in obj.keys()) (obj.opt(key) as? Number)?.let { put(key, it.toInt() != 0) }
+                // ChDroid runs chroot.sh, not Droidspaces containers. The backend's
+                // kernel feature flags describe container-only requirements and do
+                // not apply here, so none of them may grey out the UI. Keep the keys
+                // (older builds omit some) but treat every reported flag as present.
+                for (key in obj.keys()) (obj.opt(key) as? Number)?.let { put(key, true) }
+                // Real installed-app detection stays honest — those are not kernel gates.
                 putAll(appFlags(context))
             }
-            HostCapabilities(flags, obj.optInt("requirements_met", 1) != 0, obj.optString("version"))
+            // The backend's `requirements_met` is a Droidspaces-container gate.
+            // chroot.sh owns namespaces/mounts/DNS itself, so this never blocks ChDroid.
+            HostCapabilities(flags, true, obj.optString("version"))
         } catch (e: Exception) {
             null
         }
