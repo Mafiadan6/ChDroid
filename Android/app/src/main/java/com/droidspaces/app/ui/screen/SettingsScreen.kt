@@ -56,11 +56,13 @@ import com.droidspaces.app.util.LocaleHelper
 import com.droidspaces.app.util.ContributorManager
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.widget.Toast
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.foundation.Image
 import com.droidspaces.app.util.SymlinkInstaller
 import com.droidspaces.app.util.DeviceArch
 import com.droidspaces.app.util.HostCapabilities
+import com.droidspaces.app.util.TempRootManager
 import androidx.core.content.edit
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -76,7 +78,8 @@ fun SettingsScreen(
     onNavigateToInstallation: () -> Unit = {},
     onNavigateToRequirements: () -> Unit = {},
     onNavigateToAutoBootPriority: () -> Unit = {},
-    onNavigateToTerminalAppearance: () -> Unit = {}
+    onNavigateToTerminalAppearance: () -> Unit = {},
+    onOpenRootTerminal: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
@@ -118,6 +121,10 @@ fun SettingsScreen(
         .collectAsStateWithLifecycle(initialValue = prefsManager.isSymlinkEnabled)
     val treatAs64Bit by prefsManager.treatAs64BitFlow
         .collectAsStateWithLifecycle(initialValue = prefsManager.treatAs64Bit)
+    val tempRootMode by prefsManager.tempRootModeFlow
+        .collectAsStateWithLifecycle(initialValue = prefsManager.tempRootMode)
+    val autoDetectTempRoot by prefsManager.autoDetectTempRootFlow
+        .collectAsStateWithLifecycle(initialValue = prefsManager.autoDetectTempRoot)
 
     // Listen for locale changes and sync daemon mode from disk
     LaunchedEffect(Unit) {
@@ -187,6 +194,95 @@ fun SettingsScreen(
                         prefsManager.isDaemonModeEnabled = checked
                     }
                 )
+
+                GroupDivider()
+
+                // Temporary root (DirtyFrag / late-loaded KernelSU): no boot
+                // module ever mounts, so the backend is installed per session.
+                SwitchItem(
+                    icon = Icons.Default.LockOpen,
+                    title = context.getString(R.string.temp_root_mode),
+                    summary = context.getString(R.string.temp_root_mode_description),
+                    checked = tempRootMode,
+                    enabled = isRootAvailable,
+                    onCheckedChange = { checked -> prefsManager.tempRootMode = checked }
+                )
+
+                if (tempRootMode || autoDetectTempRoot) {
+                    GroupDivider()
+
+                    SwitchItem(
+                        icon = Icons.Default.FindInPage,
+                        title = context.getString(R.string.auto_detect_temp_root),
+                        summary = context.getString(R.string.auto_detect_temp_root_description),
+                        checked = autoDetectTempRoot,
+                        enabled = isRootAvailable,
+                        onCheckedChange = { checked -> prefsManager.autoDetectTempRoot = checked }
+                    )
+
+                    GroupDivider()
+
+                    NavRow(
+                        icon = Icons.Default.PlayArrow,
+                        title = context.getString(R.string.start_daemon_now),
+                        summary = context.getString(R.string.start_daemon_now_description),
+                        enabled = appStateViewModel.isBackendAvailable && isRootAvailable,
+                        onClick = {
+                            scope.launch {
+                                appStateViewModel.startTempRootDaemon { result ->
+                                    val text = result.fold(
+                                        onSuccess = { context.getString(R.string.temp_root_daemon_running) },
+                                        onFailure = { it.message ?: context.getString(R.string.temp_root_daemon_failed) }
+                                    )
+                                    Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    )
+
+                    GroupDivider()
+
+                    NavRow(
+                        icon = Icons.Default.Code,
+                        title = context.getString(R.string.temp_root_install_helper),
+                        summary = context.getString(R.string.temp_root_install_helper_description),
+                        enabled = isRootAvailable,
+                        onClick = {
+                            scope.launch {
+                                val text = TempRootManager.installBootstrap(context).fold(
+                                    onSuccess = { context.getString(R.string.temp_root_helper_installed, it) },
+                                    onFailure = { it.message ?: context.getString(R.string.temp_root_helper_failed) }
+                                )
+                                Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+
+                    GroupDivider()
+
+                    // The app already owns a root terminal (empty container name =
+                    // bare su). String the bootstrap into it instead of shipping a
+                    // second detached shell: install the helper, then open the tab.
+                    NavRow(
+                        icon = Icons.Default.Terminal,
+                        title = context.getString(R.string.temp_root_open_terminal),
+                        summary = context.getString(R.string.temp_root_open_terminal_description),
+                        value = TempRootManager.terminalHint(),
+                        enabled = isRootAvailable,
+                        onClick = {
+                            scope.launch {
+                                TempRootManager.installBootstrap(context).onFailure {
+                                    Toast.makeText(
+                                        context,
+                                        it.message ?: context.getString(R.string.temp_root_helper_failed),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                onOpenRootTerminal()
+                            }
+                        }
+                    )
+                }
 
                 GroupDivider()
 

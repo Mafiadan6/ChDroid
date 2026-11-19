@@ -33,11 +33,12 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.droidspaces.app"
+        // Fork identity: installable beside upstream Droidspaces.
+        applicationId = "com.droidspaces.temproot"
         minSdk = 26
         targetSdk = 34
         versionCode = dsVersionCodeVal
-        versionName = dsVersionName
+        versionName = "$dsVersionName-temproot"
     }
 
     signingConfigs {

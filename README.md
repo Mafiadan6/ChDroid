@@ -44,6 +44,8 @@ Droidspaces runs full Linux distributions as containers on a rooted Android phon
 
 The [Android installation guide](Documentation/Installation-Android.md) covers each step in detail.
 
+**Temporary root / DirtyFrag:** this fork adds a `com.droidspaces.temproot` build for devices where `su` works but no boot scripts run. It skips module installation, starts the daemon in-session, ships Ubuntu-Chroot v4.4 CLI/GUI rootfs ZIPs in the repository, and wires the whole flow into the app's own root terminal. See [Temporary-root sessions with Ubuntu-Chroot v4.4](Documentation/Temp-Root-Ubuntu-Chroot.md).
+
 **Linux**
 
 The [Linux installation guide](Documentation/Installation-Linux.md) shows how to install Droidspaces, where to get a rootfs and how to put it in an image file.

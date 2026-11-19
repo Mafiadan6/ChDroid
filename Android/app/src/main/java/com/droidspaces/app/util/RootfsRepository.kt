@@ -25,8 +25,9 @@ data class RootfsAsset(
     // Includes a short hash of the download URL to guarantee uniqueness even across repos
     val uniqueFilename: String get() {
         val ext = when {
-            downloadUrl.endsWith(".tar.xz") -> ".tar.xz"
-            downloadUrl.endsWith(".tar.gz")  -> ".tar.gz"
+            downloadUrl.endsWith(".tar.xz", ignoreCase = true) -> ".tar.xz"
+            downloadUrl.endsWith(".tar.gz", ignoreCase = true) -> ".tar.gz"
+            downloadUrl.endsWith(".zip", ignoreCase = true)    -> ".zip"
             else -> ".tar.xz"
         }
         val sanitized = "$name $author".trim()
@@ -54,6 +55,32 @@ object RootfsRepository {
     private const val CONNECT_TIMEOUT = 10_000
     private const val READ_TIMEOUT    = 15_000
 
+    /*
+     * Ubuntu Chroot v4.4 ships its rootfs as a Magisk module ZIP with a
+     * rootfs.tar.gz inside. Listed as a built-in repo so a temp-root device can
+     * install the exact release the fork targets without flashing the module.
+     */
+    private const val UC_VERSION = "v4.4"
+    private const val UC_TAG = "20260323"
+    private const val UC_RELEASE =
+        "https://github.com/ravindu644/Ubuntu-Chroot/releases/download/$UC_VERSION"
+    private val UBUNTU_CHROOT_ASSETS = listOf(
+        "CLI" to 537_517_628L,
+        "GUI" to 880_346_404L
+    ).map { (variant, size) ->
+        RootfsAsset(
+            name = "Ubuntu Chroot 24.04 ($variant)",
+            description = "Ubuntu-Chroot $UC_VERSION rootfs (${variant.lowercase()}); " +
+                "extracted from the release ZIP, no module flashing required.",
+            architecture = "aarch64",
+            downloadUrl = "$UC_RELEASE/Ubuntu-Chroot-$UC_VERSION-$UC_TAG-$variant.zip",
+            sizeBytes = size,
+            buildDate = UC_TAG,
+            author = "ravindu644 · Ubuntu-Chroot",
+            sourceRepoName = "Ubuntu-Chroot $UC_VERSION"
+        )
+    }
+
     suspend fun fetchAllAssets(context: Context): RepoResult = withContext(Dispatchers.IO) {
         val prefs = PreferencesManager.getInstance(context)
         val customRepos = prefs.getCustomRepos()
@@ -68,6 +95,10 @@ object RootfsRepository {
 
         val allAssets = mutableListOf<RootfsAsset>()
         val errors = mutableListOf<String>()
+
+        // Always present, even offline: the fork's target rootfs and the reason
+        // it is here. The network repos below are additive.
+        allAssets.addAll(UBUNTU_CHROOT_ASSETS)
 
         results.forEach { result ->
             when (result) {

@@ -19,6 +19,7 @@ import com.droidspaces.app.util.RootChecker
 import com.droidspaces.app.util.RootStatus
 import com.droidspaces.app.util.SymlinkInstaller
 import com.droidspaces.app.util.SystemInfoManager
+import com.droidspaces.app.util.TempRootManager
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -99,7 +100,7 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
 
             try {
                 val status = withContext(Dispatchers.IO) {
-                    DroidspacesChecker.checkBackendStatus()
+                    DroidspacesChecker.checkBackendStatus(getApplication())
                 }
 
                 val finalStatus = if (status == DroidspacesBackendStatus.Available) {
@@ -167,7 +168,7 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
         val context = getApplication<Application>()
 
         val backendStatus = withContext(Dispatchers.IO) {
-            DroidspacesChecker.checkBackendStatus()
+            DroidspacesChecker.checkBackendStatus(context)
         }
 
         val whichBackendMode = withContext(Dispatchers.IO) {
@@ -176,23 +177,26 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
         val wasDaemon = whichBackendMode == "DAEMON"
 
         val isAtomicUpdate = backendStatus == DroidspacesBackendStatus.UpdateAvailable
+        val tempRoot = withContext(Dispatchers.IO) { TempRootManager.isTempRootMode(context) }
 
         // Capture symlink state before any module directory removal
         val wasSymlinkEnabled = withContext(Dispatchers.IO) {
             SymlinkInstaller.isSymlinkEnabled()
         }
 
-        // Check if SELinux policy exists BEFORE we start nuking things
-        val sepolicyExists = withContext(Dispatchers.IO) {
-            Shell.cmd("test -f ${Constants.MAGISK_MODULE_PATH}/sepolicy.rule").exec().isSuccess
-        }
-        if (!sepolicyExists) {
-            installRebootRecommended = true
-        }
-
-        if (!isAtomicUpdate) {
-            // Clean Slate: Remove the old module, but NEVER the bin directory.
-            Shell.cmd("rm -rf '/data/adb/modules/droidspaces' 2>&1").exec()
+        // A late-loaded su session never loads sepolicy.rule, and a reboot is
+        // not an install step here - it drops root. Neither check applies.
+        if (!tempRoot) {
+            val sepolicyExists = withContext(Dispatchers.IO) {
+                Shell.cmd("test -f ${Constants.MAGISK_MODULE_PATH}/sepolicy.rule").exec().isSuccess
+            }
+            if (!sepolicyExists) {
+                installRebootRecommended = true
+            }
+            if (!isAtomicUpdate) {
+                // Clean Slate: Remove the old module, but NEVER the bin directory.
+                Shell.cmd("rm -rf '/data/adb/modules/droidspaces' 2>&1").exec()
+            }
         }
 
         // Step 2: Install binaries (atomic mv to canonical path)
@@ -202,7 +206,41 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
                 if (wasDaemon) {
                     BinaryInstaller.signalDaemon()
                 }
-                // Step 3: Install module
+
+                if (tempRoot) {
+                    // No boot module, no service.sh: the session bootstrap is
+                    // the whole install. Marker first so the headless script
+                    // and the app agree on which mode is active.
+                    isInstallingModule = true
+                    val tempResult = withContext(Dispatchers.IO) {
+                        TempRootManager.writeMarker().let { marked ->
+                            if (!marked) Result.failure(Exception("Could not write temp-root marker"))
+                            else TempRootManager.ensureDaemon()
+                        }
+                    }
+                    tempResult.fold(
+                        onSuccess = {
+                            HostCapabilities.refresh(context)
+                            isInstallSuccess = true
+                            installRebootRecommended = false
+                            isInstalling = false
+                            isInstallingModule = false
+                            resetForPostInstallation()
+                            checkBackendStatus(force = true)
+                        },
+                        onFailure = { error ->
+                            installErrorMessage = error.message
+                                ?: context.getString(R.string.module_installation_failed)
+                            isInstalling = false
+                            isInstallingModule = false
+                            resetForPostInstallation()
+                            checkBackendStatus(force = true)
+                        }
+                    )
+                    return@fold
+                }
+
+                // Step 3: Install module (persistent-root path only)
                 isInstallingModule = true
                 val moduleResult = ModuleInstaller.install(context)
                 moduleResult.fold(
@@ -269,6 +307,16 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
      */
     val isRootAvailable: Boolean
         get() = rootStatus == RootStatus.Granted
+
+    /** Exposed so Settings can restart the daemon after a DirtyFrag re-root. */
+    val isTempRootMode: Boolean get() = TempRootManager.isTempRootMode(getApplication())
+
+    fun startTempRootDaemon(onResult: (Result<Unit>) -> Unit) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { TempRootManager.ensureDaemon() }
+            onResult(result)
+        }
+    }
 
     // Latest GitHub release, or null when the check is off, offline, or failed.
     var appUpdate: AppUpdateInfo? by mutableStateOf(null)

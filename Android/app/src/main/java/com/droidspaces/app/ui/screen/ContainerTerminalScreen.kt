@@ -126,17 +126,23 @@ fun ContainerTerminalScreen(
     var tabPendingClose by remember { mutableStateOf<TerminalTab?>(null) }
 
     // Resolve hostname reactively; picker is shown only after binder+hostname are both ready
+    // A blank container name is the app's host-root shell, used by the temp-root
+    // rows in Settings. It has no container metadata to resolve.
+    val isHostShell = containerName.isBlank()
     var hostname by remember(containerName) {
         mutableStateOf(
-            ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
+            if (isHostShell) context.getString(R.string.temp_root_terminal_hostname)
+            else ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
                 ?: containerName.take(12)
         )
     }
-    var hostnameReady by remember { mutableStateOf(hostname != containerName.take(12)) }
+    var hostnameReady by remember { mutableStateOf(isHostShell || hostname != containerName.take(12)) }
     LaunchedEffect(containerName) {
-        val resolved = ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
-            ?: ContainerOSInfoManager.fetchAll(context)[containerName]?.hostname
-        if (resolved != null) hostname = resolved
+        if (!isHostShell) {
+            val resolved = ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
+                ?: ContainerOSInfoManager.fetchAll(context)[containerName]?.hostname
+            if (resolved != null) hostname = resolved
+        }
         hostnameReady = true
     }
 
@@ -178,6 +184,10 @@ fun ContainerTerminalScreen(
     fun pickUserOrOpenRoot() {
         if (pickJob?.isActive == true) return
         pickJob = scope.launch {
+            if (isHostShell) {
+                addTab("root")
+                return@launch
+            }
             val users = ContainerUsersManager.getUsers(containerName, useCache = false)
             availableUsers = listOf("root") + users
             if (users.isEmpty()) {

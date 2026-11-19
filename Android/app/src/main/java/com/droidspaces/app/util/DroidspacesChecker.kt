@@ -16,13 +16,24 @@ object DroidspacesChecker {
     private const val MODULE_PROP_PATH = "$MAGISK_MODULE_PATH/module.prop"
 
     /**
-     * Check if Magisk module is installed.
-     * Returns true if both module directory and module.prop exist.
+     * Check if the persistent boot module is installed.
+     *
+     * A DirtyFrag / late-loaded KernelSU session has no boot scripts, so the
+     * module is neither installed nor useful. Requiring it there would mark a
+     * perfectly working in-session backend as ModuleMissing. Temp-root mode
+     * substitutes the one thing that actually matters: both binaries present
+     * and executable at their canonical paths.
      *
      * Performance: ~10-20ms (runs in background, never blocks UI)
      */
-    private suspend fun checkModuleInstalled(): Boolean = withContext(Dispatchers.IO) {
-        Shell.cmd("test -d '$MAGISK_MODULE_PATH' && test -f '$MODULE_PROP_PATH'").exec().isSuccess
+    private suspend fun checkModuleInstalled(context: Context): Boolean = withContext(Dispatchers.IO) {
+        if (TempRootManager.isTempRootMode(context)) {
+            Shell.cmd(
+                "test -x '$DROIDSPACES_BINARY_PATH' && test -x '$BUSYBOX_BINARY_PATH'"
+            ).exec().isSuccess
+        } else {
+            Shell.cmd("test -d '$MAGISK_MODULE_PATH' && test -f '$MODULE_PROP_PATH'").exec().isSuccess
+        }
     }
 
     /**
@@ -31,8 +42,8 @@ object DroidspacesChecker {
      *
      * Performance: ~10-50ms (runs in background, never blocks UI)
      */
-    suspend fun checkBackendStatus(): DroidspacesBackendStatus = withContext(Dispatchers.IO) {
-        if (!checkModuleInstalled()) {
+    suspend fun checkBackendStatus(context: Context): DroidspacesBackendStatus = withContext(Dispatchers.IO) {
+        if (!checkModuleInstalled(context)) {
             return@withContext DroidspacesBackendStatus.ModuleMissing
         }
 

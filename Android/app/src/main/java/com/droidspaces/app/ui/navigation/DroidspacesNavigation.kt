@@ -532,6 +532,11 @@ fun DroidspacesNavigation(
                 },
                 onNavigateToTerminalAppearance = {
                     navController.navigate(Screen.TerminalAppearance.route)
+                },
+                // Empty container name is the app's existing bare-root shell path:
+                // DroidspacesTerminalSession falls back to plain `su` for it.
+                onOpenRootTerminal = {
+                    navController.navigate(Screen.Terminal.createRoute(""))
                 }
             )
         }

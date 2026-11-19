@@ -20,6 +20,11 @@ object Constants {
 
     const val DAEMON_MODE_FILE = "/data/local/Droidspaces/.daemon_mode"
     const val DAEMON_PID_FILE = "/data/local/Droidspaces/droidspacesd.pid"
+
+    // Temp-root (DirtyFrag / KernelSU late-load) session paths.
+    const val TEMP_ROOT_DAEMON_LOG = "/data/local/Droidspaces/Logs/temp-root-daemon.log"
+    const val TEMP_ROOT_BOOTSTRAP_SCRIPT = "$INSTALL_PATH/temproot-bootstrap.sh"
+    const val UBUNTU_CHROOT_ROOTFS = "/data/local/ubuntu-chroot/rootfs"
     const val CONTAINER_CONFIG_FILE = "container.config"
     // Default network mode, the single source of truth for both the ContainerInfo
     // model default and the config parser default (they used to disagree).

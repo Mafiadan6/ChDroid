@@ -106,6 +106,19 @@ class PreferencesManager private constructor(context: Context) {
     var isSymlinkEnabled: Boolean by pref(KEY_SYMLINK_ENABLED, false)
 
     /**
+     * Force the in-session root path even when no KernelSU userspace is found.
+     * When [autoDetectTempRoot] is on (the default), a KernelSU install is
+     * enough to select it without the user having to know what DirtyFrag is.
+     */
+    var tempRootMode: Boolean by pref(KEY_TEMP_ROOT_MODE, false)
+
+    var autoDetectTempRoot: Boolean by pref(KEY_AUTO_DETECT_TEMP_ROOT, true)
+
+    val tempRootModeFlow: Flow<Boolean> = booleanPrefFlow(KEY_TEMP_ROOT_MODE, false)
+
+    val autoDetectTempRootFlow: Flow<Boolean> = booleanPrefFlow(KEY_AUTO_DETECT_TEMP_ROOT, true)
+
+    /**
      * Reactive stream of the daemon-mode preference, emits the current value and
      * every later change, [syncDaemonModeFromDisk]'s included, so the UI can collect it with
      * collectAsStateWithLifecycle() instead of a hand-rolled change listener.
@@ -347,6 +360,8 @@ class PreferencesManager private constructor(context: Context) {
         private const val KEY_THEME_PALETTE = "theme_palette"
         private const val KEY_DAEMON_MODE_ENABLED = "daemon_mode_enabled"
         private const val KEY_SYMLINK_ENABLED = "symlink_enabled"
+        private const val KEY_TEMP_ROOT_MODE = "temp_root_mode"
+        private const val KEY_AUTO_DETECT_TEMP_ROOT = "auto_detect_temp_root"
         private const val KEY_TREAT_AS_64BIT = "treat_as_64bit"
         private const val KEY_CHECK_APP_UPDATES = "check_app_updates"
         private const val KEY_CONTAINER_LOG_PREFIX = "container_log_"

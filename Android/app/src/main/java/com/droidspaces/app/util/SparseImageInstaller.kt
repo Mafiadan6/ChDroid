@@ -33,7 +33,8 @@ object SparseImageInstaller {
         imgPath: String,
         mountPoint: String,
         sizeGB: Int,
-        logger: ViewModelLogger
+        logger: ViewModelLogger,
+        applyUbuntuFixes: Boolean = false,
     ) = withContext(Dispatchers.IO) {
         try {
             // 1. Create Sparse Image
@@ -103,6 +104,9 @@ object SparseImageInstaller {
 
                 // 6. Apply Post-Extraction Fixes
                 ContainerInstaller.applyPostExtractionFixes(context, mountPoint, logger)
+                if (applyUbuntuFixes) {
+                    ContainerInstaller.applyUbuntuChrootFixes(context, mountPoint, logger)
+                }
 
             } finally {
                 // 7. Unmount (Always attempt)
