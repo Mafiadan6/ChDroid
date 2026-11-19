@@ -46,11 +46,17 @@ object DroidspacesTerminalSession {
         containerUser: String? = null,
     ): TerminalSession {
         val safeName = containerName?.takeIf { SAFE_NAME.matches(it) }
-        // No container, or a name carrying shell metacharacters: a bare root shell
-        // rather than an injectable payload. A username with metacharacters falls
-        // back to root the same way. safeName cannot hold " ' $ or `, the escape is
-        // belt-and-suspenders.
-        val shArg = if (safeName == null) "su" else {
+        // A blank name is this fork's Ubuntu-Chroot CLI shell: chroot.sh sets up
+        // the namespace and mounts, then drops into the Ubuntu login shell. A name
+        // with shell metacharacters still gets a plain su, never an injectable
+        // payload. safeName cannot hold " ' $ or `, the escape is belt-and-suspenders.
+        val shArg = if (safeName == null) {
+            if (containerName.isNullOrBlank()) {
+                "sh '${Constants.UBUNTU_CHROOT_SCRIPT}' start root"
+            } else {
+                "su"
+            }
+        } else {
             val user = containerUser?.takeIf { SAFE_USER.matches(it) } ?: "root"
             "su -c 'droidspaces -n \"${safeName.replace("\"", "\\\"")}\" enter $user'"
         }

@@ -44,7 +44,6 @@ fun InstallationScreen(
     // survive rotation; these are Compose state reads and recompose.
     val isSuccess = appStateViewModel.isInstallSuccess
     val errorMessage = appStateViewModel.installErrorMessage
-    val rebootRecommended = appStateViewModel.installRebootRecommended
     val kernelUnsupported = HostCapabilities.state.collectAsState().value?.requirementsMet == false
 
     // The ViewModel outlives this screen and performInstallation() resets the
@@ -136,37 +135,6 @@ fun InstallationScreen(
                     }
                 )
 
-                AnimatedVisibility(
-                    visible = phase == InstallPhase.Success && rebootRecommended,
-                    enter = fadeIn(motion.fastEffectsSpec()),
-                    exit = fadeOut(motion.fastEffectsSpec())
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(24.dp))
-                        Surface(
-                            shape = RoundedCornerShape(20.dp),
-                            color = MaterialTheme.colorScheme.surfaceContainer,
-                            tonalElevation = 0.dp
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(16.dp),
-                                verticalAlignment = Alignment.Top,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Info,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Text(
-                                    text = context.getString(R.string.reboot_recommended),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
     }

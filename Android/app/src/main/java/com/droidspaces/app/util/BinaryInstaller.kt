@@ -68,7 +68,7 @@ object BinaryInstaller {
             installBinary(busyboxBinaryName, busyboxTargetPath, "busybox")
                 .getOrElse { error -> return@withContext Result.failure(error) }
 
-            // Step 5: Verification (scripts are handled by ModuleInstaller)
+            // Step 5: Verification (the session bootstrap handles the rest)
 
             if (!Shell.cmd("test -x $droidspacesTargetPath").exec().isSuccess)
                 return@withContext Result.failure(Exception("Droidspaces binary verification failed: file is not executable"))

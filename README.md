@@ -15,18 +15,18 @@ Droidspaces runs full Linux distributions as containers on a rooted Android phon
 
 ## What you get
 
-- **A real Linux system, not a chroot, not a virtual machine.** Ubuntu, Debian, Fedora, Arch, Alpine, NixOS, OpenWrt and more boot with their own init as PID 1. Services, timers, `reboot` from inside the container, all of it works.
+- **Native-speed Linux, no emulation.** The stock Droidspaces container runtime boots Ubuntu, Debian, Fedora, Arch and more with their own init as PID 1. This fork adds a second path: the Ubuntu-Chroot v4.4 CLI, where the release's own `chroot.sh` sets up the environment and the app supplies the terminal.
 - **Networking that works out of the box.** NAT mode gives every container its own address and internet, with no setup. Gateway mode hands a container's LAN to an OpenWrt container that does DHCP, DNS and firewalling. Macvlan puts a container straight on a wired LAN with its own address from your router.
 - **A desktop on your phone.** Anland or Termux:X11 for the display, VirGL or Qualcomm's Turnip for the GPU, and PulseAudio for sound, all started for you. Turn on the toggles, start the container, and the desktop environment appears with sound.
 - **Hardware when you want it.** GPU, USB, sensors and block devices can be exposed to a container with one toggle. Docker and Podman run inside containers on every supported kernel.
-- **Containers that stay up.** On Android a container can start at boot, before you unlock the phone, and keeps running **for months**, whether the app is open, closed or uninstalled. Everything lives in `/data/local/Droidspaces`.
+- **No boot dependency in this fork.** The Ubuntu-Chroot CLI path runs entirely in the current root session. Everything lives under `/data/local/ubuntu-chroot`, and the backend under `/data/local/Droidspaces`. Start it again after root is granted on a new boot.
 - **The same binary on Linux.** Every feature of the CLI works the same on a Linux PC. Packages are built for aarch64, armhf, x86_64, x86 and riscv64.
 
 ## Requirements
 
 **Android**
 
-- A rooted device. **KernelSU is recommended**. Magisk and APatch work too.
+- A rooted device. Any root solution that provides `su` works — Magisk, KernelSU, APatch, or a late-loaded root shell. This fork makes no distinction between them.
 - A kernel built with the options Droidspaces needs. Most stock kernels lack them. See the [kernel configuration guide](Documentation/Kernel-Configuration.md), or pick a phone from the [community-supported devices](Documentation/community-supported-devices.md) list, which links to ready-made kernels.
 - Kernel 3.10 or newer. 4.9 and newer is where most distributions work well.
 
@@ -38,13 +38,13 @@ Droidspaces runs full Linux distributions as containers on a rooted Android phon
 
 **Android**
 
-1. Install the APK from the [latest release](https://github.com/ravindu644/Droidspaces-OSS/releases/latest), grant root, open it, and let it install the backend. Reboot when it asks.
-2. Open the **Containers** tab, tap **+**, then **Repository**. Pick a distribution, tap **Download**, then **Install**, and walk through the setup.
-3. Tap **Start**. Open the **Panel** tab and tap **Terminal** to get a shell.
+This fork is a front end for the **Ubuntu-Chroot v4.4 CLI** release. Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts and shell; Droidspaces provides the UI and the terminal. No boot module, no `post-fs-data`, no `service.sh`, no reboot dependency.
 
-The [Android installation guide](Documentation/Installation-Android.md) covers each step in detail.
+1. Install the fork APK (`com.droidspaces.ubuntuchroot`), grant root, open it, and let it install the backend. Nothing is written to `/data/adb/modules`.
+2. Open **Containers → + → Repository** and pick **Ubuntu Chroot 24.04 (CLI)**. Download it (537 MB), then install it. The release files land in `/data/local/ubuntu-chroot`.
+3. Use **Settings → Start Ubuntu chroot** to set up the namespace, or **Open Ubuntu terminal** to drop straight into the Ubuntu shell.
 
-**Temporary root / DirtyFrag:** this fork adds a `com.droidspaces.temproot` build for devices where `su` works but no boot scripts run. It skips module installation, starts the daemon in-session, ships Ubuntu-Chroot v4.4 CLI/GUI rootfs ZIPs in the repository, and wires the whole flow into the app's own root terminal. See [Temporary-root sessions with Ubuntu-Chroot v4.4](Documentation/Temp-Root-Ubuntu-Chroot.md).
+See [Ubuntu-Chroot CLI on any rooted phone](Documentation/Ubuntu-Chroot-CLI.md) for the full flow, the headless bootstrap and the commands available in the in-app terminal.
 
 **Linux**
 

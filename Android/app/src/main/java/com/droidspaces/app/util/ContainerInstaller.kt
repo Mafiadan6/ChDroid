@@ -26,6 +26,17 @@ object ContainerInstaller {
         config: ContainerInfo,
         logger: ViewModelLogger
     ): Result<Unit> = withContext(Dispatchers.IO) {
+        // Ubuntu-Chroot CLI ships as a module ZIP, not as a Droidspaces tarball.
+        // Its own chroot.sh owns the environment, so the ordinary container
+        // pipeline (container.config, init) does not apply. Any rooted phone
+        // takes this path; there is no root-method-specific branch.
+        if (FilePickerUtils.getFileName(context, tarballUri)
+                ?.endsWith(".zip", ignoreCase = true) == true
+        ) {
+            logger.i("Ubuntu-Chroot CLI ZIP detected - installing chroot directly")
+            return@withContext UbuntuChrootManager.install(context, tarballUri, logger)
+        }
+
         // Use sanitized name for directory (spaces -> dashes)
         val sanitizedName = ContainerManager.sanitizeContainerName(config.name)
         val containerPath = ContainerManager.getContainerDirectory(config.name)
@@ -38,7 +49,6 @@ object ContainerInstaller {
         val configFilePath = "$containerPath/${Constants.CONTAINER_CONFIG_FILE}"
         var createdPaths = mutableListOf<String>()
         var tempTarball: File? = null
-        var tempExtracted: File? = null
 
         try {
             // Reject control chars in single-line config values.
@@ -115,28 +125,19 @@ object ContainerInstaller {
             }
             logger.i("Tarball: $archive")
 
-            // Step 4.2: Ubuntu-Chroot v4.4 ships as a module ZIP with a
-            // rootfs.tar.gz inside. Pull that member out before validation so
-            // the rest of the pipeline keeps working with a plain tarball.
-            val rootfsArchive = prepareArchive(context, archive, logger).also { prepared ->
-                if (prepared != archive) tempExtracted = File(prepared)
-            }
-            val fromUbuntuChrootZip = archive.lowercase().endsWith(".zip")
-
             // Step 4.5: Verify the tarball is actually a Linux rootfs before we
             // extract anything, so users can't install arbitrary archives.
-            validateRootfsTarball(context, rootfsArchive, logger)
+            validateRootfsTarball(context, archive, logger)
 
             // Step 5: Extract tarball (either to directory or sparse image)
             if (config.useSparseImage) {
                 SparseImageInstaller.extract(
                     context = context,
-                    tarball = rootfsArchive,
+                    tarball = archive,
                     imgPath = rootfsPath,
                     mountPoint = "${containerPath}/rootfs",
                     sizeGB = config.sparseImageSizeGB ?: 8,
-                    logger = logger,
-                    applyUbuntuFixes = fromUbuntuChrootZip,
+                    logger = logger
                 )
             } else {
                 // Create rootfs subdirectory
@@ -146,7 +147,7 @@ object ContainerInstaller {
                 }
 
                 logger.i("Extracting tarball to $rootfsPath...")
-                val extractResult = Shell.cmd(extractCommand(rootfsArchive, rootfsPath)).exec()
+                val extractResult = Shell.cmd(extractCommand(archive, rootfsPath)).exec()
                 if (!extractResult.isSuccess) {
                     val errorMsg = extractResult.err.joinToString("\n")
                     logger.e("Extraction failed: $errorMsg")
@@ -157,7 +158,6 @@ object ContainerInstaller {
 
                 // Apply post-extraction fixes
                 applyPostExtractionFixes(context, rootfsPath, logger)
-                if (fromUbuntuChrootZip) applyUbuntuChrootFixes(context, rootfsPath, logger)
             }
 
             // Step 6: Write container config
@@ -229,79 +229,15 @@ object ContainerInstaller {
             // Clean up temp tarball, never the user's own file
             try {
                 tempTarball?.delete()
-                tempExtracted?.parentFile?.deleteRecursively() ?: tempExtracted?.delete()
             } catch (e: Exception) {
                 // Ignore cleanup errors
             }
         }
     }
 
-    /** Keep the archive's real extension so the ZIP path can be detected later. */
-    private suspend fun getTarballExtension(context: Context, uri: Uri): String {
-        val name = FilePickerUtils.getFileName(context, uri).orEmpty()
-        return when {
-            name.endsWith(".xz", ignoreCase = true) -> ".xz"
-            name.endsWith(".zip", ignoreCase = true) -> ".zip"
-            else -> ".gz"
-        }
-    }
-
-    /**
-     * A ZIP from Ubuntu-Chroot's releases is a Magisk module containing one
-     * rootfs.tar.gz. Stream that member into cache and hand back its path;
-     * plain .tar/.tar.gz/.tar.xz files pass through untouched.
-     */
-    private suspend fun prepareArchive(context: Context, archive: String, logger: ViewModelLogger): String =
-        withContext(Dispatchers.IO) {
-            if (!archive.lowercase().endsWith(".zip")) return@withContext archive
-
-            logger.i("Ubuntu-Chroot ZIP detected - extracting rootfs member...")
-            val script = try {
-                deployAsset(context, "extract_zip_rootfs.sh")
-            } catch (e: Exception) {
-                logger.e("Failed to load ZIP extractor: ${e.message}")
-                throw Exception("Could not read Ubuntu-Chroot ZIP (${e.message})")
-            }
-            try {
-                val outDir = File(context.cacheDir, "ubuntu-chroot-${System.currentTimeMillis()}")
-                outDir.mkdirs()
-                val result = Shell.cmd(
-                    "BUSYBOX_PATH=$BUSYBOX_PATH ${quote(script.absolutePath)} " +
-                        "${quote(archive)} $BUSYBOX_PATH ${quote(outDir.absolutePath)} 2>&1"
-                ).exec()
-                val extracted = result.out.map { it.trim() }.lastOrNull { it.endsWith(".tar.gz") }
-                if (!result.isSuccess || extracted == null || !File(extracted).isFile) {
-                    val why = result.out.map { it.trim() }.filter { it.startsWith("rootfs") || it.contains("No ") }
-                        .joinToString(" ").ifEmpty { result.err.joinToString(" ") }
-                    logger.e("ZIP extraction failed: $why")
-                    throw Exception("Could not extract rootfs from ZIP: $why")
-                }
-                logger.i("Rootfs member staged at $extracted")
-                extracted
-            } finally {
-                script.delete()
-            }
-        }
-
-    /** Ubuntu-Chroot-specific adjustments, applied only to its ZIP rootfs. */
-    internal suspend fun applyUbuntuChrootFixes(context: Context, rootfsPath: String, logger: ViewModelLogger) {
-        logger.i("Applying Ubuntu-Chroot compatibility fixes...")
-        val script = try {
-            deployAsset(context, "ubuntu_chroot_fixes.sh")
-        } catch (e: Exception) {
-            logger.w("Warning: Failed to load ubuntu_chroot_fixes.sh: ${e.message}")
-            return
-        }
-        try {
-            val result = Shell.cmd("BUSYBOX_PATH=$BUSYBOX_PATH ${quote(script.absolutePath)} ${quote(rootfsPath)} 2>&1").exec()
-            result.out.map { it.trim() }.filter { it.isNotEmpty() }.forEach { line ->
-                if (line.startsWith("[UC-FIX]")) logger.i(line) else logger.d(line)
-            }
-            if (!result.isSuccess) logger.w("Warning: Ubuntu-Chroot fixes reported an error")
-        } finally {
-            script.delete()
-        }
-    }
+    /** ".xz" for a .tar.xz, ".gz" for anything else the picker handed over. */
+    private suspend fun getTarballExtension(context: Context, uri: Uri): String =
+        if (FilePickerUtils.getFileName(context, uri)?.endsWith(".xz", ignoreCase = true) == true) ".xz" else ".gz"
 
     /**
      * Shell command that unpacks [tarball] into [destination]. An exported archive

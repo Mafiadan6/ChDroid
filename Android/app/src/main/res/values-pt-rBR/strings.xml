@@ -137,7 +137,6 @@
     <string name="installation_failed">Instalação Falhou</string>
     <string name="installing_droidspaces">Instalando Droidspaces</string>
     <string name="backend_installed_success">Backend instalado com sucesso</string>
-    <string name="module_installation_failed">Falha na instalação do módulo</string>
     <string name="binary_installation_failed">Falha na instalação dos binários</string>
     <!-- Control Panel Screen -->
     <string name="no_containers_running">Nenhum container em execução</string>

@@ -185,7 +185,6 @@
     <string name="installation_failed">Kurulum Başarısız</string>
     <string name="installing_droidspaces">Droidspaces Kuruluyor</string>
     <string name="backend_installed_success">Droidspaces backendi başarıyla kuruldu</string>
-    <string name="module_installation_failed">Modül kurulumu başarısız oldu</string>
     <string name="binary_installation_failed">Binary yüklemesi başarısız oldu</string>
     <string name="no_containers_running">Çalışan konteyner yok</string>
     <string name="start_container_first">Burada görebilmek için önce bir konteyner başlatın</string>
@@ -284,6 +283,5 @@
     <string name="help_card_title">Droidspaces\'e yeni misiniz?</string>
     <string name="help_card_message">İlk Linux konteynerinizi nasıl kuracağınızı öğrenmek için buraya dokunun!</string>
     <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
-    <string name="reboot_recommended">SELinux kurallarının devreye girmesi ve daemon\'ın önyüklemede başlaması için sistemi yeniden başlatmanız önerilir.</string>
     <string name="failure_in_operation">Failure in %1$sing container %2$s</string>
 </resources>

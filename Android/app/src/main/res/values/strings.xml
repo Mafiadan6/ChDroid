@@ -113,22 +113,25 @@
     <string name="dynamic_color_description">Use Android 12+ Monet theming (Material You)</string>
     <string name="accent_color">Accent Color</string>
     <string name="daemon_mode">Daemon Mode</string>
-    <string name="daemon_mode_description">Run Droidspaces as a persistent system-level daemon to bypass seccomp blocks from Magisk/APatch, GrapheneOS, etc. This enables high-privilege operations by fetching and running commands from userspace (Reboot required).</string>
-    <string name="temp_root_mode">Temporary root session (DirtyFrag / KernelSU)</string>
-    <string name="temp_root_mode_description">Skip boot-module installation. Binaries and the daemon are started in the current root session; containers must be started manually after every re-root.</string>
-    <string name="auto_detect_temp_root">Detect KernelSU automatically</string>
-    <string name="auto_detect_temp_root_description">Enable temporary root mode whenever a KernelSU userspace is present. Turn off when running a persistent KernelSU setup with working boot scripts.</string>
+    <string name="daemon_mode_description">Run Droidspaces as a system-level daemon. The backend starts in the current root session; no boot module is used.</string>
     <string name="start_daemon_now">Start daemon now</string>
-    <string name="start_daemon_now_description">Launch the Droidspaces daemon in this root session. Needed when no boot service is active.</string>
-    <string name="temp_root_daemon_running">daemon running</string>
-    <string name="temp_root_daemon_failed">daemon failed to start</string>
-    <string name="temp_root_install_helper">Install root-shell helper</string>
-    <string name="temp_root_install_helper_description">Copies temproot-bootstrap.sh into the in-app terminal\'s PATH.</string>
-    <string name="temp_root_helper_installed">helper ready: %1$s</string>
-    <string name="temp_root_helper_failed">could not install the root-shell helper</string>
-    <string name="temp_root_open_terminal">Open temp-root terminal</string>
-    <string name="temp_root_open_terminal_description">Opens the app\'s root shell with the bootstrap helper already on PATH.</string>
-    <string name="temp_root_terminal_hostname">localhost</string>
+    <string name="start_daemon_now_description">Launch the Droidspaces daemon in this root session.</string>
+    <string name="uc_daemon_running">daemon running</string>
+    <string name="uc_daemon_failed">daemon failed to start</string>
+    <string name="uc_install_helper">Install root-shell helper</string>
+    <string name="uc_install_helper_description">Copies ubuntu-chroot-bootstrap.sh into the in-app terminal\'s PATH.</string>
+    <string name="uc_helper_installed">helper ready: %1$s</string>
+    <string name="uc_helper_failed">could not install the root-shell helper</string>
+    <string name="uc_open_terminal">Open Ubuntu terminal</string>
+    <string name="uc_open_terminal_description">Opens the app\'s terminal directly in the Ubuntu chroot via chroot.sh.</string>
+    <string name="uc_terminal_hostname">ubuntu</string>
+    <string name="uc_start">Start Ubuntu chroot</string>
+    <string name="uc_start_description">Set up the namespace and mounts through Ubuntu-Chroot\'s own chroot.sh, without entering a shell.</string>
+    <string name="uc_started">Ubuntu chroot started</string>
+    <string name="uc_stop">Stop Ubuntu chroot</string>
+    <string name="uc_stop_description">Kill chroot processes and unmount the environment.</string>
+    <string name="uc_stopped">Ubuntu chroot stopped</string>
+    <string name="uc_failed">Ubuntu chroot command failed</string>
     <string name="symlink_integration">Integrate Droidspaces to the system path</string>
     <string name="symlink_integration_description">Create a symlink at /system/bin to access the droidspaces command in Android root shell. WARNING: ENABLING THIS CAUSES BOOTLOOP IF YOUR MOUNT SYSTEM IS OVERLAYFS meta modules. Only use this option when using Magic Mount-based mount system or kernel based "nomount" mount system (Reboot required)</string>
     <string name="about_section">About</string>
@@ -430,7 +433,7 @@
     <string name="installing_backend_message">Setting up the backend. This takes a moment.</string>
     <string name="backend_installed_success">Droidspaces backend installed successfully</string>
     <string name="backend_installed_unsupported_kernel">Droidspaces backend installed successfully, but this kernel has no Droidspaces support.</string>
-    <string name="module_installation_failed">Module installation failed</string>
+    <string name="session_setup_failed">Could not start the backend in this root session</string>
     <string name="binary_installation_failed">Binary installation failed</string>
 
     <!-- File Picker Screen -->
@@ -683,7 +686,6 @@
     <string name="privileged_disclaimer">By enabling these options, you are compromising your device security. We are NOT responsible for any data loss, bricked devices, or weird bugs. Do NOT report issues occurred while using these modes.</string>
     <string name="privileged_confirm_instruction">Type \"I WON\'T REPORT ANY BUGS\" exactly in capitals to confirm:</string>
     <string name="i_understand_caps">I WON\'T REPORT ANY BUGS</string>
-    <string name="reboot_recommended">Reboot recommended to apply SELinux rules and start the daemon on boot.</string>
     <string name="hw_access_disclaimer">Starting from Droidspaces v6.1.0, udevd has real access to USB, block, input, TTY, and network subsystems. Your container can own hardware that Android is currently using.\n\nIf your keyboard, SD card, or USB device stops working in Android after launching a container - that is NOT a bug. The container took it. You asked for full hardware access.\n\nDo NOT report issues caused by hardware conflicts or Kernel panics while using this mode.</string>
 
     <!-- Rootfs repository -->

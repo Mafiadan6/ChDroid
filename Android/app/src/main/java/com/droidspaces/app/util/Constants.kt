@@ -21,10 +21,15 @@ object Constants {
     const val DAEMON_MODE_FILE = "/data/local/Droidspaces/.daemon_mode"
     const val DAEMON_PID_FILE = "/data/local/Droidspaces/droidspacesd.pid"
 
-    // Temp-root (DirtyFrag / KernelSU late-load) session paths.
-    const val TEMP_ROOT_DAEMON_LOG = "/data/local/Droidspaces/Logs/temp-root-daemon.log"
-    const val TEMP_ROOT_BOOTSTRAP_SCRIPT = "$INSTALL_PATH/temproot-bootstrap.sh"
-    const val UBUNTU_CHROOT_ROOTFS = "/data/local/ubuntu-chroot/rootfs"
+    // Session-root paths. No boot module and no root-method detection: the
+    // fork runs on any rooted phone.
+    const val SESSION_DAEMON_LOG = "/data/local/Droidspaces/Logs/ubuntu-chroot-daemon.log"
+    const val SESSION_BOOTSTRAP_SCRIPT = "$INSTALL_PATH/ubuntu-chroot-bootstrap.sh"
+    // Ubuntu-Chroot CLI v4.4 installs itself here. Its own chroot.sh - not a
+    // Droidspaces container - owns the namespace, mounts and login shell.
+    const val UBUNTU_CHROOT_BASE = "/data/local/ubuntu-chroot"
+    const val UBUNTU_CHROOT_SCRIPT = "$UBUNTU_CHROOT_BASE/chroot.sh"
+    const val UBUNTU_CHROOT_ROOTFS = "$UBUNTU_CHROOT_BASE/rootfs"
     const val CONTAINER_CONFIG_FILE = "container.config"
     // Default network mode, the single source of truth for both the ContainerInfo
     // model default and the config parser default (they used to disagree).

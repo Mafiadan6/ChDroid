@@ -228,7 +228,6 @@
     <string name="no_services_found">未找到服務</string>
     <string name="dns_servers_hint">僅允許數字、點和冒號</string>
     <string name="add">添加</string>
-    <string name="module_installation_failed">模組安裝失敗</string>
     <string name="systemd_services">Systemd 服務</string>
     <string name="openrc_services">OpenRC 服務</string>
     <string name="openrc">OpenRC</string>
@@ -317,7 +316,6 @@
     <string name="privileged_disclaimer">啟用這些選項會降低裝置的安全性。我們對任何資料遺失、設備損壞或異常錯誤概不負責。請勿報告在使用這些模式時遇到的問題。</string>
     <string name="privileged_confirm_instruction">請輸入“I WON\'T REPORT ANY BUG”以進行確認：</string>
     <string name="i_understand_caps">I WON\'T REPORT ANY BUG</string>
-    <string name="reboot_recommended">建議重新啟動以應用SELinux 策略並在開機時啟動守護程序。</string>
     <string name="feat_containers_title">真正的Linux容器</string>
     <string name="feat_containers_desc">採用與 LXC、Podman 和 Docker 相同的核心命名空間技術。無需模擬，也無需 chroot。</string>
     <string name="feat_overhead_title">無性能損耗</string>

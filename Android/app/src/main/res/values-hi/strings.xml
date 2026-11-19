@@ -137,7 +137,6 @@
     <string name="installation_failed">इंस्टॉलेशन विफल</string>
     <string name="installing_droidspaces">Droidspaces इंस्टॉल किया जा रहा है</string>
     <string name="backend_installed_success">Backend सफलतापूर्वक स्थापित हो गया</string>
-    <string name="module_installation_failed">मॉड्यूल इंस्टॉलेशन विफल</string>
     <string name="binary_installation_failed">बाइनरी इंस्टॉलेशन विफल</string>
     <!-- Control Panel Screen -->
     <string name="no_containers_running">कोई कंटेनर नहीं चल रहा</string>

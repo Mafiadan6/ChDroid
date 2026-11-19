@@ -270,7 +270,6 @@
     <string name="done">Hotovo</string>
     <string name="installing_droidspaces">Instaluje se Droidspaces</string>
     <string name="backend_installed_success">Backend Droidspaces byl úspěšně nainstalován</string>
-    <string name="module_installation_failed">Instalace modulu se nezdařila</string>
     <string name="binary_installation_failed">Instalace binárního souboru se nezdařila</string>
     <string name="filter_absolute_path_hint">Filtrujte nebo zadejte absolutní cestu…</string>
     <string name="no_matches">Žádné shody</string>
@@ -410,7 +409,6 @@
     <string name="privileged_disclaimer">Zapnutím těchto možností ohrožujete zabezpečení svého zařízení. NENESEME odpovědnost za ztrátu dat, znefunkčněná zařízení ani podivné chyby. Potíže vzniklé při používání těchto režimů NEHLASTE.</string>
     <string name="privileged_confirm_instruction">Potvrďte zadáním přesné fráze „ŽÁDNÉ CHYBY HLÁSIT NEBUDU“ velkými písmeny:</string>
     <string name="i_understand_caps">ŽÁDNÉ CHYBY HLÁSIT NEBUDU</string>
-    <string name="reboot_recommended">K použití pravidel SELinuxu a spuštění démona při startu se doporučuje zařízení restartovat.</string>
     <string name="hw_access_disclaimer">Od verze Droidspaces 6.1.0 má udevd skutečný přístup k subsystémům USB, blokových a vstupních zařízení, TTY a sítě. Kontejner může převzít hardware, který právě používá Android.\n\nPokud po spuštění kontejneru přestane v Androidu fungovat klávesnice, karta SD nebo zařízení USB, NEJDE o chybu. Hardware převzal kontejner. Vyžádali jste si plný přístup k hardwaru.\n\nPotíže způsobené konflikty hardwaru nebo panikou jádra při používání tohoto režimu NEHLASTE.</string>
     <string name="repo_title">Repozitář rootfs</string>
     <string name="repo_fab_label">Repozitář</string>

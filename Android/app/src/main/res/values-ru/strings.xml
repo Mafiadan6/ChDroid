@@ -137,7 +137,6 @@
     <string name="installation_failed">Установка не удалась</string>
     <string name="installing_droidspaces">Установка Droidspaces</string>
     <string name="backend_installed_success">Бэкенд успешно установлен</string>
-    <string name="module_installation_failed">Не удалось установить модуль</string>
     <string name="binary_installation_failed">Не удалось установить бинарные файлы</string>
     <!-- Control Panel Screen -->
     <string name="no_containers_running">Нет запущенных контейнеров</string>

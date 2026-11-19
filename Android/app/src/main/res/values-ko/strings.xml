@@ -292,7 +292,6 @@
     <string name="done">완료</string>
     <string name="installing_droidspaces">Droidspaces 설치 중</string>
     <string name="backend_installed_success">Droidspaces 백엔드가 성공적으로 설치되었습니다</string>
-    <string name="module_installation_failed">모듈 설치 실패</string>
     <string name="binary_installation_failed">바이너리 설치 실패</string>
     <!-- File Picker Screen -->
     <string name="filter_absolute_path_hint">필터링하거나 절대 경로 입력…</string>
@@ -484,7 +483,6 @@
     <string name="privileged_disclaimer">이 옵션들을 활성화하면 기기 보안이 저하됩니다. 데이터 손실, 벽돌 현상, 이상한 버그에 대해 저희는 책임지지 않습니다. 이 모드 사용 중 발생한 문제는 신고하지 마세요.</string>
     <string name="privileged_confirm_instruction">확인을 위해 \"I WON\'T REPORT ANY BUGS\"를 대문자로 정확히 입력하세요:</string>
     <string name="i_understand_caps">I WON\'T REPORT ANY BUGS</string>
-    <string name="reboot_recommended">SELinux 규칙을 적용하고 부팅 시 데몬을 시작하려면 재부팅을 권장합니다.</string>
     <string name="hw_access_disclaimer">Droidspaces v6.1.0부터 udevd는 USB, 블록, 입력, TTY, 네트워크 서브시스템에 대한 실질적인 접근 권한을 갖습니다. 컨테이너가 Android가 현재 사용 중인 하드웨어를 가져갈 수 있습니다.\n\n컨테이너를 실행한 후 키보드, SD 카드 또는 USB 장치가 Android에서 작동하지 않는다면 - 이는 버그가 아닙니다. 컨테이너가 이를 가져간 것입니다. 전체 하드웨어 액세스를 요청하신 것입니다.\n\n이 모드 사용 중 발생한 하드웨어 충돌이나 커널 패닉 문제는 신고하지 마세요.</string>
     <!-- Rootfs repository -->
     <string name="repo_title">Rootfs 저장소</string>

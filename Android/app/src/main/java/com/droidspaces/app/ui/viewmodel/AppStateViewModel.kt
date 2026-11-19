@@ -13,13 +13,12 @@ import com.droidspaces.app.util.BinaryInstaller
 import com.droidspaces.app.util.Constants
 import com.droidspaces.app.util.DroidspacesBackendStatus
 import com.droidspaces.app.util.DroidspacesChecker
-import com.droidspaces.app.util.ModuleInstaller
 import com.droidspaces.app.util.PreferencesManager
 import com.droidspaces.app.util.RootChecker
 import com.droidspaces.app.util.RootStatus
 import com.droidspaces.app.util.SymlinkInstaller
 import com.droidspaces.app.util.SystemInfoManager
-import com.droidspaces.app.util.TempRootManager
+import com.droidspaces.app.util.RootSessionManager
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -80,9 +79,7 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
         private set
     var installErrorMessage by mutableStateOf<String?>(null)
         private set
-    var isInstallingModule by mutableStateOf(false)
-        private set
-    var installRebootRecommended by mutableStateOf(false)
+    var isStartingBackend by mutableStateOf(false)
         private set
 
     fun checkBackendStatus(force: Boolean = false) {
@@ -160,43 +157,22 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
         if (isInstalling) return
         isInstalling = true
 
-        isInstallingModule = false
+        isStartingBackend = false
         isInstallSuccess = false
         installErrorMessage = null
-        installRebootRecommended = false
 
         val context = getApplication<Application>()
-
-        val backendStatus = withContext(Dispatchers.IO) {
-            DroidspacesChecker.checkBackendStatus(context)
-        }
 
         val whichBackendMode = withContext(Dispatchers.IO) {
             SystemInfoManager.getBackendMode(context)
         }
         val wasDaemon = whichBackendMode == "DAEMON"
 
-        val isAtomicUpdate = backendStatus == DroidspacesBackendStatus.UpdateAvailable
-        val tempRoot = withContext(Dispatchers.IO) { TempRootManager.isTempRootMode(context) }
-
-        // Capture symlink state before any module directory removal
+        // Preserve the user's symlink choice across a binary update. No boot
+        // module is ever installed or removed on any device, so nothing here
+        // depends on module state, sepolicy or a reboot.
         val wasSymlinkEnabled = withContext(Dispatchers.IO) {
             SymlinkInstaller.isSymlinkEnabled()
-        }
-
-        // A late-loaded su session never loads sepolicy.rule, and a reboot is
-        // not an install step here - it drops root. Neither check applies.
-        if (!tempRoot) {
-            val sepolicyExists = withContext(Dispatchers.IO) {
-                Shell.cmd("test -f ${Constants.MAGISK_MODULE_PATH}/sepolicy.rule").exec().isSuccess
-            }
-            if (!sepolicyExists) {
-                installRebootRecommended = true
-            }
-            if (!isAtomicUpdate) {
-                // Clean Slate: Remove the old module, but NEVER the bin directory.
-                Shell.cmd("rm -rf '/data/adb/modules/droidspaces' 2>&1").exec()
-            }
         }
 
         // Step 2: Install binaries (atomic mv to canonical path)
@@ -207,68 +183,40 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
                     BinaryInstaller.signalDaemon()
                 }
 
-                if (tempRoot) {
-                    // No boot module, no service.sh: the session bootstrap is
-                    // the whole install. Marker first so the headless script
-                    // and the app agree on which mode is active.
-                    isInstallingModule = true
-                    val tempResult = withContext(Dispatchers.IO) {
-                        TempRootManager.writeMarker().let { marked ->
-                            if (!marked) Result.failure(Exception("Could not write temp-root marker"))
-                            else TempRootManager.ensureDaemon()
-                        }
+                // No boot module, sepolicy.rule or service.sh: the session
+                // bootstrap is the entire install on every rooted phone.
+                isStartingBackend = true
+                val sessionResult = withContext(Dispatchers.IO) {
+                    RootSessionManager.writeMarker().let { marked ->
+                        if (!marked) Result.failure(Exception("Could not write session marker"))
+                        else RootSessionManager.ensureDaemon()
                     }
-                    tempResult.fold(
-                        onSuccess = {
-                            HostCapabilities.refresh(context)
-                            isInstallSuccess = true
-                            installRebootRecommended = false
-                            isInstalling = false
-                            isInstallingModule = false
-                            resetForPostInstallation()
-                            checkBackendStatus(force = true)
-                        },
-                        onFailure = { error ->
-                            installErrorMessage = error.message
-                                ?: context.getString(R.string.module_installation_failed)
-                            isInstalling = false
-                            isInstallingModule = false
-                            resetForPostInstallation()
-                            checkBackendStatus(force = true)
-                        }
-                    )
-                    return@fold
                 }
-
-                // Step 3: Install module (persistent-root path only)
-                isInstallingModule = true
-                val moduleResult = ModuleInstaller.install(context)
-                moduleResult.fold(
+                sessionResult.fold(
                     onSuccess = {
+                        if (wasSymlinkEnabled) {
+                            withContext(Dispatchers.IO) { SymlinkInstaller.enable() }
+                        }
                         val daemonFileExists = withContext(Dispatchers.IO) {
                             Shell.cmd("test -f '${Constants.DAEMON_MODE_FILE}'").exec().isSuccess
                         }
                         if (!daemonFileExists) {
                             PreferencesManager.getInstance(context).isDaemonModeEnabled = true
                         }
-                        if (wasSymlinkEnabled) {
-                            withContext(Dispatchers.IO) {
-                                SymlinkInstaller.enable()
-                            }
-                        }
                         // Ask the fresh backend what this kernel can do, so the
                         // success screen can say so before the user moves on.
                         HostCapabilities.refresh(context)
                         isInstallSuccess = true
-                        isInstalling = false
-                        isInstallingModule = false
+                                        isInstalling = false
+                        isStartingBackend = false
                         resetForPostInstallation()
                         checkBackendStatus(force = true)
                     },
                     onFailure = { error ->
-                        installErrorMessage = error.message ?: context.getString(R.string.module_installation_failed)
+                        installErrorMessage = error.message
+                            ?: context.getString(R.string.session_setup_failed)
                         isInstalling = false
-                        isInstallingModule = false
+                        isStartingBackend = false
                         resetForPostInstallation()
                         checkBackendStatus(force = true)
                     }
@@ -308,12 +256,10 @@ class AppStateViewModel(application: Application) : AndroidViewModel(application
     val isRootAvailable: Boolean
         get() = rootStatus == RootStatus.Granted
 
-    /** Exposed so Settings can restart the daemon after a DirtyFrag re-root. */
-    val isTempRootMode: Boolean get() = TempRootManager.isTempRootMode(getApplication())
-
-    fun startTempRootDaemon(onResult: (Result<Unit>) -> Unit) {
+    /** Exposed so Settings can start the backend in the current root session. */
+    fun ensureBackendDaemon(onResult: (Result<Unit>) -> Unit) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { TempRootManager.ensureDaemon() }
+            val result = withContext(Dispatchers.IO) { RootSessionManager.ensureDaemon() }
             onResult(result)
         }
     }

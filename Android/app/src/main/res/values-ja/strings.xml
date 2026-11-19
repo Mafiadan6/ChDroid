@@ -142,7 +142,6 @@
     <string name="installation_failed">インストール失敗</string>
     <string name="installing_droidspaces">ドロイドスペースのインストール中</string>
     <string name="backend_installed_success">ドロイドスペースのバックエンドが正常にインストールされました</string>
-    <string name="module_installation_failed">モジュールのインストールに失敗しました</string>
     <string name="binary_installation_failed">実行可能ファイルのインストールが失敗しました</string>
     <string name="no_containers_running">実行中のコンテナはありません</string>
     <string name="start_container_first">コンテナを先に始動すると、ここに表示されます</string>
@@ -193,7 +192,6 @@
     <string name="disable_ipv6_description">このコンテナでIPv6を無効にします。IPv6を無効にするとホストで実行中のVPNアプリが壊れるかもしれません。</string>
     <string name="cat_networking">ネットワーク設定</string>
     <string name="network_mode_nat">ネットワークアドレス変換 (既定)</string>
-    <string name="reboot_recommended">SELinuxのルールを適用し、起動時にデーモンを開始する為に再起動が推奨されます。</string>
     <string name="size_required">容量は必須です</string>
     <string name="invalid_number">不正な数値</string>
     <string name="error_container_name_invalid">コンテナ名に含められるのは、英数字、ハイフン (-)、アンダースコア (_)、ドット (.)、そして空白だけです</string>

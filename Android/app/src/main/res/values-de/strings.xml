@@ -139,7 +139,6 @@
     <string name="installation_failed">Installation fehlgeschlagen</string>
     <string name="installing_droidspaces">Droidspaces wird installiert</string>
     <string name="backend_installed_success">Droidspaces-Backend erfolgreich installiert</string>
-    <string name="module_installation_failed">Modulinstallation fehlgeschlagen</string>
     <string name="binary_installation_failed">Binary-Installation fehlgeschlagen</string>
     <!-- Control Panel Screen -->
     <string name="no_containers_running">Keine laufenden Container</string>
@@ -392,7 +391,6 @@
     <string name="repo_refresh">Aktualisieren</string>
     <string name="privileged_disclaimer">Durch die Aktivierung dieser Optionen gefährden Sie die Sicherheit Ihres Geräts. Wir übernehmen KEINE Haftung für Datenverluste, unbrauchbar gewordene Geräte oder seltsame Fehler. Bitte melden Sie KEINE Probleme, die bei der Nutzung dieser Modi auftreten.</string>
     <string name="repo_dl_error_not_found">Datei nicht gefunden (404)</string>
-    <string name="reboot_recommended">Ein Neustart wird empfohlen, um die SELinux-Regeln zu übernehmen und den Daemon beim Systemstart zu starten.</string>
     <string name="repo_dl_error_http_data">HTTP data error</string>
     <string name="repo_failed_to_load">Das Repository konnte nicht geladen werden</string>
     <string name="privileged_shared_desc">Weitergabe von MS_SHARED-Einbindungen an den Host aktivieren.</string>

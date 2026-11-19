@@ -124,7 +124,6 @@
     <string name="installation_failed">Instalación fallida</string>
     <string name="installing_droidspaces">Instalando Droidspaces</string>
     <string name="backend_installed_success">El backend se ha instalado correctamente</string>
-    <string name="module_installation_failed">Fallo en la instalación del módulo</string>
     <string name="binary_installation_failed">Fallo en la instalación de binarios</string>
     <string name="no_containers_running">No hay contenedores en ejecución</string>
     <string name="start_container_first">Inicia un contenedor primero para verlo aquí</string>

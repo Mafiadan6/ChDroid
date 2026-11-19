@@ -146,7 +146,6 @@
     <string name="openrc_services">OpenRC சேவைகள்</string>
     <string name="virgl_option">விர்சிஎல்</string>
     <string name="update_available_message">பின்தளத்தில் புதுப்பிப்பு உள்ளது, புதுப்பிக்க இங்கே சொடுக்கு செய்யவும்</string>
-    <string name="reboot_recommended">SELinux விதிகளைப் பயன்படுத்த மறுதொடக்கம் பரிந்துரைக்கப்படுகிறது மற்றும் துவக்கத்தில் டீமானைத் தொடங்கவும்.</string>
     <string name="gateway_bridge">புரவலன் பாலம்</string>
     <string name="ram">ரேம்:</string>
     <string name="repo_not_found_in_repo">%1$s களஞ்சியத்தில் இல்லை</string>
@@ -403,7 +402,6 @@
     <string name="repo_status_failed">தோல்வியடைந்தது</string>
     <string name="dns_servers_hint">எண்கள், புள்ளிகள் மற்றும் பெருங்குடல்கள் மட்டுமே</string>
     <string name="add">கூட்டு</string>
-    <string name="module_installation_failed">தொகுதி நிறுவல் தோல்வியடைந்தது</string>
     <string name="systemd_services">Systemd சேவைகள்</string>
     <string name="openwrt_services">OpenWrt சேவைகள்</string>
     <string name="requirements">தேவைகள்</string>

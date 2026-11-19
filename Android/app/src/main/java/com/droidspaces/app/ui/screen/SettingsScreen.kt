@@ -62,7 +62,8 @@ import androidx.compose.foundation.Image
 import com.droidspaces.app.util.SymlinkInstaller
 import com.droidspaces.app.util.DeviceArch
 import com.droidspaces.app.util.HostCapabilities
-import com.droidspaces.app.util.TempRootManager
+import com.droidspaces.app.util.RootSessionManager
+import com.droidspaces.app.util.UbuntuChrootManager
 import androidx.core.content.edit
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -121,10 +122,6 @@ fun SettingsScreen(
         .collectAsStateWithLifecycle(initialValue = prefsManager.isSymlinkEnabled)
     val treatAs64Bit by prefsManager.treatAs64BitFlow
         .collectAsStateWithLifecycle(initialValue = prefsManager.treatAs64Bit)
-    val tempRootMode by prefsManager.tempRootModeFlow
-        .collectAsStateWithLifecycle(initialValue = prefsManager.tempRootMode)
-    val autoDetectTempRoot by prefsManager.autoDetectTempRootFlow
-        .collectAsStateWithLifecycle(initialValue = prefsManager.autoDetectTempRoot)
 
     // Listen for locale changes and sync daemon mode from disk
     LaunchedEffect(Unit) {
@@ -197,92 +194,105 @@ fun SettingsScreen(
 
                 GroupDivider()
 
-                // Temporary root (DirtyFrag / late-loaded KernelSU): no boot
-                // module ever mounts, so the backend is installed per session.
-                SwitchItem(
-                    icon = Icons.Default.LockOpen,
-                    title = context.getString(R.string.temp_root_mode),
-                    summary = context.getString(R.string.temp_root_mode_description),
-                    checked = tempRootMode,
-                    enabled = isRootAvailable,
-                    onCheckedChange = { checked -> prefsManager.tempRootMode = checked }
-                )
-
-                if (tempRootMode || autoDetectTempRoot) {
-                    GroupDivider()
-
-                    SwitchItem(
-                        icon = Icons.Default.FindInPage,
-                        title = context.getString(R.string.auto_detect_temp_root),
-                        summary = context.getString(R.string.auto_detect_temp_root_description),
-                        checked = autoDetectTempRoot,
-                        enabled = isRootAvailable,
-                        onCheckedChange = { checked -> prefsManager.autoDetectTempRoot = checked }
-                    )
-
-                    GroupDivider()
-
-                    NavRow(
-                        icon = Icons.Default.PlayArrow,
-                        title = context.getString(R.string.start_daemon_now),
-                        summary = context.getString(R.string.start_daemon_now_description),
-                        enabled = appStateViewModel.isBackendAvailable && isRootAvailable,
-                        onClick = {
-                            scope.launch {
-                                appStateViewModel.startTempRootDaemon { result ->
-                                    val text = result.fold(
-                                        onSuccess = { context.getString(R.string.temp_root_daemon_running) },
-                                        onFailure = { it.message ?: context.getString(R.string.temp_root_daemon_failed) }
-                                    )
-                                    Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-                    )
-
-                    GroupDivider()
-
-                    NavRow(
-                        icon = Icons.Default.Code,
-                        title = context.getString(R.string.temp_root_install_helper),
-                        summary = context.getString(R.string.temp_root_install_helper_description),
-                        enabled = isRootAvailable,
-                        onClick = {
-                            scope.launch {
-                                val text = TempRootManager.installBootstrap(context).fold(
-                                    onSuccess = { context.getString(R.string.temp_root_helper_installed, it) },
-                                    onFailure = { it.message ?: context.getString(R.string.temp_root_helper_failed) }
+                NavRow(
+                    icon = Icons.Default.PlayArrow,
+                    title = context.getString(R.string.start_daemon_now),
+                    summary = context.getString(R.string.start_daemon_now_description),
+                    enabled = appStateViewModel.isBackendAvailable && isRootAvailable,
+                    onClick = {
+                        scope.launch {
+                            appStateViewModel.ensureBackendDaemon { result ->
+                                val text = result.fold(
+                                    onSuccess = { context.getString(R.string.uc_daemon_running) },
+                                    onFailure = { it.message ?: context.getString(R.string.uc_daemon_failed) }
                                 )
                                 Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
                             }
                         }
-                    )
+                    }
+                )
 
-                    GroupDivider()
+                GroupDivider()
 
-                    // The app already owns a root terminal (empty container name =
-                    // bare su). String the bootstrap into it instead of shipping a
-                    // second detached shell: install the helper, then open the tab.
-                    NavRow(
-                        icon = Icons.Default.Terminal,
-                        title = context.getString(R.string.temp_root_open_terminal),
-                        summary = context.getString(R.string.temp_root_open_terminal_description),
-                        value = TempRootManager.terminalHint(),
-                        enabled = isRootAvailable,
-                        onClick = {
-                            scope.launch {
-                                TempRootManager.installBootstrap(context).onFailure {
-                                    Toast.makeText(
-                                        context,
-                                        it.message ?: context.getString(R.string.temp_root_helper_failed),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                                onOpenRootTerminal()
-                            }
+                NavRow(
+                    icon = Icons.Default.Code,
+                    title = context.getString(R.string.uc_install_helper),
+                    summary = context.getString(R.string.uc_install_helper_description),
+                    enabled = isRootAvailable,
+                    onClick = {
+                        scope.launch {
+                            val text = RootSessionManager.installBootstrap(context).fold(
+                                onSuccess = { context.getString(R.string.uc_helper_installed, it) },
+                                onFailure = { it.message ?: context.getString(R.string.uc_helper_failed) }
+                            )
+                            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
                         }
-                    )
-                }
+                    }
+                )
+
+                GroupDivider()
+
+                // Ubuntu-Chroot owns the environment through its own chroot.sh.
+                // These rows just drive that CLI - no Droidspaces container is
+                // created for the CLI release.
+                NavRow(
+                    icon = Icons.Default.PlayArrow,
+                    title = context.getString(R.string.uc_start),
+                    summary = context.getString(R.string.uc_start_description),
+                    enabled = isRootAvailable,
+                    onClick = {
+                        scope.launch {
+                            val text = UbuntuChrootManager.start().fold(
+                                onSuccess = { context.getString(R.string.uc_started) },
+                                onFailure = { it.message ?: context.getString(R.string.uc_failed) }
+                            )
+                            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+
+                GroupDivider()
+
+                NavRow(
+                    icon = Icons.Default.Stop,
+                    title = context.getString(R.string.uc_stop),
+                    summary = context.getString(R.string.uc_stop_description),
+                    enabled = isRootAvailable,
+                    onClick = {
+                        scope.launch {
+                            val text = UbuntuChrootManager.stop().fold(
+                                onSuccess = { context.getString(R.string.uc_stopped) },
+                                onFailure = { it.message ?: context.getString(R.string.uc_failed) }
+                            )
+                            Toast.makeText(context, text, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+
+                GroupDivider()
+
+                // The app's terminal is the Ubuntu login shell: a blank
+                // container route makes DroidspacesTerminalSession run
+                // chroot.sh start root instead of a Droidspaces container.
+                NavRow(
+                    icon = Icons.Default.Terminal,
+                    title = context.getString(R.string.uc_open_terminal),
+                    summary = context.getString(R.string.uc_open_terminal_description),
+                    value = UbuntuChrootManager.terminalCommand(),
+                    enabled = isRootAvailable,
+                    onClick = {
+                        scope.launch {
+                            RootSessionManager.installBootstrap(context).onFailure {
+                                Toast.makeText(
+                                    context,
+                                    it.message ?: context.getString(R.string.uc_helper_failed),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            onOpenRootTerminal()
+                        }
+                    }
+                )
 
                 GroupDivider()
 

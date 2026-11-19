@@ -56,30 +56,26 @@ object RootfsRepository {
     private const val READ_TIMEOUT    = 15_000
 
     /*
-     * Ubuntu Chroot v4.4 ships its rootfs as a Magisk module ZIP with a
-     * rootfs.tar.gz inside. Listed as a built-in repo so a temp-root device can
-     * install the exact release the fork targets without flashing the module.
+     * Ubuntu-Chroot CLI v4.4 is the only release this fork targets. The ZIP is
+     * the Magisk module: it carries rootfs.tar.gz plus chroot.sh and busybox.
+     * We install those files directly - no module flash, no boot script.
      */
     private const val UC_VERSION = "v4.4"
     private const val UC_TAG = "20260323"
     private const val UC_RELEASE =
         "https://github.com/ravindu644/Ubuntu-Chroot/releases/download/$UC_VERSION"
-    private val UBUNTU_CHROOT_ASSETS = listOf(
-        "CLI" to 537_517_628L,
-        "GUI" to 880_346_404L
-    ).map { (variant, size) ->
-        RootfsAsset(
-            name = "Ubuntu Chroot 24.04 ($variant)",
-            description = "Ubuntu-Chroot $UC_VERSION rootfs (${variant.lowercase()}); " +
-                "extracted from the release ZIP, no module flashing required.",
-            architecture = "aarch64",
-            downloadUrl = "$UC_RELEASE/Ubuntu-Chroot-$UC_VERSION-$UC_TAG-$variant.zip",
-            sizeBytes = size,
-            buildDate = UC_TAG,
-            author = "ravindu644 · Ubuntu-Chroot",
-            sourceRepoName = "Ubuntu-Chroot $UC_VERSION"
-        )
-    }
+    private val UBUNTU_CHROOT_ASSET = RootfsAsset(
+        name = "Ubuntu Chroot 24.04 (CLI)",
+        description = "Ubuntu-Chroot $UC_VERSION CLI: chroot manager + Ubuntu 24.04 rootfs. " +
+            "Installed to /data/local/ubuntu-chroot and driven by the app's terminal.",
+        architecture = "aarch64",
+        downloadUrl = "$UC_RELEASE/Ubuntu-Chroot-$UC_VERSION-$UC_TAG-CLI.zip",
+        sizeBytes = 537_517_628L,
+        buildDate = UC_TAG,
+        author = "ravindu644 · Ubuntu-Chroot",
+        sourceRepoName = "Ubuntu-Chroot $UC_VERSION (CLI)"
+    )
+    private val UBUNTU_CHROOT_ASSETS = listOf(UBUNTU_CHROOT_ASSET)
 
     suspend fun fetchAllAssets(context: Context): RepoResult = withContext(Dispatchers.IO) {
         val prefs = PreferencesManager.getInstance(context)

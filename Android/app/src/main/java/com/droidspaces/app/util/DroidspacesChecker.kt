@@ -12,28 +12,20 @@ enum class DroidspacesBackendStatus { Checking, Available, UpdateAvailable, NotI
 object DroidspacesChecker {
     private const val DROIDSPACES_BINARY_PATH = Constants.DROIDSPACES_BINARY_PATH
     private const val BUSYBOX_BINARY_PATH = Constants.BUSYBOX_BINARY_PATH
-    private const val MAGISK_MODULE_PATH = "/data/adb/modules/droidspaces"
-    private const val MODULE_PROP_PATH = "$MAGISK_MODULE_PATH/module.prop"
-
     /**
-     * Check if the persistent boot module is installed.
+     * Check whether the backend is present on this device.
      *
-     * A DirtyFrag / late-loaded KernelSU session has no boot scripts, so the
-     * module is neither installed nor useful. Requiring it there would mark a
-     * perfectly working in-session backend as ModuleMissing. Temp-root mode
-     * substitutes the one thing that actually matters: both binaries present
-     * and executable at their canonical paths.
+     * This fork never installs a boot module - it runs on any rooted phone from
+     * the current root session, whatever supplied su. The only thing that means
+     * "installed" is both binaries present and executable at their canonical
+     * paths. No root-method or module check belongs here.
      *
      * Performance: ~10-20ms (runs in background, never blocks UI)
      */
-    private suspend fun checkModuleInstalled(context: Context): Boolean = withContext(Dispatchers.IO) {
-        if (TempRootManager.isTempRootMode(context)) {
-            Shell.cmd(
-                "test -x '$DROIDSPACES_BINARY_PATH' && test -x '$BUSYBOX_BINARY_PATH'"
-            ).exec().isSuccess
-        } else {
-            Shell.cmd("test -d '$MAGISK_MODULE_PATH' && test -f '$MODULE_PROP_PATH'").exec().isSuccess
-        }
+    private suspend fun checkModuleInstalled(): Boolean = withContext(Dispatchers.IO) {
+        Shell.cmd(
+            "test -x '$DROIDSPACES_BINARY_PATH' && test -x '$BUSYBOX_BINARY_PATH'"
+        ).exec().isSuccess
     }
 
     /**
@@ -43,7 +35,7 @@ object DroidspacesChecker {
      * Performance: ~10-50ms (runs in background, never blocks UI)
      */
     suspend fun checkBackendStatus(context: Context): DroidspacesBackendStatus = withContext(Dispatchers.IO) {
-        if (!checkModuleInstalled(context)) {
+        if (!checkModuleInstalled()) {
             return@withContext DroidspacesBackendStatus.ModuleMissing
         }
 
