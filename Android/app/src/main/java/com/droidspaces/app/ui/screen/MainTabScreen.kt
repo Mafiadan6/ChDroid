@@ -25,6 +25,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -174,17 +178,20 @@ fun MainTabScreen(
     var rootfsInstalled by remember { mutableStateOf(false) }
     var rootfsRunning by remember { mutableStateOf(false) }
     var rootfsName by remember { mutableStateOf("") }
-    LaunchedEffect(containerViewModel.isRefreshing) {
-        if (containerViewModel.isRefreshing) return@LaunchedEffect
-        rootfsInstalled = ChDroidRootfsManager.isInstalled()
-        rootfsRunning = rootfsInstalled &&
-            ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
-        if (rootfsInstalled) {
-            val name = ChDroidRootfsManager.containerName()
-            val distro = ChDroidRootfsManager.distro()
-            rootfsName = name.ifBlank { distro }
-        } else {
-            rootfsName = ""
+    val rootfsLifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(Unit) {
+        rootfsLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                val installed = ChDroidRootfsManager.isInstalled()
+                rootfsInstalled = installed
+                rootfsRunning = installed &&
+                    ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
+                rootfsName = if (installed) {
+                    val name = ChDroidRootfsManager.containerName()
+                    name.ifBlank { ChDroidRootfsManager.distro() }
+                } else ""
+                delay(2000)
+            }
         }
     }
     val containerCount = containerViewModel.containerCount + if (rootfsInstalled) 1 else 0

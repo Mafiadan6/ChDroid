@@ -372,7 +372,15 @@ fun DroidspacesNavigation(
                     navController.navigate(Screen.ContainerDetails.createRoute(containerName))
                 },
                 onNavigateToTerminal = { containerName ->
-                    navController.navigate(Screen.Terminal.createRoute(containerName))
+                    runCatching {
+                        navController.navigate(Screen.Terminal.createRoute(containerName)) {
+                            // Tapping the card repeatedly must reuse the open terminal,
+                            // not stack a new destination on every tap.
+                            launchSingleTop = true
+                        }
+                    }.onFailure {
+                        com.droidspaces.app.util.CrashLogger.log("terminal nav failed: ${it.message}")
+                    }
                 }
             )
         }

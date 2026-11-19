@@ -66,6 +66,11 @@ fun ControlPanelScreen(
     // Get running containers - derived from ViewModel state
     val runningContainers = containerViewModel.containerList.filter { it.isRunning }
     val entries = rememberAnimatedEntries(runningContainers) { it.name }
+    // The CLI rootfs runs through the same animated-list machinery as upstream's
+    // cards, so its enter/exit and its 16dp gap are identical to a real container.
+    val rootfsEntries = rememberAnimatedEntries(
+        if (rootfsRunning) listOf(rootfsName.ifBlank { "ChDroid" }) else emptyList()
+    ) { "chdroid-rootfs" }
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -130,13 +135,13 @@ fun ControlPanelScreen(
                             // Each card carries its own 16dp gap (AnimatedListEntry) on top of this
                             .padding(top = 8.dp, bottom = bottomBarInset + 16.dp),
                     ) {
-                        if (rootfsRunning) {
+                        rootfsEntries.forEach { entry ->
                             // Same card Droidspaces uses on the Panel. The CLI rootfs
                             // is not a backend container, so a synthetic ContainerInfo
                             // with its name is enough for RunningContainerCard, which
                             // only reads container.name for its identity and icon.
-                            key("chdroid-rootfs") {
-                                val displayName = rootfsName.ifBlank { "ChDroid" }
+                            AnimatedListEntry(entry) {
+                                val displayName = entry.item
                                 RunningContainerCard(
                                     container = ContainerInfo(
                                         name = displayName,
@@ -145,8 +150,7 @@ fun ControlPanelScreen(
                                     ),
                                     onEnter = onOpenRootfsTerminal,
                                     onTerminalClick = onOpenRootfsTerminal,
-                                    osInfo = rootfsStats,
-                                    modifier = Modifier.padding(bottom = 16.dp)
+                                    osInfo = rootfsStats
                                 )
                             }
                         }

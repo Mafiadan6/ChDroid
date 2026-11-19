@@ -220,14 +220,21 @@ object ChDroidRootfsManager {
      * then enter the login shell. Re-running `start root` sees the chroot already
      * running and only enters, so nothing is mounted twice.
      */
-    fun terminalCommand(): String =
-        "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell 2>/dev/null; " +
-            "${androidRootMountCmd()}; " +
-            "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start root; " +
-            // On a successful enter, chroot.sh exec's over this shell and this is
-            // never reached. If the chroot cannot be entered for any reason, keep
-            // the terminal alive with a host root shell instead of closing the tab.
-            "exec su"
+    fun terminalCommand(): String {
+        // TerminalSession starts /system/bin/sh as the *app* uid. chroot.sh bails
+        // out with "This script must be run as root." unless euid is 0, so the
+        // whole chain has to run under su - not just the trailing fallback shell.
+        // All paths here are fixed constants with no spaces or metacharacters,
+        // so they are safe bare inside the double-quoted su payload.
+        val body =
+            "sh ${Constants.CHDROID_ROOTFS_SCRIPT} start --no-shell 2>/dev/null; " +
+                "${androidRootMountCmd()}; " +
+                "sh ${Constants.CHDROID_ROOTFS_SCRIPT} start root; " +
+                // On a successful enter chroot.sh execs over this shell. If the
+                // chroot cannot be entered, keep the tab alive with a root shell.
+                "exec su"
+        return "su -c \"$body\""
+    }
 
     /**
      * Live stats for the running rootfs, shaped like the backend's OSInfo so the
