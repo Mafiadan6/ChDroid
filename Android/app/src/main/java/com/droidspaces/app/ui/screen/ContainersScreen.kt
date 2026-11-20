@@ -89,7 +89,6 @@ fun ContainersScreen(
     onNavigateToInstallation: (Uri) -> Unit = {},
     onNavigateToEditContainer: (String) -> Unit = {},
     onNavigateToContainerDetails: (String) -> Unit = {},
-    onOpenChDroidTerminal: () -> Unit = {},
     containerViewModel: ContainerViewModel,
     expandedContainerName: String?,
     onExpandedContainerNameChange: (String?) -> Unit,
@@ -114,8 +113,8 @@ fun ContainersScreen(
     var showRootfsSheet by remember { mutableStateOf(false) }
     var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
-    // The ChDroid CLI rootfs lives at /data/local/ubuntu-chroot, outside the
-    // Droidspaces container directory, so it needs its own listing and actions.
+    // The CLI rootfs is a Containers-tab card with start/stop, mirroring upstream
+    // ContainerCard. Terminal is deliberately absent here - it lives on the Panel.
     var chdroidInstalled by remember { mutableStateOf(false) }
     var chdroidRunning by remember { mutableStateOf(false) }
     var chdroidDistro by remember { mutableStateOf("") }
@@ -136,7 +135,6 @@ fun ContainersScreen(
         chdroidRunning = ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
     }
 
-    // Re-read on mount and whenever a pull-to-refresh settles.
     LaunchedEffect(containerViewModel.isRefreshing) {
         if (!containerViewModel.isRefreshing) loadChdroidRootfs()
     }
@@ -254,7 +252,6 @@ fun ContainersScreen(
                                 distro = chdroidDistro,
                                 isRunning = chdroidRunning,
                                 isBusy = chdroidBusy,
-                                onOpenTerminal = onOpenChDroidTerminal,
                                 onStart = { chdroidAction(start = true) },
                                 onStop = { chdroidAction(start = false) }
                             )
@@ -366,7 +363,7 @@ fun ContainersScreen(
                         showRootfsSheet = true
                     },
                     icon = { Icon(Icons.Default.CloudDownload, contentDescription = null) },
-                    text = { Text(context.getString(R.string.chdroid_rootfs_fab)) }
+                    text = { Text(context.getString(R.string.repo_fab_label)) }
                 )
                 // Last item, nearest the thumb. TalkBack reaches the close button before the
                 // first item, so the last one offers a close action of its own.

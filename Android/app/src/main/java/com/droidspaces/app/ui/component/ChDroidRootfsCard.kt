@@ -11,8 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Terminal
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -40,7 +38,6 @@ fun ChDroidRootfsCard(
     distro: String,
     isRunning: Boolean,
     isBusy: Boolean,
-    onOpenTerminal: () -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
     modifier: Modifier = Modifier
@@ -94,17 +91,6 @@ fun ChDroidRootfsCard(
                 modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = onOpenTerminal,
-                    enabled = !isBusy,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Terminal, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Text(
-                        context.getString(R.string.chdroid_rootfs_card_terminal),
-                        modifier = Modifier.padding(start = 6.dp)
-                    )
-                }
                 if (isRunning) {
                     OutlinedButton(
                         onClick = onStop,

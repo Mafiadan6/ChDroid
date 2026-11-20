@@ -12,11 +12,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.ui.text.input.ImeAction
@@ -37,8 +35,6 @@ fun ContainerNameScreen(
     initialHostname: String = "",
     existingContainerNames: List<String> = emptyList(),
     recommendationNotice: String? = null,
-    mountAndroidRoot: Boolean = false,
-    onMountAndroidRootChange: ((Boolean) -> Unit)? = null,
     onNext: (String, String) -> Unit,
     onClose: () -> Unit
 ) {
@@ -199,30 +195,6 @@ fun ContainerNameScreen(
                 keyboardOptions = FocusUtils.doneKeyboardOptions,
                 keyboardActions = FocusUtils.clearFocusKeyboardActions()
             )
-
-            // Only the rootfs ZIP setup offers this; Droidspaces containers keep
-            // their own mount configuration in the later config pages.
-            onMountAndroidRootChange?.let { onChange ->
-                Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                context.getString(R.string.chdroid_mount_android_root),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                context.getString(R.string.chdroid_mount_android_root_description),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(checked = mountAndroidRoot, onCheckedChange = onChange)
-                    }
-                }
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
             }

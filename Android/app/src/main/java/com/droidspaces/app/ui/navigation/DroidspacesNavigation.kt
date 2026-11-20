@@ -375,14 +375,7 @@ fun DroidspacesNavigation(
             val viewModel: ContainerInstallationViewModel = viewModel(backStackEntry)
             val tarballUriString = backStackEntry.arguments?.getString("tarballUri") ?: ""
             val tarballUri = Uri.parse(tarballUriString)
-            // A rootfs release ZIP installs through the CLI path and gets the
-            // extra Android-root bind toggle; ordinary tarballs stay pure
-            // Droidspaces and never see a ChDroid-specific control.
-            var isCliZip by remember(tarballUri) { mutableStateOf(false) }
-
             LaunchedEffect(tarballUri) {
-                isCliZip = FilePickerUtils.getFileName(context, tarballUri)
-                    ?.endsWith(".zip", ignoreCase = true) == true
                 viewModel.setTarball(context, tarballUri)
             }
 
@@ -396,8 +389,6 @@ fun DroidspacesNavigation(
                     initialHostname = viewModel.hostname,
                     recommendationNotice = viewModel.recommendationNotice,
                     existingContainerNames = sharedContainerViewModel.containerList.map { it.name },
-                    mountAndroidRoot = viewModel.mountAndroidRoot,
-                    onMountAndroidRootChange = if (isCliZip) viewModel::updateMountAndroidRoot else null,
                     onNext = { name, hostname ->
                         viewModel.setName(name, hostname)
                         navController.navigate(

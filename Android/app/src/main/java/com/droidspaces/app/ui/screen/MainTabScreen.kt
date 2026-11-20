@@ -290,6 +290,12 @@ fun MainTabScreen(
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             HorizontalPager(
                 state = pagerState,
+                // Keep the neighbours composed while a swipe settles. Without this,
+                // a tab torn down mid-scroll comes back blank until another swipe.
+                beyondViewportPageCount = 1,
+                // Key by tab, not by position, so a page keeps its own remembered
+                // state when the pager recomposes from the rootfs poll.
+                key = { tabs[it] },
                 modifier = Modifier.fillMaxSize()
             ) { page ->
                 when (tabs[page]) {
@@ -327,7 +333,6 @@ fun MainTabScreen(
                                 onNavigateToInstallation = onNavigateToContainerInstallation,
                                 onNavigateToEditContainer = onNavigateToEditContainer,
                                 onNavigateToContainerDetails = onNavigateToContainerDetails,
-                                onOpenChDroidTerminal = { onNavigateToTerminal("") },
                                 containerViewModel = containerViewModel,
                                 expandedContainerName = expandedContainerName,
                                 onExpandedContainerNameChange = { expandedContainerName = it },

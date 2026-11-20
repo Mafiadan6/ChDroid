@@ -68,6 +68,8 @@ fun ControlPanelScreen(
     val entries = rememberAnimatedEntries(runningContainers) { it.name }
     // The CLI rootfs runs through the same animated-list machinery as upstream's
     // cards, so its enter/exit and its 16dp gap are identical to a real container.
+    // Panel lists running things only, exactly like upstream. Start/stop for the
+    // CLI rootfs lives on its Containers-tab card; terminal lives here.
     val rootfsEntries = rememberAnimatedEntries(
         if (rootfsRunning) listOf(rootfsName.ifBlank { "ChDroid" }) else emptyList()
     ) { "chdroid-rootfs" }
@@ -79,7 +81,10 @@ fun ControlPanelScreen(
     // cancels the loop on background / tab-away and restarts it on return, so
     // re-opening the app on the Panel tab resumes polling without a tab switch.
     // Restarts whenever the running container set changes.
-    LaunchedEffect(runningContainers) {
+    // runningContainers is a freshly-filtered list on every recomposition; key on
+    // the names so the monitor isn't torn down and restarted every time a stat lands.
+    val runningKey = runningContainers.joinToString("|") { it.name }
+    LaunchedEffect(runningKey) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             // A container that died on its own (poweroff inside it) is only noticed by
             // this poll, so it has to tell the list, or its card stays up with no stats.
