@@ -29,7 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
- * Terminal log viewer dialog with modern, shadowless design language.
+ * Console log viewer dialog with modern, shadowless design language.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +38,8 @@ fun TerminalDialog(
     logs: List<Pair<Int, String>>,
     onDismiss: () -> Unit,
     onClear: (() -> Unit)? = null,
-    isBlocking: Boolean = false
+    isBlocking: Boolean = false,
+    clipboardLabel: String? = null
 ) {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -121,7 +122,8 @@ fun TerminalDialog(
                     ) {
                         val logText = logs.joinToString("\n") { AnsiColorParser.stripAnsi(it.second) }
                         val clipboard = context.getSystemService(ClipboardManager::class.java)
-                        clipboard.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.terminal_logs), logText))
+                        val label = clipboardLabel ?: context.getString(R.string.terminal_logs)
+                        clipboard.setPrimaryClip(ClipData.newPlainText(label, logText))
                         Toast.makeText(context, R.string.logs_copied, Toast.LENGTH_SHORT).show()
                     }
                 }

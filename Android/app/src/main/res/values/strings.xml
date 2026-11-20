@@ -815,6 +815,9 @@
     <!-- Installed-rootfs card in the Containers tab -->
     <string name="chdroid_rootfs_card_title">ChDroid rootfs</string>
     <string name="chdroid_rootfs_card_path">/data/local/ubuntu-chroot</string>
+    <string name="chdroid_rootfs_console">View console</string>
+    <string name="chdroid_rootfs_console_title">Console: %1$s</string>
+    <string name="chdroid_rootfs_console_clipboard">ChDroid console logs</string>
     <string name="chdroid_rootfs_card_terminal">Terminal</string>
     <string name="chdroid_rootfs_card_start">Start</string>
     <string name="chdroid_rootfs_card_stop">Stop</string>

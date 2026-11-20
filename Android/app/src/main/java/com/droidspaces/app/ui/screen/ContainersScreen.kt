@@ -111,6 +111,7 @@ fun ContainersScreen(
     var pendingExportEnv by remember { mutableStateOf(false) }
     var askExportEnv by remember { mutableStateOf<ContainerInfo?>(null) }
     var showRootfsSheet by remember { mutableStateOf(false) }
+    var showRootfsLogs by remember { mutableStateOf(false) }
     var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     // The CLI rootfs is a Containers-tab card with start/stop, mirroring upstream
@@ -135,11 +136,20 @@ fun ContainersScreen(
         chdroidRunning = ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
     }
 
+    // Load on mount unconditionally, then again whenever a refresh settles.
+    // Keying this on `isRefreshing == false` alone leaves the card empty forever
+    // if a refresh is still in flight when this screen is composed - exactly what
+    // happens when the terminal's back button kicks off a container refresh.
+    LaunchedEffect(Unit) { loadChdroidRootfs() }
     LaunchedEffect(containerViewModel.isRefreshing) {
         if (!containerViewModel.isRefreshing) loadChdroidRootfs()
     }
 
     fun chdroidAction(start: Boolean) = scope.launch {
+        // Droidspaces opens the console on container start/stop and streams the
+        // command into it. Do the same here: chroot.sh output belongs in the
+        // console, not the Panel terminal.
+        showRootfsLogs = true
         chdroidBusy = true
         val result = if (start) ChDroidRootfsManager.start() else ChDroidRootfsManager.stop()
         chdroidBusy = false
@@ -253,7 +263,8 @@ fun ContainersScreen(
                                 isRunning = chdroidRunning,
                                 isBusy = chdroidBusy,
                                 onStart = { chdroidAction(start = true) },
-                                onStop = { chdroidAction(start = false) }
+                                onStop = { chdroidAction(start = false) },
+                                onShowLogs = { showRootfsLogs = true }
                             )
                         }
                     }
@@ -431,6 +442,18 @@ fun ContainersScreen(
                     opsViewModel.clearLogsBuffer(containerName)
                 },
                 isBlocking = isBlocking // Block dismissal when operation is running
+            )
+        }
+
+        // ChDroid rootfs start/stop console - same viewer, backed by chroot.sh output.
+        if (showRootfsLogs) {
+            TerminalDialog(
+                title = context.getString(R.string.chdroid_rootfs_console_title, chdroidDistro.ifBlank { "ChDroid" }),
+                logs = ChDroidRootfsManager.logs(),
+                onDismiss = { showRootfsLogs = false },
+                onClear = { ChDroidRootfsManager.clearLogs() },
+                isBlocking = chdroidBusy,
+                clipboardLabel = context.getString(R.string.chdroid_rootfs_console_clipboard)
             )
         }
 

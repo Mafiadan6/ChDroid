@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -40,6 +42,7 @@ fun ChDroidRootfsCard(
     isBusy: Boolean,
     onStart: () -> Unit,
     onStop: () -> Unit,
+    onShowLogs: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -77,6 +80,16 @@ fun ChDroidRootfsCard(
                         text = context.getString(R.string.chdroid_rootfs_card_path),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                // Same console button upstream puts on every Droidspaces card:
+                // opens the persisted start/stop output in the log viewer.
+                IconButton(onClick = onShowLogs) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.Article,
+                        context.getString(R.string.chdroid_rootfs_console),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 Text(

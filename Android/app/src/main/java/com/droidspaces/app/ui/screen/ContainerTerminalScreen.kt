@@ -138,7 +138,10 @@ fun ContainerTerminalScreen(
                 ?: containerName.take(12)
         )
     }
-    var hostnameReady by remember { mutableStateOf(!isHostShell && hostname != containerName.take(12)) }
+    // Tab creation must never wait on a shell call. For the CLI rootfs the
+    // hostname is a cosmetic label resolved in the background below; gating the
+    // tab on it left a blank terminal whenever that lookup stalled.
+    var hostnameReady by remember { mutableStateOf(true) }
     LaunchedEffect(containerName) {
         if (isHostShell) {
             hostname = ChDroidRootfsManager.hostname()

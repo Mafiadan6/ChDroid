@@ -30,9 +30,10 @@ class TerminalBackEnd(
     override fun onTitleChanged(changedSession: TerminalSession) {}
 
     override fun onSessionFinished(finishedSession: TerminalSession) {
-        // Don't auto-close - let the terminal show the exit message so the user
-        // can see what went wrong. Closed by Enter key (onKeyDown) or Back button.
+        // `exit` (or any shell EOF) ends the session. Close the tab instead of
+        // leaving a dead prompt behind - that is what "close the terminal" means.
         terminal.onScreenUpdated()
+        onSessionFinished.invoke()
     }
 
     override fun onCopyTextToClipboard(session: TerminalSession, text: String) {
@@ -107,10 +108,9 @@ class TerminalBackEnd(
     override fun copyModeChanged(copyMode: Boolean) {}
 
     override fun onKeyDown(keyCode: Int, e: KeyEvent, session: TerminalSession): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_ENTER && !session.isRunning) {
-            onSessionFinished.invoke()
-            return true
-        }
+        // Dead sessions are closed by onSessionFinished, which fires the moment
+        // the shell exits. Enter no longer has to close them - keeping this path
+        // would double-close the tab (and pop the nav stack twice) after exit.
         return false
     }
 

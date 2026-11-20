@@ -2,6 +2,9 @@ package com.droidspaces.app.util
 
 import android.content.Context
 import android.net.Uri
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.droidspaces.app.R
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,6 +22,49 @@ import java.util.zip.ZipInputStream
  * Droidspaces is only the UI and the terminal in this mode.
  */
 object ChDroidRootfsManager {
+
+    /**
+     * Start/stop console, same shape upstream Droidspaces shows for its containers:
+     * a level-tagged line list persisted through PreferencesManager so the last
+     * action is still readable after an app restart.
+     */
+    private const val LOG_KEY = "chdroid-rootfs"
+    private val logBuffer = mutableStateListOf<Pair<Int, String>>()
+    private var appContext: Context? = null
+
+    fun install(context: Context) {
+        appContext = context.applicationContext
+        val cached = PreferencesManager.getInstance(appContext!!).loadContainerLogs(LOG_KEY)
+        if (logBuffer.isEmpty()) logBuffer.addAll(cached)
+    }
+
+    /** Snapshot-backed so the console streams lines while chroot.sh is still running. */
+    fun logs(): SnapshotStateList<Pair<Int, String>> = logBuffer
+
+    fun clearLogs() {
+        logBuffer.clear()
+        appContext?.let { PreferencesManager.getInstance(it).clearContainerLogs(LOG_KEY) }
+    }
+
+    private fun recordLogLine(level: Int, message: String) {
+        logBuffer.add(level to message)
+        while (logBuffer.size > 200) logBuffer.removeAt(0)
+    }
+
+    private fun saveLogs() {
+        appContext?.let { PreferencesManager.getInstance(it).saveContainerLogs(LOG_KEY, logBuffer.toList()) }
+    }
+
+    private fun operationLogger(): ViewModelLogger = ViewModelLogger { level, message ->
+        recordLogLine(level, message)
+    }
+
+    private fun operationDoneMessage(): String =
+        appContext?.getString(R.string.operation_completed_success)
+            ?: "Operation completed successfully!"
+
+    private fun operationFailedMessage(): String =
+        appContext?.getString(R.string.operation_failed) ?: "Operation failed!"
 
     /** True when the CLI manager and a usable rootfs are on the device. */
     suspend fun isInstalled(): Boolean = withContext(Dispatchers.IO) {
@@ -67,25 +113,91 @@ object ChDroidRootfsManager {
         return "[ -f $script ] && sh $script 2>/dev/null || true"
     }
 
+    /**
+     * chroot.sh flips the WHOLE DEVICE to SELinux permissive on start and never
+     * restores it. Capture the original mode once before the first start, then
+     * put it back when the rootfs stops. State file survives terminal restarts so
+     * a chroot started from a terminal is still restored when stopped from a card.
+     */
+    private val selinuxStateFile: String
+        get() = "${Constants.CHDROID_ROOTFS_BASE}/selinux-original"
+
+    private fun saveSelinuxCmd(): String {
+        val state = selinuxStateFile
+        return "[ ! -f $state ] && { read -r m < /sys/fs/selinux/enforce 2>/dev/null && " +
+            "echo \"\$m\" > $state; }; true"
+    }
+
+    private fun restoreSelinuxCmd(): String {
+        val state = selinuxStateFile
+        return "if [ -f $state ]; then read -r m < $state 2>/dev/null; " +
+            "[ \"\$m\" = 1 ] && setenforce 1 2>/dev/null; rm -f $state; fi; true"
+    }
+
     /** Start the namespace and mounts without consuming a terminal. */
     suspend fun start(): Result<Unit> = withContext(Dispatchers.IO) {
+        val logger = operationLogger()
+        withContext(Dispatchers.Main.immediate) { clearLogs() }
         runCatching {
-            check(isInstalled()) { "rootfs is not installed" }
-            val result = Shell.cmd(
-                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell 2>&1; " +
+            CrashLogger.log("chroot start: begin")
+            if (!isInstalled()) {
+                logger.e("")
+                logger.e("rootfs is not installed")
+                throw Exception("rootfs is not installed")
+            }
+            val command =
+                "${saveSelinuxCmd()}; sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell; " +
                     androidRootMountCmd()
-            ).exec()
-            val output = result.out.joinToString("\n").trim()
-            if (!result.isSuccess) throw Exception(output.ifEmpty { "chroot start failed" })
+            val success = ContainerOperationExecutor.executeCommand(
+                command = command,
+                operation = "start",
+                logger = logger,
+                operationCompletedMessage = operationDoneMessage()
+            )
+            if (!success) {
+                logger.e("")
+                logger.e(operationFailedMessage())
+                throw Exception("chroot start failed")
+            }
+        }.also {
+            withContext(Dispatchers.Main.immediate) { saveLogs() }
         }
     }
 
     suspend fun stop(): Result<Unit> = withContext(Dispatchers.IO) {
+        val logger = operationLogger()
+        withContext(Dispatchers.Main.immediate) { clearLogs() }
         runCatching {
-            val result = Shell.cmd("sh '${Constants.CHDROID_ROOTFS_SCRIPT}' stop 2>&1").exec()
-            if (!result.isSuccess) {
-                throw Exception(result.out.joinToString("\n").ifEmpty { "chroot stop failed" })
+            CrashLogger.log("chroot stop: begin")
+            val script = Constants.CHDROID_ROOTFS_SCRIPT
+            val base = Constants.CHDROID_ROOTFS_BASE
+            // timeout keeps a hung in-chroot `systemctl stop` from freezing the
+            // button forever. If stop leaves the holder alive, force it down and
+            // clear the state files so status() reports STOPPED immediately.
+            val command =
+                "out=\$(timeout 15 sh '$script' stop 2>&1); echo \"\$out\"; " +
+                    "if sh '$script' status 2>&1 | grep -q RUNNING; then " +
+                    "echo '[chdroid] stop left chroot RUNNING - forcing holder down'; " +
+                    "p=\$(cat '$base/holder.pid' 2>/dev/null); " +
+                    "[ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; " +
+                    "rm -f '$base/holder.pid' '$base/holder.pid.flags'; " +
+                    "fi; " +
+                    restoreSelinuxCmd() +
+                    "if sh '$script' status 2>&1 | grep -q RUNNING; then exit 1; fi"
+            val success = ContainerOperationExecutor.executeCommand(
+                command = command,
+                operation = "stop",
+                logger = logger,
+                operationCompletedMessage = operationDoneMessage()
+            )
+            if (!success) {
+                logger.e("")
+                logger.e(operationFailedMessage())
+                throw Exception("chroot still running after stop")
             }
+            CrashLogger.log("chroot stop: verified stopped")
+        }.also {
+            withContext(Dispatchers.Main.immediate) { saveLogs() }
         }
     }
 
@@ -228,16 +340,44 @@ object ChDroidRootfsManager {
         // TerminalSession starts /system/bin/sh as the *app* uid. chroot.sh bails
         // out with "This script must be run as root." unless euid is 0, so the
         // whole chain has to run under su - not just the trailing fallback shell.
-        // All paths here are fixed constants with no spaces or metacharacters,
-        // so they are safe bare inside the double-quoted su payload.
+        // Single-quoting the su payload means the outer sh passes every `$`
+        // through untouched to su's shell, so the loop variables survive.
+        //
+        // -s on the setup pass keeps the "already running" / "no-shell mode"
+        // noise off the terminal. chroot.sh execs over this shell when it enters,
+        // so typing `exit` ends the session and closes the tab. The root-shell
+        // fallback sits on the SETUP pass only: a failed `exit` leaves a non-zero
+        // $? that a trailing `|| exec su` would mistake for a failed entry and
+        // drop He into /system/bin/sh instead of closing the tab.
+        val script = Constants.CHDROID_ROOTFS_SCRIPT
+        val mount = Constants.CHDROID_MOUNT_SCRIPT
         val body =
-            "sh ${Constants.CHDROID_ROOTFS_SCRIPT} start --no-shell 2>/dev/null; " +
-                "${androidRootMountCmd()}; " +
-                "sh ${Constants.CHDROID_ROOTFS_SCRIPT} start root; " +
-                // On a successful enter chroot.sh execs over this shell. If the
-                // chroot cannot be entered, keep the tab alive with a root shell.
-                "exec su"
-        return "su -c \"$body\""
+            "${saveSelinuxCmd()}; sh $script -s start --no-shell >/dev/null 2>&1 || exec su; " +
+                "${refreshDnsCmd()}; " +
+                "[ -f $mount ] && sh $mount 2>/dev/null; " +
+                "sh $script start root"
+        return "su -c '$body'"
+    }
+
+    /**
+     * Refresh /etc/resolv.conf from the phone's current network before entering.
+     * chroot.sh only seeds DNS when the namespace is first created, so switching
+     * Wi-Fi/carrier after the first start leaves the chroot with a dead resolver
+     * (pacman: "Resolving timed out"). The refresh has to run through
+     * `chroot.sh run` — /etc/resolv.conf is a symlink into the namespace's /run
+     * tmpfs, so a host-side write hits the underlying directory instead.
+     */
+    private fun refreshDnsCmd(): String {
+        val script = Constants.CHDROID_ROOTFS_SCRIPT
+        return "dnscmd=; first=1; " +
+            "for i in 1 2 3 4; do d=\$(getprop net.dns\$i); " +
+            "[ x\$d != x ] && { if [ \$first -eq 1 ]; then " +
+            "dnscmd=\"echo nameserver \$d >/etc/resolv.conf;\"; first=0; " +
+            "else dnscmd=\"\$dnscmd echo nameserver \$d >>/etc/resolv.conf;\"; fi; }; done; " +
+            "[ \$first -eq 1 ] && dnscmd=\"echo nameserver 8.8.8.8 >/etc/resolv.conf;\"; " +
+            "dnscmd=\"\$dnscmd echo nameserver 8.8.8.8 >>/etc/resolv.conf; " +
+            "echo nameserver 1.1.1.1 >>/etc/resolv.conf;\"; " +
+            "sh $script -s run \"\$dnscmd\" >/dev/null 2>&1 || true"
     }
 
     /**

@@ -709,8 +709,12 @@ fun DroidspacesNavigation(
             ContainerTerminalScreen(
                 containerName = containerName,
                 onNavigateBack = {
+                    // No container refresh here: in the CLI fork the terminal is
+                    // the chroot shell, not a Droidspaces container. Refreshing
+                    // asked the absent backend for a list, replaced the cached
+                    // entries with an empty result, and blanked every tab on the
+                    // way back. The rootfs card polls status on its own.
                     navController.popBackStack()
-                    sharedContainerViewModel.refresh()
                 }
             )
         }
