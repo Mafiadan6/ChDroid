@@ -34,6 +34,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.buildAnnotatedString
@@ -50,8 +51,11 @@ import com.droidspaces.app.ui.util.rememberAnimatedEntries
 import com.droidspaces.app.ui.util.showError
 import com.droidspaces.app.ui.util.showSuccess
 import androidx.compose.material3.SnackbarHostState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.droidspaces.app.ui.viewmodel.SystemStatsViewModel
 import com.droidspaces.app.util.ContainerInfo
@@ -136,11 +140,19 @@ fun ContainersScreen(
         chdroidRunning = ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
     }
 
-    // Load on mount unconditionally, then again whenever a refresh settles.
-    // Keying this on `isRefreshing == false` alone leaves the card empty forever
-    // if a refresh is still in flight when this screen is composed - exactly what
-    // happens when the terminal's back button kicks off a container refresh.
-    LaunchedEffect(Unit) { loadChdroidRootfs() }
+    // Same live poll MainTabScreen uses for the Home counts. The terminal can
+    // come and go without this screen recomposing, so a load-on-mount-only card
+    // showed "not running" after exit until a manual refresh kicked in. Poll
+    // while the tab is STARTED and the status follows the holder PID in ~2s.
+    val chdroidLifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(chdroidLifecycleOwner) {
+        chdroidLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                loadChdroidRootfs()
+                delay(2000)
+            }
+        }
+    }
     LaunchedEffect(containerViewModel.isRefreshing) {
         if (!containerViewModel.isRefreshing) loadChdroidRootfs()
     }

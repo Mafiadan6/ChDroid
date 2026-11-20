@@ -1,14 +1,19 @@
 #!/system/bin/sh
-# Apply the setup screen's identity to an installed ChDroid rootfs. Runs as root
-# right after the release installer. Fixes three things the release ZIP hardcodes:
-#   - distro-id: a clean ID from the rootfs's own /etc/os-release (arch, ubuntu, ...)
-#     instead of the manifest slug (chdroid-arch-linux-minimal).
-#   - hostname: written to /etc/hostname AND patched into chroot.sh's C_HOSTNAME,
-#     which otherwise rewrites /proc/sys/kernel/hostname to "ubuntu" on every start.
-#   - container-name: the name chosen in setup, for the Containers/Panel card.
+# Apply setup identity and ChDroid runtime patches to an installed rootfs. Runs as
+# root right after the release installer and again on app start, so an APK update
+# fixes existing installs without repacking the rootfs ZIP.
 #
-# The release's bundled busybox is a minimal build with no sed/awk/cut, so every
-# text operation here is a shell builtin. toybox is only used for mv/chmod/rm.
+# Patches:
+#   - distro-id: clean ID from the guest's own /etc/os-release.
+#   - hostname: /etc/hostname plus chroot.sh's C_HOSTNAME constant; chroot.sh
+#     rewrites /proc/sys/kernel/hostname from that constant on every start.
+#   - prompt: plain [user@host cwd]# in /root/.bashrc; the release's 256-colour
+#     PS1 leaves a broken fragment on screen in the app's terminal.
+#   - fast stop: replace lsof scanning, bash-only mount arrays, and the blocking
+#     binfmt-support stop with POSIX builtins. Stops stay quick on /system/bin/sh.
+#
+# The release's bundled busybox is minimal, so every text operation here is a
+# shell builtin. toybox is only used for mv/chmod/rm.
 #
 # usage: chdroid_identity.sh <base> <hostname> <container-name>
 
@@ -19,11 +24,9 @@ ROOTFS="$BASE/rootfs"
 TB=/system/bin/toybox
 [ -x "$TB" ] || TB=toybox
 
-# toybox ships on every Android; fall back to the ambient PATH on any host that
-# does not expose it at the fixed location.
-mv_f()   { if "$TB" mv "$@" 2>/dev/null; then return 0; else mv "$@"; fi; }
+mv_f()    { if "$TB" mv "$@" 2>/dev/null; then return 0; else mv "$@"; fi; }
 chmod_f() { if "$TB" chmod "$@" 2>/dev/null; then return 0; else chmod "$@"; fi; }
-rm_f()   { if "$TB" rm "$@" 2>/dev/null; then return 0; else rm "$@"; fi; }
+rm_f()    { if "$TB" rm "$@" 2>/dev/null; then return 0; else rm "$@"; fi; }
 
 say() { echo "[CHDROID-ID] $1"; }
 
@@ -47,32 +50,102 @@ say "distro-id=$DID"
 [ -n "$HOST" ] || HOST="$DID"
 printf '%s\n' "$HOST" > "$ROOTFS/etc/hostname"
 
-# chroot.sh rewrites /etc/hosts and /proc/sys/kernel/hostname from C_HOSTNAME on
-# every start, so patching only /etc/hostname is not enough: the shell prompt and
-# `uname -n` would still read "ubuntu". Rebuild the file with the one line changed.
+# 3. Patch the installed chroot.sh in one pass. C_HOSTNAME keeps the shell
+# prompt and `uname -n` in sync, and the stop path drops three slow/non-POSIX
+# constructs from the release script.
 PATCH="$BASE/chroot.sh"
 if [ -f "$PATCH" ]; then
   TMP="$PATCH.id.$$"
   if : > "$TMP" 2>/dev/null; then
+    skip_array=0
     while IFS= read -r line || [ -n "$line" ]; do
+      # Drop the bash-only `custom_linux_mounts=(...)` declaration. The loop
+      # below gets a literal list instead so /system/bin/sh can parse the file.
       case "$line" in
-        C_HOSTNAME=*) printf 'C_HOSTNAME="%s"\n' "$HOST" ;;
-        *) printf '%s\n' "$line" ;;
+        *'custom_linux_mounts=('*)
+          skip_array=1
+          continue
+          ;;
+      esac
+      if [ "$skip_array" -eq 1 ]; then
+        case "$line" in
+          *')'*) skip_array=0 ;;
+        esac
+        continue
+      fi
+
+      case "$line" in
+        C_HOSTNAME=*)
+          printf 'C_HOSTNAME="%s"\n' "$HOST"
+          ;;
+        *'Use lsof to find all PIDs'*)
+          printf '%s\n' '    # Walk /proc/PID/root instead of lsof: lsof scans the whole device.'
+          ;;
+        '    local pids')
+          printf '%s\n' '    local pids procdir target'
+          ;;
+        *'pids=$(lsof'*)
+          # /proc/PID/root is the chroot dir for every guest process. Walking it
+          # is instant; lsof scans the whole device and can stall shutdown.
+          printf '%s\n' '    pids='
+          printf '%s\n' '    for procdir in /proc/[0-9]*; do'
+          printf '%s\n' '        [ -r "$procdir/root" ] || continue'
+          printf '%s\n' '        target=$(readlink "$procdir/root" 2>/dev/null) || continue'
+          printf '%s\n' '        [ "$target" = "$CHROOT_PATH" ] || continue'
+          printf '%s\n' '        pids="$pids ${procdir##*/}"'
+          printf '%s\n' '    done'
+          ;;
+        *'for mount_point in "${custom_linux_mounts'*)
+          printf '%s\n' '    for mount_point in "$CHROOT_PATH/proc/sys/fs/binfmt_misc" "$CHROOT_PATH/tmp/runtime/gvfs" "$CHROOT_PATH/tmp"; do'
+          ;;
+        *'run_in_chroot "systemctl stop binfmt-support"'*)
+          printf '%s\n' '    : # ChDroid: skipped binfmt-support stop; it can hang shutdown'
+          ;;
+        *)
+          printf '%s\n' "$line"
+          ;;
       esac
     done < "$PATCH" >> "$TMP"
     if mv_f -f "$TMP" "$PATCH"; then
       chmod_f 755 "$PATCH" 2>/dev/null
-      say "chroot.sh C_HOSTNAME=$HOST"
+      say "chroot.sh C_HOSTNAME=$HOST, fast-stop applied"
     else
       rm_f -f "$TMP" 2>/dev/null
-      say "WARNING: could not patch C_HOSTNAME in chroot.sh"
+      say "WARNING: could not patch chroot.sh"
     fi
   else
-    say "WARNING: could not patch C_HOSTNAME in chroot.sh"
+    say "WARNING: could not patch chroot.sh"
   fi
 fi
 
-# 3. Container name for the UI card.
+# 4. Plain prompt. The release PS1 uses a raw 256-colour escape that the app's
+# terminal renders as a broken prompt fragment after each command.
+BASHRC="$ROOTFS/root/.bashrc"
+if [ -f "$BASHRC" ]; then
+  TMP="$BASHRC.chdroid.$$"
+  if : > "$TMP" 2>/dev/null; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        export\ PS1=*)
+          printf '%s\n' "export PS1='[\\u@\\h \\w]# '"
+          ;;
+        *)
+          printf '%s\n' "$line"
+          ;;
+      esac
+    done < "$BASHRC" >> "$TMP"
+    if mv_f -f "$TMP" "$BASHRC"; then
+      say "root prompt simplified"
+    else
+      rm_f -f "$TMP" 2>/dev/null
+      say "WARNING: could not patch root prompt"
+    fi
+  else
+    say "WARNING: could not patch root prompt"
+  fi
+fi
+
+# 5. Container name for the UI card.
 [ -n "$CNAME" ] || CNAME="$HOST"
 printf '%s\n' "$CNAME" > "$BASE/container-name"
 say "container-name=$CNAME"

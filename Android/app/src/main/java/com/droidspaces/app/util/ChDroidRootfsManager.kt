@@ -6,7 +6,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.droidspaces.app.R
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
@@ -36,6 +39,36 @@ object ChDroidRootfsManager {
         appContext = context.applicationContext
         val cached = PreferencesManager.getInstance(appContext!!).loadContainerLogs(LOG_KEY)
         if (logBuffer.isEmpty()) logBuffer.addAll(cached)
+
+        // Rootfs ZIPs published before the prompt/fast-stop fixes still carry the
+        // old chroot.sh and 256-colour PS1. Re-apply the identity patch on every
+        // app start so an APK update repairs an existing install in place - no
+        // repack, no re-download, no reboot. Cheap: a few shell builtins, and it
+        // bails immediately when no rootfs is installed.
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            runCatching {
+                if (!isInstalled()) return@runCatching
+                CrashLogger.log("chroot startup patch: begin")
+                val host = hostname()
+                val name = containerName()
+                val q = ContainerCommandBuilder::quote
+                val identity = ContainerInstaller.deployAsset(appContext!!, "chdroid_identity.sh")
+                try {
+                    val result = Shell.cmd(
+                        "${q(identity.absolutePath)} " +
+                            "${q(Constants.CHDROID_ROOTFS_BASE)} " +
+                            "${q(host)} " +
+                            "${q(name)} 2>&1"
+                    ).exec()
+                    CrashLogger.log(
+                        "chroot startup patch: code=${result.code} " +
+                            "out=${result.out.joinToString(" | ").take(300)}"
+                    )
+                } finally {
+                    identity.delete()
+                }
+            }.onFailure { CrashLogger.log("chroot startup patch: error=${it.message}") }
+        }
     }
 
     /** Snapshot-backed so the console streams lines while chroot.sh is still running. */
