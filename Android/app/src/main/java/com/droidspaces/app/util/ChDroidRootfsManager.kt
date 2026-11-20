@@ -146,26 +146,9 @@ object ChDroidRootfsManager {
         return "[ -f $script ] && sh $script 2>/dev/null || true"
     }
 
-    /**
-     * chroot.sh flips the WHOLE DEVICE to SELinux permissive on start and never
-     * restores it. Capture the original mode once before the first start, then
-     * put it back when the rootfs stops. State file survives terminal restarts so
-     * a chroot started from a terminal is still restored when stopped from a card.
-     */
-    private val selinuxStateFile: String
-        get() = "${Constants.CHDROID_ROOTFS_BASE}/selinux-original"
-
-    private fun saveSelinuxCmd(): String {
-        val state = selinuxStateFile
-        return "[ ! -f $state ] && { read -r m < /sys/fs/selinux/enforce 2>/dev/null && " +
-            "echo \"\$m\" > $state; }; true"
-    }
-
-    private fun restoreSelinuxCmd(): String {
-        val state = selinuxStateFile
-        return "if [ -f $state ]; then read -r m < $state 2>/dev/null; " +
-            "[ \"\$m\" = 1 ] && setenforce 1 2>/dev/null; rm -f $state; fi; true"
-    }
+    // SELinux stays enforcing. chdroid_identity.sh strips every setenforce 0 from
+    // the installed chroot.sh on app start and forces the device back to enforcing,
+    // so no start/stop command here ever has to touch the device's policy mode.
 
     /** Start the namespace and mounts without consuming a terminal. */
     suspend fun start(): Result<Unit> = withContext(Dispatchers.IO) {
@@ -179,7 +162,7 @@ object ChDroidRootfsManager {
                 throw Exception("rootfs is not installed")
             }
             val command =
-                "${saveSelinuxCmd()}; sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell; " +
+                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell; " +
                     androidRootMountCmd()
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,
@@ -217,8 +200,7 @@ object ChDroidRootfsManager {
                     "timeout 15 sh '$script' stop > '$log' 2>&1; " +
                     "else sh '$script' stop > '$log' 2>&1; fi; " +
                     "cat '$log'; " +
-                    "if sh '$script' status 2>&1 | grep -q RUNNING; then " +
-                    "echo '[chdroid] stop left chroot RUNNING - forcing holder down'; " +
+                    "echo '[chdroid] forcing holder down'; " +
                     "for procdir in /proc/[0-9]*; do " +
                     "r=\$(readlink \"\$procdir/root\" 2>/dev/null) || continue; " +
                     "[ \"\$r\" = '$rootfs' ] && kill -9 \"\${procdir##*/}\" 2>/dev/null; " +
@@ -226,9 +208,10 @@ object ChDroidRootfsManager {
                     "p=\$(cat '$base/holder.pid' 2>/dev/null); " +
                     "[ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; " +
                     "rm -f '$base/holder.pid' '$base/holder.pid.flags'; " +
-                    "fi; " +
-                    restoreSelinuxCmd() +
-                    "; if sh '$script' status 2>&1 | grep -q RUNNING; then exit 1; fi"
+                    "if [ -x /system/bin/setenforce ]; then /system/bin/setenforce 1 2>/dev/null; " +
+                    "else setenforce 1 2>/dev/null; fi; true; " +
+                    "if [ -f '$base/holder.pid' ] && kill -0 \"\$(cat '$base/holder.pid')\" 2>/dev/null; " +
+                    "then exit 1; fi"
             CrashLogger.log("chroot stop: dispatching command")
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,
@@ -245,6 +228,72 @@ object ChDroidRootfsManager {
             CrashLogger.log("chroot stop: verified stopped")
         }.also {
             withContext(Dispatchers.Main.immediate) { saveLogs() }
+        }
+    }
+
+    /**
+     * Re-apply the setup identity to an installed rootfs. Used by the Containers
+     * edit action: same script the installer and app start use, so container name,
+     * hostname, prompt and the installed chroot.sh all stay in sync.
+     */
+    suspend fun applyIdentity(
+        context: Context,
+        hostname: String,
+        containerName: String,
+        logger: ViewModelLogger
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val q = ContainerCommandBuilder::quote
+            val identity = ContainerInstaller.deployAsset(context, "chdroid_identity.sh")
+            try {
+                val result = Shell.cmd(
+                    "${q(identity.absolutePath)} " +
+                        "${q(Constants.CHDROID_ROOTFS_BASE)} " +
+                        "${q(hostname)} " +
+                        "${q(containerName)} 2>&1"
+                ).exec()
+                result.out.map { it.trim() }.filter { it.isNotEmpty() }.forEach { line ->
+                    if (line.startsWith("[CHDROID-ID]")) logger.i(line) else logger.d(line)
+                }
+                if (!result.isSuccess) throw Exception(result.errorText())
+            } finally {
+                identity.delete()
+            }
+        }
+    }
+
+    /**
+     * Remove the CLI rootfs completely. Stop first, then kill anything still
+     * rooted in it and drop its mounts, so a half-stopped container cannot keep
+     * /data/local/ubuntu-chroot busy and defeat the delete.
+     */
+    suspend fun uninstall(context: Context, logger: ViewModelLogger): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val base = Constants.CHDROID_ROOTFS_BASE
+            val rootfs = Constants.CHDROID_ROOTFS_DIR
+            val script = Constants.CHDROID_ROOTFS_SCRIPT
+            logger.i("stopping rootfs before uninstall")
+            val command =
+                "if [ -f '$script' ]; then " +
+                    "if command -v timeout >/dev/null 2>&1; then timeout 15 sh '$script' stop >/dev/null 2>&1; " +
+                    "else sh '$script' stop >/dev/null 2>&1; fi; fi; " +
+                    "for procdir in /proc/[0-9]*; do " +
+                    "r=\$(readlink \"\$procdir/root\" 2>/dev/null) || continue; " +
+                    "[ \"\$r\" = '$rootfs' ] && kill -9 \"\${procdir##*/}\" 2>/dev/null; " +
+                    "done; " +
+                    "p=\$(cat '$base/holder.pid' 2>/dev/null); [ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; " +
+                    "while read -r dev mp rest; do " +
+                    "case \"\$mp\" in '$rootfs'|'$rootfs'/*) umount -l \"\$mp\" 2>/dev/null ;; esac; " +
+                    "done < /proc/mounts; " +
+                    "rm -rf '$base' || exit 1"
+            val success = ContainerOperationExecutor.executeCommand(
+                command = command,
+                operation = "uninstall",
+                logger = logger,
+                operationCompletedMessage = operationDoneMessage()
+            )
+            if (!success) throw Exception("could not remove rootfs")
+            withContext(Dispatchers.Main.immediate) { clearLogs() }
         }
     }
 
@@ -399,7 +448,7 @@ object ChDroidRootfsManager {
         val script = Constants.CHDROID_ROOTFS_SCRIPT
         val mount = Constants.CHDROID_MOUNT_SCRIPT
         val body =
-            "${saveSelinuxCmd()}; sh $script -s start --no-shell >/dev/null 2>&1 || exec su; " +
+            "sh $script -s start --no-shell >/dev/null 2>&1 || exec su; " +
                 "${refreshDnsCmd()}; " +
                 "[ -f $mount ] && sh $mount 2>/dev/null; " +
                 "sh $script start root"

@@ -823,6 +823,13 @@
     <string name="chdroid_rootfs_card_stop">Stop</string>
     <string name="chdroid_rootfs_card_running">Running</string>
     <string name="chdroid_rootfs_card_stopped">Stopped</string>
+    <string name="chdroid_rootfs_actions">More actions</string>
+    <string name="chdroid_edit_title">Edit rootfs</string>
+    <string name="chdroid_edit_message">Rename the card and set the hostname baked into the guest. Applied immediately, no reinstall.</string>
+    <string name="chdroid_edit_name">Container name</string>
+    <string name="chdroid_identity_saved">Configuration saved</string>
+    <string name="chdroid_uninstall_title">Uninstall rootfs?</string>
+    <string name="chdroid_uninstalled">Rootfs uninstalled</string>
     <string name="chdroid_mount_android_root">Mount Android root</string>
     <string name="chdroid_mount_android_root_description">Bind the full Android filesystem into the chroot at /android-root (read-only).</string>
 </resources>

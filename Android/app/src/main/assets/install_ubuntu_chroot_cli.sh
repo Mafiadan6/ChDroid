@@ -46,22 +46,54 @@ ver=$("$BB" grep -o '"versionCode"[[:space:]]*:[[:space:]]*[0-9]*' "$CACHE/manif
 [ -n "$ver" ] && echo "$ver" > "$BASE/version"
 distro=$("$BB" grep -o '"id"[[:space:]]*:[[:space:]]*"[^"]*"' "$CACHE/manifest.json" 2>/dev/null | "$BB" head -1 | "$BB" cut -d'"' -f4)
 [ -n "$distro" ] || distro=unknown
+# Manifest ids are slugs (chdroid-ubuntu-2404-cli). The identity script records a
+# short family (ubuntu) in distro-id, so compare families or every reinstall of
+# the same distro looks like a switch.
+family=$distro
+case "$distro" in
+    *[Uu]buntu*) family=ubuntu ;;
+    *[Aa]rch*)   family=arch ;;
+    *[Dd]ebian*) family=debian ;;
+    *[Aa]lpine*) family=alpine ;;
+esac
 rm -f "$CACHE/manifest.json"
 
 # Decide what to do with an existing rootfs. Same distro = keep user data.
 # Different distro = stop the chroot, clear the old rootfs, install the new one.
 existing=$(cat "$DISTRO_FILE" 2>/dev/null)
+case "$existing" in
+    *[Uu]buntu*) existing=ubuntu ;;
+    *[Aa]rch*)   existing=arch ;;
+    *[Dd]ebian*) existing=debian ;;
+    *[Aa]lpine*) existing=alpine ;;
+esac
 if [ -x "$ROOTFS/bin/sh" ] || [ -x "$ROOTFS/bin/busybox" ]; then
-    if [ "$existing" = "$distro" ]; then
-        say "rootfs $distro already installed - keeping existing data"
+    if [ "$existing" = "$family" ]; then
+        say "rootfs $family already installed - keeping existing data"
         echo 1 > "$BASE/.ubuntu-chroot-cli"
         say "ready: sh $BASE/chroot.sh start root"
         exit 0
     fi
-    say "switching rootfs: ${existing:-unknown} -> $distro"
+    say "switching rootfs: ${existing:-unknown} -> $family"
     if [ -f "$BASE/chroot.sh" ]; then
         sh "$BASE/chroot.sh" stop >/dev/null 2>&1 || true
     fi
+    # chroot.sh stop can leave a shell holding the old rootfs open. Kill every
+    # process whose root is the old tree, then the namespace holder, then drop
+    # any mount still under it. Without this the mount guard below aborted the
+    # install and He stayed stuck with the previous distro.
+    for procdir in /proc/[0-9]*; do
+        r=$(readlink "$procdir/root" 2>/dev/null) || continue
+        [ "$r" = "$ROOTFS" ] && kill -9 "${procdir##*/}" 2>/dev/null
+    done
+    p=$(cat "$BASE/holder.pid" 2>/dev/null)
+    [ -n "$p" ] && kill -9 "$p" 2>/dev/null
+    rm -f "$BASE/holder.pid" "$BASE/holder.pid.flags"
+    while read -r dev mp rest; do
+        case "$mp" in
+            "$ROOTFS"|"$ROOTFS"/*) umount -l "$mp" 2>/dev/null ;;
+        esac
+    done < /proc/mounts
     if grep -q "$ROOTFS" /proc/mounts 2>/dev/null; then
         fail "old rootfs is still mounted - run 'sh $BASE/chroot.sh stop' and retry"
     fi
@@ -88,7 +120,7 @@ case "$member" in
         ;;
 esac
 rm -f "$CACHE/$member"
-echo "$distro" > "$DISTRO_FILE"
+echo "$family" > "$DISTRO_FILE"
 
 # chroot.sh sets up namespaces, mounts and DNS itself. No container.config,
 # no Droidspaces init, no boot service: that is the whole point of this path.

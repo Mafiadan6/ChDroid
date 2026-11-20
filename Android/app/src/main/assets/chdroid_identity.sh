@@ -121,6 +121,15 @@ if [ -f "$PATCH" ]; then
         *'run_in_chroot "systemctl stop binfmt-support"'*)
           printf '%s\n' '    : # ChDroid: skipped binfmt-support stop; it can hang shutdown'
           ;;
+        *'SELINUX_STATE_FILE="'*)
+          printf '%s\n' '    : # ChDroid: SELinux mode stays enforcing'
+          ;;
+        *'read -r orig_mode < /sys/fs/selinux/enforce'*)
+          printf '%s\n' '    : # ChDroid: no SELinux mode change'
+          ;;
+        *'setenforce 0'*)
+          printf '%s\n' '    : # ChDroid: no permissive switch'
+          ;;
         *)
           printf '%s\n' "$line"
           ;;
@@ -170,5 +179,12 @@ fi
 [ -n "$CNAME" ] || CNAME="$HOST"
 printf '%s\n' "$CNAME" > "$BASE/container-name"
 say "container-name=$CNAME"
+
+# 6. Earlier builds flipped the whole phone permissive. Put it back now and drop
+#    the stale state file so a later chroot.sh cannot restore a permissive mode.
+SE=/system/bin/setenforce
+[ -x "$SE" ] || SE=setenforce
+"$SE" 1 2>/dev/null && say "SELinux enforcing" || say "SELinux already enforcing or unsupported"
+rm_f -f "$BASE/selinux-original" 2>/dev/null
 
 exit 0

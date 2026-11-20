@@ -74,6 +74,7 @@ import com.droidspaces.app.ui.component.RootUnavailableState
 import com.droidspaces.app.ui.component.ChDroidRootfsSheet
 import com.droidspaces.app.ui.component.ChDroidRootfsCard
 import com.droidspaces.app.util.ChDroidRootfsManager
+import com.droidspaces.app.util.ViewModelLogger
 import com.droidspaces.app.ui.viewmodel.ContainerViewModel
 import com.droidspaces.app.ui.viewmodel.ContainerOperationsViewModel
 import com.droidspaces.app.ui.viewmodel.UninstallState
@@ -118,6 +119,16 @@ fun ContainersScreen(
     var showRootfsLogs by remember { mutableStateOf(false) }
     var fabMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
+    // ChDroid rootfs edit/uninstall, mirroring the upstream container actions.
+    var chdroidName by remember { mutableStateOf("") }
+    var chdroidHostname by remember { mutableStateOf("") }
+    var showChdroidEdit by remember { mutableStateOf(false) }
+    var chdroidEditName by remember { mutableStateOf("") }
+    var chdroidEditHostname by remember { mutableStateOf("") }
+    var showChdroidUninstall by remember { mutableStateOf(false) }
+    var chdroidConfirmName by remember { mutableStateOf("") }
+    var chdroidActionBusy by remember { mutableStateOf(false) }
+
     // The CLI rootfs is a Containers-tab card with start/stop, mirroring upstream
     // ContainerCard. Terminal is deliberately absent here - it lives on the Panel.
     var chdroidInstalled by remember { mutableStateOf(false) }
@@ -135,6 +146,8 @@ fun ContainersScreen(
         }
         val distro = ChDroidRootfsManager.distro()
         val name = ChDroidRootfsManager.containerName()
+        chdroidName = name
+        chdroidHostname = ChDroidRootfsManager.hostname()
         val title = name.ifBlank { distro }
         chdroidDistro = title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         chdroidRunning = ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
@@ -175,6 +188,46 @@ fun ContainersScreen(
             onFailure = { scope.showError(snackbarHostState, it.message ?: context.getString(R.string.uc_failed)) }
         )
         loadChdroidRootfs()
+    }
+
+    fun chdroidSaveIdentity() = scope.launch {
+        chdroidActionBusy = true
+        val logger = ViewModelLogger { _, _ -> }
+        val result = ChDroidRootfsManager.applyIdentity(
+            context = context,
+            hostname = chdroidEditHostname.trim(),
+            containerName = chdroidEditName.trim(),
+            logger = logger
+        )
+        chdroidActionBusy = false
+        result.fold(
+            onSuccess = {
+                showChdroidEdit = false
+                scope.showSuccess(snackbarHostState, context.getString(R.string.chdroid_identity_saved))
+                loadChdroidRootfs()
+            },
+            onFailure = {
+                scope.showError(snackbarHostState, it.message ?: context.getString(R.string.uc_failed))
+            }
+        )
+    }
+
+    fun chdroidUninstall() = scope.launch {
+        chdroidActionBusy = true
+        val logger = ViewModelLogger { _, _ -> }
+        val result = ChDroidRootfsManager.uninstall(context, logger)
+        chdroidActionBusy = false
+        result.fold(
+            onSuccess = {
+                showChdroidUninstall = false
+                showRootfsLogs = false
+                scope.showSuccess(snackbarHostState, context.getString(R.string.chdroid_uninstalled))
+                loadChdroidRootfs()
+            },
+            onFailure = {
+                scope.showError(snackbarHostState, it.message ?: context.getString(R.string.uc_failed))
+            }
+        )
     }
 
     // File picker launcher - CreateDocument for saving the export archive
@@ -276,7 +329,16 @@ fun ContainersScreen(
                                 isBusy = chdroidBusy,
                                 onStart = { chdroidAction(start = true) },
                                 onStop = { chdroidAction(start = false) },
-                                onShowLogs = { showRootfsLogs = true }
+                                onShowLogs = { showRootfsLogs = true },
+                                onEdit = {
+                                    chdroidEditName = chdroidName
+                                    chdroidEditHostname = chdroidHostname
+                                    showChdroidEdit = true
+                                },
+                                onUninstall = {
+                                    chdroidConfirmName = ""
+                                    showChdroidUninstall = true
+                                }
                             )
                         }
                     }
@@ -467,6 +529,84 @@ fun ContainersScreen(
                 isBlocking = chdroidBusy,
                 clipboardLabel = context.getString(R.string.chdroid_rootfs_console_clipboard)
             )
+        }
+
+        // ChDroid rootfs edit - same identity script the installer uses, so the
+        // card name, /etc/hostname and chroot.sh's C_HOSTNAME all move together.
+        if (showChdroidEdit) {
+            DsDialog(
+                onDismiss = { showChdroidEdit = false },
+                footer = {
+                    DialogFooterRow(
+                        dismissLabel = context.getString(R.string.cancel),
+                        confirmLabel = context.getString(R.string.save_changes),
+                        onDismiss = { showChdroidEdit = false },
+                        onConfirm = { chdroidSaveIdentity() },
+                        confirmEnabled = chdroidEditName.isNotBlank() && chdroidEditHostname.isNotBlank() && !chdroidActionBusy
+                    )
+                }
+            ) {
+                Text(
+                    context.getString(R.string.chdroid_edit_title),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    context.getString(R.string.chdroid_edit_message),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = chdroidEditName,
+                    onValueChange = { chdroidEditName = it },
+                    label = { Text(context.getString(R.string.chdroid_edit_name)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = DsTextFieldDefaults.colors()
+                )
+                OutlinedTextField(
+                    value = chdroidEditHostname,
+                    onValueChange = { chdroidEditHostname = it },
+                    label = { Text(context.getString(R.string.hostname)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = DsTextFieldDefaults.colors()
+                )
+            }
+        }
+
+        // ChDroid rootfs uninstall - upstream's typed-name confirmation.
+        if (showChdroidUninstall) {
+            DsDialog(
+                onDismiss = { showChdroidUninstall = false },
+                borderColor = MaterialTheme.colorScheme.error,
+                footer = {
+                    DialogFooterRow(
+                        dismissLabel = context.getString(R.string.cancel),
+                        confirmLabel = context.getString(R.string.uninstall),
+                        onDismiss = { showChdroidUninstall = false },
+                        onConfirm = { chdroidUninstall() },
+                        confirmEnabled = chdroidConfirmName == chdroidName && chdroidName.isNotBlank() && !chdroidActionBusy,
+                        destructive = true
+                    )
+                }
+            ) {
+                Text(
+                    context.getString(R.string.chdroid_uninstall_title),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                ConfirmPhraseField(
+                    value = chdroidConfirmName,
+                    onValueChange = { chdroidConfirmName = it },
+                    isError = chdroidConfirmName.isNotEmpty() && chdroidConfirmName != chdroidName,
+                    instruction = context.getString(R.string.type_container_name_to_confirm),
+                    phrase = chdroidName,
+                    capitalization = KeyboardCapitalization.None
+                )
+            }
         }
 
         askExportEnv?.let { container ->
