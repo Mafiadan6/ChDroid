@@ -69,7 +69,9 @@ data class ContainerInfo(
     val pidsLimit: Long = 0,
     /** Only matters with a memory limit: without one the container shares the host's swap anyway. */
     val allowSwap: Boolean = false,
-    val uuid: String = ""
+    val uuid: String = "",
+    /** ChDroid ZIP installs only: bind the full Android / into the chroot at start. */
+    val mountAndroidRoot: Boolean = false
 ) {
     val isRunning: Boolean
         get() = status == ContainerStatus.RUNNING

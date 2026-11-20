@@ -35,7 +35,6 @@ import com.droidspaces.app.ui.screen.SparseImageConfigScreen
 import com.droidspaces.app.ui.screen.ContainerConfigScreen
 import com.droidspaces.app.ui.screen.InstallationSummaryScreen
 import com.droidspaces.app.ui.screen.InstallationProgressScreen
-import com.droidspaces.app.ui.screen.ChDroidInstallScreen
 import com.droidspaces.app.ui.screen.EditContainerScreen
 import com.droidspaces.app.ui.screen.ContainerDetailsScreen
 import com.droidspaces.app.ui.screen.SystemdScreen
@@ -87,15 +86,6 @@ sealed class Screen(val route: String) {
     data object ContainerConfig : Screen("container_config")
     data object InstallationSummary : Screen("installation_summary")
     data object InstallationProgress : Screen("installation_progress")
-
-    // ChDroid CLI ZIP install: name/hostname setup first, then the CLI install.
-    data object ChDroidSetup : Screen("chdroid_setup/{zipUri}") {
-        fun createRoute(zipUri: String) = "chdroid_setup/${Uri.encode(zipUri)}"
-    }
-    data object ChDroidInstall : Screen("chdroid_install/{zipUri}/{containerName}/{hostname}/{mountAndroidRoot}") {
-        fun createRoute(zipUri: String, containerName: String, hostname: String, mountAndroidRoot: Boolean) =
-            "chdroid_install/${Uri.encode(zipUri)}/${Uri.encode(containerName)}/${Uri.encode(hostname)}/$mountAndroidRoot"
-    }
 
     // Container editing screen
     data object EditContainer : Screen("edit_container/{containerName}") {
@@ -209,12 +199,8 @@ fun DroidspacesNavigation(
                 // Tap on a "download complete" notification, carries the tarball's URI
                 shortcut.startsWith("install:") -> navScope.launch {
                     val uriString = shortcut.removePrefix("install:")
-                    val isCliZip = FilePickerUtils.getFileName(context, Uri.parse(uriString))
-                        ?.endsWith(".zip", ignoreCase = true) == true
-                    navController.navigate(
-                        if (isCliZip) Screen.ChDroidSetup.createRoute(uriString)
-                        else Screen.ContainerName.createRoute(uriString)
-                    ) {
+                    // Rootfs ZIPs and tarballs share the full Droidspaces wizard.
+                    navController.navigate(Screen.ContainerName.createRoute(uriString)) {
                         popUpTo(Screen.Home.route) { inclusive = false }
                         launchSingleTop = true
                     }
@@ -357,12 +343,8 @@ fun DroidspacesNavigation(
                 },
                 onNavigateToContainerInstallation = { uri ->
                     navScope.launch {
-                        val isCliZip = FilePickerUtils.getFileName(context, uri)
-                            ?.endsWith(".zip", ignoreCase = true) == true
-                        navController.navigate(
-                            if (isCliZip) Screen.ChDroidSetup.createRoute(uri.toString())
-                            else Screen.ContainerName.createRoute(uri.toString())
-                        )
+                        // One wizard for every rootfs, ZIP or tarball.
+                        navController.navigate(Screen.ContainerName.createRoute(uri.toString()))
                     }
                 },
                 onNavigateToEditContainer = { containerName ->
@@ -385,57 +367,22 @@ fun DroidspacesNavigation(
             )
         }
 
-        // ChDroid rootfs ZIP: the same name/hostname setup Droidspaces used for
-        // container tarballs, then the CLI installer. The chosen hostname is
-        // baked into the extracted rootfs.
-        composable(
-            route = Screen.ChDroidSetup.route,
-            arguments = listOf(navArgument("zipUri") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val zipUri = Uri.parse(backStackEntry.arguments?.getString("zipUri").orEmpty())
-            var mountAndroidRoot by remember { mutableStateOf(false) }
-            ContainerNameScreen(
-                existingContainerNames = sharedContainerViewModel.containerList.map { it.name },
-                mountAndroidRoot = mountAndroidRoot,
-                onMountAndroidRootChange = { mountAndroidRoot = it },
-                onNext = { name, hostname ->
-                    navController.navigate(
-                        Screen.ChDroidInstall.createRoute(zipUri.toString(), name, hostname, mountAndroidRoot)
-                    )
-                },
-                onClose = { navController.popBackStack() }
-            )
-        }
-
-        composable(
-            route = Screen.ChDroidInstall.route,
-            arguments = listOf(
-                navArgument("zipUri") { type = NavType.StringType },
-                navArgument("containerName") { type = NavType.StringType },
-                navArgument("hostname") { type = NavType.StringType },
-                navArgument("mountAndroidRoot") { type = NavType.BoolType }
-            )
-        ) { backStackEntry ->
-            val zipUri = Uri.parse(backStackEntry.arguments?.getString("zipUri").orEmpty())
-            val containerName = backStackEntry.arguments?.getString("containerName").orEmpty()
-            val hostname = backStackEntry.arguments?.getString("hostname").orEmpty()
-            val mountAndroidRoot = backStackEntry.arguments?.getBoolean("mountAndroidRoot") == true
-            ChDroidInstallScreen(
-                zipUri = zipUri,
-                containerName = containerName,
-                hostname = hostname,
-                mountAndroidRoot = mountAndroidRoot,
-                onBack = { navController.popBackStack() }
-            )
-        }
-
-        // Container installation wizard screens
+        // Container installation wizard screens. ChDroid rootfs ZIPs enter here
+        // too, so setup is identical to Droidspaces: name -> config -> sparse
+        // image -> summary -> progress. The ZIP branch in ContainerInstaller
+        // installs the CLI rootfs instead of a Droidspaces container.
         composable(Screen.ContainerName.route) { backStackEntry ->
             val viewModel: ContainerInstallationViewModel = viewModel(backStackEntry)
             val tarballUriString = backStackEntry.arguments?.getString("tarballUri") ?: ""
             val tarballUri = Uri.parse(tarballUriString)
+            // A rootfs release ZIP installs through the CLI path and gets the
+            // extra Android-root bind toggle; ordinary tarballs stay pure
+            // Droidspaces and never see a ChDroid-specific control.
+            var isCliZip by remember(tarballUri) { mutableStateOf(false) }
 
             LaunchedEffect(tarballUri) {
+                isCliZip = FilePickerUtils.getFileName(context, tarballUri)
+                    ?.endsWith(".zip", ignoreCase = true) == true
                 viewModel.setTarball(context, tarballUri)
             }
 
@@ -449,6 +396,8 @@ fun DroidspacesNavigation(
                     initialHostname = viewModel.hostname,
                     recommendationNotice = viewModel.recommendationNotice,
                     existingContainerNames = sharedContainerViewModel.containerList.map { it.name },
+                    mountAndroidRoot = viewModel.mountAndroidRoot,
+                    onMountAndroidRootChange = if (isCliZip) viewModel::updateMountAndroidRoot else null,
                     onNext = { name, hostname ->
                         viewModel.setName(name, hostname)
                         navController.navigate(

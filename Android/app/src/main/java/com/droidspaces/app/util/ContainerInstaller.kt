@@ -33,9 +33,9 @@ object ContainerInstaller {
         if (FilePickerUtils.getFileName(context, tarballUri)
                 ?.endsWith(".zip", ignoreCase = true) == true
         ) {
-            logger.i("Ubuntu-Chroot CLI ZIP detected - installing chroot directly")
+            logger.i("ChDroid rootfs ZIP detected - installing chroot directly")
             return@withContext ChDroidRootfsManager.install(
-                context, tarballUri, config.name, config.hostname, false, logger
+                context, tarballUri, config.name, config.hostname, config.mountAndroidRoot, logger
             )
         }
 

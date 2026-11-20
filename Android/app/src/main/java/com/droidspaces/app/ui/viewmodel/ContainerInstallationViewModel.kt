@@ -60,6 +60,13 @@ class ContainerInstallationViewModel : ViewModel() {
     var configState: ContainerConfigState by mutableStateOf(ContainerConfigState())
         private set
 
+    /**
+     * ChDroid rootfs ZIP installs only. Lives here so it survives every step of
+     * the shared wizard and reaches ContainerInstaller via [buildConfig].
+     */
+    var mountAndroidRoot: Boolean by mutableStateOf(false)
+        private set
+
     fun setTarball(context: Context, uri: Uri) {
         // Returning to the first wizard page must not reapply defaults over user edits.
         if (tarballUri == uri) return
@@ -103,6 +110,10 @@ class ContainerInstallationViewModel : ViewModel() {
         this.configState = config
     }
 
+    fun updateMountAndroidRoot(value: Boolean) {
+        this.mountAndroidRoot = value
+    }
+
     fun buildConfig(): ContainerInfo? {
         if (tarballUri == null) return null
         if (containerName.isEmpty()) return null
@@ -118,6 +129,7 @@ class ContainerInstallationViewModel : ViewModel() {
             status = ContainerStatus.STOPPED, // Default status for new container
             useSparseImage = useSparseImage,
             sparseImageSizeGB = if (useSparseImage) sparseImageSizeGB else null,
+            mountAndroidRoot = mountAndroidRoot,
         ).withConfig(HostCapabilities.state.value?.coerce(configState) ?: configState)
     }
 
@@ -132,6 +144,7 @@ class ContainerInstallationViewModel : ViewModel() {
         sparseImageSizeGB = 8
         storageDir = null
         configState = ContainerConfigState()
+        mountAndroidRoot = false
     }
 }
 

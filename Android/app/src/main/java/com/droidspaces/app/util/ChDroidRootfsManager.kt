@@ -165,24 +165,28 @@ object ChDroidRootfsManager {
                 }
                 check(isInstalled()) { "installer finished but rootfs is not usable" }
 
+                // Apply the setup screen's identity to the installed rootfs. The
+                // release ZIP's chroot.sh hardcodes C_HOSTNAME="ubuntu" and rewrites
+                // /proc/sys/kernel/hostname on every start, so the old inline
+                // /etc/hostname write was silently overridden. This script patches
+                // that constant and derives a clean distro id from /etc/os-release.
                 val q = ContainerCommandBuilder::quote
-
-                // Apply the setup screen's choices to the installed rootfs so the
-                // terminal hostname and the Containers card reflect what He picked.
-                if (hostname.isNotBlank()) {
+                val identity = ContainerInstaller.deployAsset(context, "chdroid_identity.sh")
+                try {
                     val apply = Shell.cmd(
-                        "printf '%s\\n' ${q(hostname)} > ${q("${Constants.CHDROID_ROOTFS_DIR}/etc/hostname")} " +
-                            "&& printf '%s\\n' ${q(hostname)} >> ${q("${Constants.CHDROID_ROOTFS_DIR}/etc/hosts")} " +
-                            "&& printf '%s\\n' ${q(containerName.ifBlank { hostname })} > " +
-                            "${q("${Constants.CHDROID_ROOTFS_BASE}/container-name")} 2>&1"
+                        "${q(identity.absolutePath)} " +
+                            "${q(Constants.CHDROID_ROOTFS_BASE)} " +
+                            "${q(hostname)} " +
+                            "${q(containerName)} 2>&1"
                     ).exec()
-                    if (!apply.isSuccess) logger.e("could not apply hostname: ${apply.errorText()}")
-                    else logger.i("hostname set to $hostname")
-                } else if (containerName.isNotBlank()) {
-                    Shell.cmd(
-                        "printf '%s\\n' ${q(containerName)} > " +
-                            "${q("${Constants.CHDROID_ROOTFS_BASE}/container-name")} 2>&1"
-                    ).exec()
+                    apply.out.map { it.trim() }.filter { it.isNotEmpty() }.forEach { line ->
+                        if (line.startsWith("[CHDROID-ID]")) logger.i(line) else logger.d(line)
+                    }
+                    if (!apply.isSuccess) {
+                        logger.e("could not apply install identity: ${apply.errorText()}")
+                    }
+                } finally {
+                    identity.delete()
                 }
 
                 // Optional full-Android-root bind mount. The flag is what the
@@ -246,70 +250,84 @@ object ChDroidRootfsManager {
         if (!isInstalled()) return@withContext null
         val rootfs = Constants.CHDROID_ROOTFS_DIR
         val base = Constants.CHDROID_ROOTFS_BASE
+        // The release's bundled busybox is a minimal build with no awk/sed/cut/
+        // cat/ip applets, so this whole pass uses POSIX shell builtins (read,
+        // parameter expansion, $(( ))) plus readlink/sleep/getprop, which exist
+        // on every Android. `~` is a placeholder for `$` to keep Kotlin raw
+        // strings readable; it is replaced at the end.
         val script = """
-            BB='${Constants.INSTALL_PATH}/busybox-release'
-            [ -x "~BB" ] || BB='${Constants.INSTALL_PATH}/busybox'
-            PID=~(cat '$base/holder.pid' 2>/dev/null)
-            DISTRO=~(head -n1 '$base/distro-id' 2>/dev/null)
-            PRETTY=~(~BB sed -n 's/^PRETTY_NAME="\?\([^"]*\)"\?/\1/p' '$rootfs/etc/os-release' 2>/dev/null | head -1)
-            HOST=~(head -n1 '$rootfs/etc/hostname' 2>/dev/null)
-            IP=~(~BB ip -4 -o addr show scope global 2>/dev/null | ~BB awk '{print $4}' | ~BB cut -d/ -f1 | head -1)
-            [ -n "~IP" ] || IP=~(getprop dhcp.wlan0.ipaddress 2>/dev/null | ~BB cut -d' ' -f1)
+            PID=''; IFS= read -r PID < '$base/holder.pid' 2>/dev/null
+            DISTRO=''; IFS= read -r DISTRO < '$base/distro-id' 2>/dev/null
+            HOST=''; IFS= read -r HOST < '$rootfs/etc/hostname' 2>/dev/null
+            # PRETTY_NAME via the read builtin - no grep/head/sed on this device.
+            PRETTY=''
+            while IFS= read -r line; do
+              case "~line" in PRETTY_NAME=*) PRETTY=~{line#PRETTY_NAME=}; break ;; esac
+            done < '$rootfs/etc/os-release' 2>/dev/null
+            PRETTY=~{PRETTY#\"}; PRETTY=~{PRETTY%\"}
             [ -n "~PRETTY" ] || PRETTY=~DISTRO
             [ -n "~HOST" ] || HOST=~DISTRO
+            IP=~(getprop dhcp.wlan0.ipaddress 2>/dev/null); IP=~{IP%% *}
+            [ -n "~IP" ] || { IP=~(getprop dhcp.eth0.ipaddress 2>/dev/null); IP=~{IP%% *}; }
+
+            # MemTotal straight from the kernel via the read builtin.
+            MEMTOTAL=0
+            while read -r k v u; do [ "~k" = 'MemTotal:' ] && { MEMTOTAL=~v; break; }; done < /proc/meminfo
+
+            # Host tick totals cover every core; process ticks cover one. Normalize.
+            NCPU=0
+            while IFS= read -r line; do
+              # ARM /proc/cpuinfo writes "processor : 0" (space before colon).
+              case "~line" in processor*) NCPU=~((NCPU + 1)) ;; esac
+            done < /proc/cpuinfo
+            [ ~NCPU -gt 0 ] || NCPU=1
+
+            # Uptime from the namespace holder's starttime (field 22 of stat).
             UPTIME_S=''
-            CPU=''
-            RSS_KB=0
-            MEMTOTAL=~(~BB awk '/^MemTotal:/{print ~2}' /proc/meminfo)
-            NS=''
-            HOSTNS=~(readlink /proc/1/ns/pid 2>/dev/null)
-            [ -n "~PID" ] && [ -r /proc/~PID/ns/pid ] && NS=~(readlink /proc/~PID/ns/pid 2>/dev/null)
             if [ -n "~PID" ] && [ -r /proc/~PID/stat ]; then
-              START=~(~BB cut -d' ' -f22 /proc/~PID/stat)
-              NOW=~(~BB cut -d' ' -f1 /proc/uptime)
-              UPTIME_S=~(~BB awk "BEGIN{printf \"%d\", ~NOW - ~START/100}")
+              IFS= read -r line < /proc/~PID/stat
+              rest=~{line##*) }
+              set -- ~rest
+              START=~{20}
+              NOW=''; read -r NOW _ < /proc/uptime
+              UPTIME_S=~(( ~{NOW%.*} - START / 100 ))
             fi
-            # The holder is a sleeping namespace anchor, not the container. Walk
-            # every process in its PID namespace the way the backend's collect.c
-            # does. Without a private PID namespace, match by chroot root instead.
-            match() {
-              if [ -z "~NS" ] || [ "~NS" = "~HOSTNS" ]; then
-                [ ~(readlink /proc/~1/root 2>/dev/null) = '$rootfs' ]
-              else
-                [ ~(readlink /proc/~1/ns/pid 2>/dev/null) = "~NS" ]
-              fi
-            }
+
+            # A process belongs to the chroot if its root symlink is the rootfs.
+            # Include the holder itself as a baseline so CPU/RAM are never blank.
             ticks() {
               t=0
               for d in /proc/[0-9]*; do
-                p=~{d#/proc/}
-                match "~p" || continue
-                line=~(cat "~d/stat" 2>/dev/null) || continue
-                rest=~{line##*) }
-                set -- ~rest
-                t=$((t + ~{12} + ~{13}))
+                r=~(readlink "~d/root" 2>/dev/null)
+                if [ "~r" = '$rootfs' ] || [ "~d" = "/proc/~PID" ]; then
+                  IFS= read -r line < "~d/stat" 2>/dev/null || continue
+                  rest=~{line##*) }
+                  set -- ~rest
+                  t=~((t + ~{12} + ~{13}))
+                fi
               done
               echo "~t"
             }
             host_ticks() {
               read -r _ u n s i w q r _ < /proc/stat
-              echo $((u+n+s+i+w+q+r))
+              echo ~((u+n+s+w+q+r))
             }
-            if [ -n "~PID" ]; then
-              for d in /proc/[0-9]*; do
-                p=~{d#/proc/}
-                match "~p" || continue
-                set -- ~(cat "~d/statm" 2>/dev/null)
-                RSS_KB=$((RSS_KB + ~{2} * 4))
-              done
-              T1=~(ticks)
-              H1=~(host_ticks)
-              ~BB sleep 0.25
-              T2=~(ticks)
-              H2=~(host_ticks)
-              DT=$((T2 - T1)); [ ~DT -lt 0 ] && DT=0
-              DH=$((H2 - H1))
-              [ ~DH -gt 0 ] && CPU=~(~BB awk "BEGIN{printf \"%.1f\", ~DT*100.0/~DH}")
+            CPU=''; RSS_KB=0
+            for d in /proc/[0-9]*; do
+              r=~(readlink "~d/root" 2>/dev/null)
+              if [ "~r" = '$rootfs' ] || [ "~d" = "/proc/~PID" ]; then
+                read -r _ rss _ < "~d/statm" 2>/dev/null || continue
+                RSS_KB=~((RSS_KB + rss * 4))
+              fi
+            done
+            T1=~(ticks); H1=~(host_ticks)
+            sleep 0.25
+            T2=~(ticks); H2=~(host_ticks)
+            DT=~((T2 - T1)); [ ~DT -lt 0 ] && DT=0
+            DH=~((H2 - H1))
+            if [ ~DH -gt 0 ]; then
+              CPUM=~(( DT * 1000 * NCPU / DH ))
+              CPU="~((CPUM / 10)).~((CPUM % 10))"
             fi
             echo "DISTRO=~DISTRO"
             echo "PRETTY=~PRETTY"
@@ -344,7 +362,7 @@ object ChDroidRootfsManager {
             hostname = m["HOST"]?.ifBlank { null },
             ipAddress = m["IP"]?.ifBlank { null },
             uptime = uptimeLabel.ifBlank { null },
-            cpuUsage = m["CPU"]?.toDoubleOrNull(),
+            cpuUsage = m["CPU"]?.toDoubleOrNull()?.coerceIn(0.0, 100.0),
             ramUsedKb = ramUsedKb,
             ramPercent = if (memTotalKb > 0 && ramUsedKb != null)
                 (ramUsedKb.toDouble() * 100.0 / memTotalKb).coerceIn(0.0, 100.0) else null,
