@@ -204,25 +204,39 @@ object ChDroidRootfsManager {
             CrashLogger.log("chroot stop: begin")
             val script = Constants.CHDROID_ROOTFS_SCRIPT
             val base = Constants.CHDROID_ROOTFS_BASE
-            // timeout keeps a hung in-chroot `systemctl stop` from freezing the
-            // button forever. If stop leaves the holder alive, force it down and
-            // clear the state files so status() reports STOPPED immediately.
+            val rootfs = Constants.CHDROID_ROOTFS_DIR
+            val log = "$base/stop.log"
+            // Stop output goes to a file, not to the root shell's stdout. A
+            // lingering child of chroot.sh holding stdout open makes libsu's
+            // exec() wait forever even after the script exits - that was the
+            // "dang container won't stop" hang. timeout caps the script itself;
+            // the file is then cat'd into the console for the normal log shape.
             val command =
-                "out=\$(timeout 15 sh '$script' stop 2>&1); echo \"\$out\"; " +
+                ": > '$log'; " +
+                    "if command -v timeout >/dev/null 2>&1; then " +
+                    "timeout 15 sh '$script' stop > '$log' 2>&1; " +
+                    "else sh '$script' stop > '$log' 2>&1; fi; " +
+                    "cat '$log'; " +
                     "if sh '$script' status 2>&1 | grep -q RUNNING; then " +
                     "echo '[chdroid] stop left chroot RUNNING - forcing holder down'; " +
+                    "for procdir in /proc/[0-9]*; do " +
+                    "r=\$(readlink \"\$procdir/root\" 2>/dev/null) || continue; " +
+                    "[ \"\$r\" = '$rootfs' ] && kill -9 \"\${procdir##*/}\" 2>/dev/null; " +
+                    "done; " +
                     "p=\$(cat '$base/holder.pid' 2>/dev/null); " +
                     "[ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; " +
                     "rm -f '$base/holder.pid' '$base/holder.pid.flags'; " +
                     "fi; " +
                     restoreSelinuxCmd() +
-                    "if sh '$script' status 2>&1 | grep -q RUNNING; then exit 1; fi"
+                    "; if sh '$script' status 2>&1 | grep -q RUNNING; then exit 1; fi"
+            CrashLogger.log("chroot stop: dispatching command")
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,
                 operation = "stop",
                 logger = logger,
                 operationCompletedMessage = operationDoneMessage()
             )
+            CrashLogger.log("chroot stop: command returned success=$success")
             if (!success) {
                 logger.e("")
                 logger.e(operationFailedMessage())

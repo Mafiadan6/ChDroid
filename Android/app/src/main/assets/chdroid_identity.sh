@@ -7,8 +7,9 @@
 #   - distro-id: clean ID from the guest's own /etc/os-release.
 #   - hostname: /etc/hostname plus chroot.sh's C_HOSTNAME constant; chroot.sh
 #     rewrites /proc/sys/kernel/hostname from that constant on every start.
-#   - prompt: plain [user@host cwd]# in /root/.bashrc; the release's 256-colour
-#     PS1 leaves a broken fragment on screen in the app's terminal.
+#   - prompt: restore the release's original coloured `root@host` PS1 in
+#     /root/.bashrc. The release's own PS1 is canonical; earlier builds of this
+#     script replaced it with a plain one and He wants the original look back.
 #   - fast stop: replace lsof scanning, bash-only mount arrays, and the blocking
 #     binfmt-support stop with POSIX builtins. Stops stay quick on /system/bin/sh.
 #
@@ -41,6 +42,25 @@ while IFS= read -r line; do
 done < "$ROOTFS/etc/os-release" 2>/dev/null
 DID=${DID#\"}
 DID=${DID%\"}
+# Minimal Arch images ship without /etc/os-release. Keep any good id already
+# recorded, then fall back to the distro's own marker files.
+if [ -z "$DID" ] || [ "$DID" = unknown ]; then
+  OLD=$(cat "$BASE/distro-id" 2>/dev/null)
+  case "$OLD" in ''|unknown) ;; *) DID=$OLD ;; esac
+fi
+if [ -z "$DID" ] || [ "$DID" = unknown ]; then
+  [ -f "$ROOTFS/etc/arch-release" ] && DID=arch
+  [ -f "$ROOTFS/etc/alpine-release" ] && DID=alpine
+  [ -f "$ROOTFS/etc/debian_version" ] && DID=debian
+fi
+if [ -z "$DID" ] || [ "$DID" = unknown ]; then
+  case "$CNAME" in
+    *[Aa]rch*) DID=arch ;;
+    *[Uu]buntu*) DID=ubuntu ;;
+    *[Dd]ebian*) DID=debian ;;
+    *[Aa]lpine*) DID=alpine ;;
+  esac
+fi
 [ -n "$DID" ] || DID=unknown
 printf '%s\n' "$DID" > "$BASE/distro-id"
 say "distro-id=$DID"
@@ -118,8 +138,9 @@ if [ -f "$PATCH" ]; then
   fi
 fi
 
-# 4. Plain prompt. The release PS1 uses a raw 256-colour escape that the app's
-# terminal renders as a broken prompt fragment after each command.
+# 4. Restore the release's original coloured `root@host:~# ` prompt. An earlier
+# build of this script replaced it with a plain one; writing the canonical line
+# back (with real ESC bytes) puts the original prompt on existing installs too.
 BASHRC="$ROOTFS/root/.bashrc"
 if [ -f "$BASHRC" ]; then
   TMP="$BASHRC.chdroid.$$"
@@ -127,7 +148,7 @@ if [ -f "$BASHRC" ]; then
     while IFS= read -r line || [ -n "$line" ]; do
       case "$line" in
         export\ PS1=*)
-          printf '%s\n' "export PS1='[\\u@\\h \\w]# '"
+          printf '%b\n' 'export PS1="\\[\033[38;5;208m\\]\\u@\\h\\[\033[m\\]:\\[\033[34m\\]\\w\\[\033[m\\]# "'
           ;;
         *)
           printf '%s\n' "$line"
@@ -135,7 +156,7 @@ if [ -f "$BASHRC" ]; then
       esac
     done < "$BASHRC" >> "$TMP"
     if mv_f -f "$TMP" "$BASHRC"; then
-      say "root prompt simplified"
+      say "release root prompt restored"
     else
       rm_f -f "$TMP" 2>/dev/null
       say "WARNING: could not patch root prompt"
