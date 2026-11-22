@@ -175,21 +175,22 @@ fun MainTabScreen(
     val isChecking = !appStateViewModel.hasCompletedInitialCheck && stableDroidspacesStatus == null
     // In the CLI fork the rootfs is not a Droidspaces container, so containerViewModel
     // never counts it. Fold the installed ChDroid rootfs into the Home tile counts.
-    var rootfsInstalled by remember { mutableStateOf(false) }
+    var rootfsInstalled by remember {
+        mutableStateOf(com.droidspaces.app.util.ChDroidPaths.installedLocally())
+    }
     var rootfsRunning by remember { mutableStateOf(false) }
     var rootfsName by remember { mutableStateOf("") }
     val rootfsLifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(Unit) {
+    LaunchedEffect(rootfsLifecycleOwner) {
         rootfsLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             while (true) {
-                val installed = ChDroidRootfsManager.isInstalled()
-                rootfsInstalled = installed
-                rootfsRunning = installed &&
-                    ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
-                rootfsName = if (installed) {
-                    val name = ChDroidRootfsManager.containerName()
-                    name.ifBlank { ChDroidRootfsManager.distro() }
-                } else ""
+                // One consolidated shell query instead of four racing execs. The
+                // old separate isInstalled/status/name/distro calls could return
+                // empty on the shared root shell and blank the Home counts.
+                val s = ChDroidRootfsManager.snapshot()
+                rootfsInstalled = s.installed
+                rootfsRunning = s.running
+                rootfsName = s.name.ifBlank { s.distro }
                 delay(2000)
             }
         }

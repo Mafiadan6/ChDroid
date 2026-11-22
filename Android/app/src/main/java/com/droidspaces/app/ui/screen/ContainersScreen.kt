@@ -131,26 +131,21 @@ fun ContainersScreen(
 
     // The CLI rootfs is a Containers-tab card with start/stop, mirroring upstream
     // ContainerCard. Terminal is deliberately absent here - it lives on the Panel.
-    var chdroidInstalled by remember { mutableStateOf(false) }
+    var chdroidInstalled by remember {
+        mutableStateOf(com.droidspaces.app.util.ChDroidPaths.installedLocally())
+    }
     var chdroidRunning by remember { mutableStateOf(false) }
     var chdroidDistro by remember { mutableStateOf("") }
     var chdroidBusy by remember { mutableStateOf(false) }
 
     suspend fun loadChdroidRootfs() {
-        val installed = ChDroidRootfsManager.isInstalled()
-        chdroidInstalled = installed
-        if (!installed) {
-            chdroidDistro = ""
-            chdroidRunning = false
-            return
-        }
-        val distro = ChDroidRootfsManager.distro()
-        val name = ChDroidRootfsManager.containerName()
-        chdroidName = name
-        chdroidHostname = ChDroidRootfsManager.hostname()
-        val title = name.ifBlank { distro }
-        chdroidDistro = title.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
-        chdroidRunning = ChDroidRootfsManager.status().contains("RUNNING", ignoreCase = true)
+        val s = ChDroidRootfsManager.snapshot()
+        chdroidInstalled = s.installed
+        chdroidName = s.name
+        chdroidHostname = s.hostname
+        chdroidDistro = s.name.ifBlank { s.distro }
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+        chdroidRunning = s.running
     }
 
     // Same live poll MainTabScreen uses for the Home counts. The terminal can

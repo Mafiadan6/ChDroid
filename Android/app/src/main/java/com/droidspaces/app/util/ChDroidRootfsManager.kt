@@ -99,12 +99,74 @@ object ChDroidRootfsManager {
     private fun operationFailedMessage(): String =
         appContext?.getString(R.string.operation_failed) ?: "Operation failed!"
 
+    data class RootfsSnapshot(
+        val installed: Boolean,
+        val base: String,
+        val distro: String,
+        val name: String,
+        val hostname: String,
+        val running: Boolean,
+    )
+
+    /**
+     * One shell round-trip for every value the UI polls. The Home and Containers
+     * screens used to fire four separate Shell.cmd calls each on a two-second
+     * timer; concurrent execs on the shared root shell returned spurious empty
+     * results, which made the installed card vanish until the next refresh.
+     */
+    suspend fun snapshot(): RootfsSnapshot = withContext(Dispatchers.IO) {
+        val pointer = Constants.CHDROID_ROOTFS_POINTER
+        val legacy = Constants.CHDROID_ROOTFS_LEGACY_BASE
+        val command = listOf(
+            "base=\$(cat '$pointer' 2>/dev/null)",
+            "case \"\$base\" in /data/local/*-chroot) ;; *) base='$legacy' ;; esac",
+            "if [ -x \"\$base/chroot.sh\" ] && [ -x \"\$base/rootfs/bin/sh\" ]; then",
+            "  echo 'installed=1'",
+            "  echo \"base=\$base\"",
+            "  echo \"distro=\$(head -n 1 \"\$base/distro-id\" 2>/dev/null)\"",
+            "  echo \"name=\$(head -n 1 \"\$base/container-name\" 2>/dev/null)\"",
+            "  h=\$(head -n 1 \"\$base/rootfs/etc/hostname\" 2>/dev/null)",
+            "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/distro-id\" 2>/dev/null)",
+            "  echo \"hostname=\$h\"",
+            "  p=\$(cat \"\$base/holder.pid\" 2>/dev/null)",
+            "  if [ -n \"\$p\" ] && kill -0 \"\$p\" 2>/dev/null; then echo 'running=1'; else echo 'running=0'; fi",
+            "else",
+            "  echo 'installed=0'",
+            "  echo \"base=\$base\"",
+            "  echo 'distro='",
+            "  echo 'name='",
+            "  echo 'hostname='",
+            "  echo 'running=0'",
+            "fi",
+        ).joinToString("\n")
+        // A command sharing the root shell with a long stop can come back empty.
+        // Retry before believing "not installed", or the card blanks out until
+        // the next manual refresh.
+        var values = emptyMap<String, String>()
+        repeat(3) { attempt ->
+            val parsed = Shell.cmd(command).exec().out
+                .map { it.trim() }
+                .filter { it.contains('=') }
+                .associate { it.substringBefore('=') to it.substringAfter('=') }
+            if (parsed.containsKey("installed") || attempt == 2) values = parsed
+        }
+        val base = values["base"].orEmpty().ifBlank { legacy }
+        ChDroidPaths.use(base)
+        RootfsSnapshot(
+            installed = values["installed"] == "1",
+            base = base,
+            distro = values["distro"].orEmpty(),
+            name = values["name"].orEmpty(),
+            hostname = values["hostname"].orEmpty(),
+            running = values["running"] == "1",
+        )
+    }
+
     /** True when the CLI manager and a usable rootfs are on the device. */
     suspend fun isInstalled(): Boolean = withContext(Dispatchers.IO) {
-        Shell.cmd(
-            "test -x '${ChDroidPaths.script}' && " +
-                "test -x '${ChDroidPaths.rootfs}/bin/sh'"
-        ).exec().isSuccess
+        // snapshot() retries an empty answer. A plain test -x here could report
+        // "not installed" right after a long stop and send the user to reinstall.
+        snapshot().installed
     }
 
     suspend fun status(): String = withContext(Dispatchers.IO) {
@@ -194,24 +256,31 @@ object ChDroidRootfsManager {
             // exec() wait forever even after the script exits - that was the
             // "dang container won't stop" hang. timeout caps the script itself;
             // the file is then cat'd into the console for the normal log shape.
+            // chroot.sh stop is best effort with a hard 6s watchdog: Android has
+            // no reliable timeout binary, so the watchdog is pure shell. Its
+            // output goes to a file, which also keeps a lingering guest child
+            // from holding libsu's stdout open after the script exits.
             val command =
                 ": > '$log'; " +
-                    "if command -v timeout >/dev/null 2>&1; then " +
-                    "timeout 15 sh '$script' stop > '$log' 2>&1; " +
-                    "else sh '$script' stop > '$log' 2>&1; fi; " +
+                    "( sh '$script' stop > '$log' 2>&1 ) </dev/null & " +
+                    "sp=\$!; " +
+                    "( sleep 6; kill -9 \"\$sp\" 2>/dev/null ) >/dev/null 2>&1 & " +
+                    "wd=\$!; " +
+                    "wait \"\$sp\" 2>/dev/null || true; " +
+                    "kill -9 \"\$wd\" 2>/dev/null || true; " +
                     "cat '$log'; " +
                     "echo '[chdroid] forcing holder down'; " +
-                    "for procdir in /proc/[0-9]*; do " +
-                    "r=\$(readlink \"\$procdir/root\" 2>/dev/null) || continue; " +
-                    "[ \"\$r\" = '$rootfs' ] && kill -9 \"\${procdir##*/}\" 2>/dev/null; " +
-                    "done; " +
+                    // One ls over all proc roots beats a readlink fork per PID.
+                    // The per-PID loop cost several seconds on a busy phone and
+                    // was most of the stop latency once fstrim/lsof were gone.
+                    "ls -l /proc/[0-9]*/root 2>/dev/null | " +
+                    "awk -v t='$rootfs' '\$11==t {split(\$9,a,\"/\"); print a[3]}' | " +
+                    "while read -r pid; do kill -9 \"\$pid\" 2>/dev/null; done; " +
                     "p=\$(cat '$base/holder.pid' 2>/dev/null); " +
                     "[ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; " +
                     "rm -f '$base/holder.pid' '$base/holder.pid.flags'; " +
                     "if [ -x /system/bin/setenforce ]; then /system/bin/setenforce 1 2>/dev/null; " +
-                    "else setenforce 1 2>/dev/null; fi; true; " +
-                    "if [ -f '$base/holder.pid' ] && kill -0 \"\$(cat '$base/holder.pid')\" 2>/dev/null; " +
-                    "then exit 1; fi"
+                    "else setenforce 1 2>/dev/null; fi; true"
             CrashLogger.log("chroot stop: dispatching command")
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,

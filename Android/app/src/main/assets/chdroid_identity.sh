@@ -130,6 +130,24 @@ if [ -f "$PATCH" ]; then
         *'run_in_chroot "systemctl stop binfmt-support"'*)
           printf '%s\n' '    : # ChDroid: skipped binfmt-support stop; it can hang shutdown'
           ;;
+        *'run_fstrim >/dev/null 2>&1'*)
+          printf '%s\n' '        : # ChDroid: skip fstrim on stop; it can block for tens of seconds'
+          ;;
+        '    umount_chroot'*)
+          # The release helper enters the namespace once per mount and retries
+          # storage three times. One host-side lazy-unmount pass is instant and
+          # drops exactly the same mount points.
+          printf '%s\n' '    # ChDroid: unmount from the host in one lazy pass.'
+          printf '%s\n' '    while read -r dev mp rest; do'
+          printf '%s\n' '        case "$mp" in'
+          printf '%s\n' '            "$CHROOT_PATH"|"$CHROOT_PATH"/*) umount -l "$mp" 2>/dev/null ;;'
+          printf '%s\n' '        esac'
+          printf '%s\n' '    done < /proc/mounts'
+          printf '%s\n' '    rm -f "$MOUNTED_FILE" 2>/dev/null'
+          ;;
+        *'android_optimizations --disable'*)
+          printf '%s\n' '    : # ChDroid: skip Android settings round-trips on stop'
+          ;;
         *'SELINUX_STATE_FILE="'*)
           printf '%s\n' '    : # ChDroid: SELinux mode stays enforcing'
           ;;

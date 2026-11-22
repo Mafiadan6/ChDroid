@@ -13,39 +13,28 @@ object DroidspacesChecker {
     private const val DROIDSPACES_BINARY_PATH = Constants.DROIDSPACES_BINARY_PATH
     private const val BUSYBOX_BINARY_PATH = Constants.BUSYBOX_BINARY_PATH
     /**
-     * Check whether the backend is present on this device.
-     *
-     * This fork never installs a boot module - it runs on any rooted phone from
-     * the current root session, whatever supplied su. The only thing that means
-     * "installed" is both binaries present and executable at their canonical
-     * paths. No root-method or module check belongs here.
-     *
-     * Performance: ~10-20ms (runs in background, never blocks UI)
-     */
-    private suspend fun checkModuleInstalled(): Boolean = withContext(Dispatchers.IO) {
-        Shell.cmd(
-            "test -x '$DROIDSPACES_BINARY_PATH' && test -x '$BUSYBOX_BINARY_PATH'"
-        ).exec().isSuccess
-    }
-
-    /**
      * Check if both droidspaces and busybox binaries are available and executable (non-blocking).
      * Returns status without blocking the calling thread.
      *
      * Performance: ~10-50ms (runs in background, never blocks UI)
      */
     suspend fun checkBackendStatus(context: Context): DroidspacesBackendStatus = withContext(Dispatchers.IO) {
-        if (!checkModuleInstalled()) {
-            return@withContext DroidspacesBackendStatus.ModuleMissing
+        // One shell round-trip, with a retry on an empty answer. Several screens
+        // check the backend while a long stop command is on the shared root
+        // shell; separate execs there returned empty and made the app report the
+        // backend missing, which forced a reinstall after every stop.
+        val probe =
+            "if [ -x '$DROIDSPACES_BINARY_PATH' ] && [ -x '$BUSYBOX_BINARY_PATH' ]; " +
+                "then echo OK; else echo MISSING; fi"
+        repeat(3) { attempt ->
+            val out = Shell.cmd(probe).exec().out.map { it.trim() }
+            when {
+                out.contains("OK") -> return@withContext DroidspacesBackendStatus.Available
+                out.contains("MISSING") -> return@withContext DroidspacesBackendStatus.ModuleMissing
+                attempt == 2 -> return@withContext DroidspacesBackendStatus.ModuleMissing
+            }
         }
-
-        fun checkBinary(binaryPath: String) =
-            Shell.cmd("test -f '$binaryPath' -a -x '$binaryPath'").exec().isSuccess
-
-        if (checkBinary(DROIDSPACES_BINARY_PATH) && checkBinary(BUSYBOX_BINARY_PATH))
-            DroidspacesBackendStatus.Available
-        else
-            DroidspacesBackendStatus.NotInstalled
+        DroidspacesBackendStatus.ModuleMissing
     }
 
     /**

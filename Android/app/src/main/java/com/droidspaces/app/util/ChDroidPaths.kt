@@ -37,6 +37,12 @@ object ChDroidPaths {
         if (isUsable(basePath)) current = basePath
     }
 
+    /** Cheap disk-only check used to seed the UI before the first root query. */
+    fun installedLocally(): Boolean {
+        val b = base
+        return File("$b/chroot.sh").exists() && File("$b/rootfs/bin/sh").exists()
+    }
+
     private fun isUsable(path: String): Boolean =
         path.startsWith("/data/local/") && path.length < 128 && !path.contains("..")
 }

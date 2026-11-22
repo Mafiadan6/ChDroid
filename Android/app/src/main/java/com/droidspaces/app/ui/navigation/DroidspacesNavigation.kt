@@ -705,7 +705,12 @@ fun DroidspacesNavigation(
             val containerName = Screen.Terminal.decode(
                 backStackEntry.arguments?.getString("containerName")
             )
-            com.droidspaces.app.util.CrashLogger.log("terminal route entered: name='$containerName'")
+            // Log once per real entry. This composable body also runs on every
+            // recomposition, so an inline log made the breadcrumb look like a
+            // navigation loop when the 2s status polls refreshed the parent.
+            LaunchedEffect(Unit) {
+                com.droidspaces.app.util.CrashLogger.log("terminal route entered: name='$containerName'")
+            }
             ContainerTerminalScreen(
                 containerName = containerName,
                 onNavigateBack = {
