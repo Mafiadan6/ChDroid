@@ -107,22 +107,21 @@ if [ -f "$PATCH" ]; then
           # script at the setup-named directory instead.
           printf 'BASE_CHROOT_DIR="%s"\n' "$BASE"
           ;;
+        *'"$2" sleep infinity &'*)
+          # The namespace holder is backgrounded by chroot.sh start. Left as-is
+          # it inherits exec()'s stdout pipe and libsu waits for EOF forever,
+          # which reads as "start takes ages". Null its stdio at the spawn.
+          printf '%s\n' '    unshare $unshare_flags sh -c '\''"$2" sleep infinity >/dev/null 2>&1 & echo $! > "$1"'\'' -- "$pid_file" "$BUSYBOX"'
+          ;;
         *'Use lsof to find all PIDs'*)
-          printf '%s\n' '    # Walk /proc/PID/root instead of lsof: lsof scans the whole device.'
+          printf '%s\n' '    # One ls over all proc roots, not a readlink fork per PID and not'
+          printf '%s\n' '    # lsof scanning the whole device. Both made stop take many seconds.'
           ;;
         '    local pids')
-          printf '%s\n' '    local pids procdir target'
+          printf '%s\n' '    local pids'
           ;;
         *'pids=$(lsof'*)
-          # /proc/PID/root is the chroot dir for every guest process. Walking it
-          # is instant; lsof scans the whole device and can stall shutdown.
-          printf '%s\n' '    pids='
-          printf '%s\n' '    for procdir in /proc/[0-9]*; do'
-          printf '%s\n' '        [ -r "$procdir/root" ] || continue'
-          printf '%s\n' '        target=$(readlink "$procdir/root" 2>/dev/null) || continue'
-          printf '%s\n' '        [ "$target" = "$CHROOT_PATH" ] || continue'
-          printf '%s\n' '        pids="$pids ${procdir##*/}"'
-          printf '%s\n' '    done'
+          printf '%s\n' '    pids=$(ls -l /proc/[0-9]*/root 2>/dev/null | awk -v t="$CHROOT_PATH" '\''$11==t {split($9,a,"/"); print a[3]}'\'')'
           ;;
         *'for mount_point in "${custom_linux_mounts'*)
           printf '%s\n' '    for mount_point in "$CHROOT_PATH/proc/sys/fs/binfmt_misc" "$CHROOT_PATH/tmp/runtime/gvfs" "$CHROOT_PATH/tmp"; do'
@@ -147,6 +146,9 @@ if [ -f "$PATCH" ]; then
           ;;
         *'android_optimizations --disable'*)
           printf '%s\n' '    : # ChDroid: skip Android settings round-trips on stop'
+          ;;
+        *'android_optimizations --enable'*)
+          printf '%s\n' '    : # ChDroid: skip Android settings round-trips on start'
           ;;
         *'SELINUX_STATE_FILE="'*)
           printf '%s\n' '    : # ChDroid: SELinux mode stays enforcing'

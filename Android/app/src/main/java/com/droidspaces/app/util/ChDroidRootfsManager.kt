@@ -217,6 +217,7 @@ object ChDroidRootfsManager {
         val logger = operationLogger()
         withContext(Dispatchers.Main.immediate) { clearLogs() }
         runCatching {
+            val startedAt = System.currentTimeMillis()
             CrashLogger.log("chroot start: begin")
             if (!isInstalled()) {
                 logger.e("")
@@ -232,6 +233,7 @@ object ChDroidRootfsManager {
                 logger = logger,
                 operationCompletedMessage = operationDoneMessage()
             )
+            CrashLogger.log("chroot start: command returned success=$success in ${System.currentTimeMillis() - startedAt}ms")
             if (!success) {
                 logger.e("")
                 logger.e(operationFailedMessage())
@@ -246,6 +248,7 @@ object ChDroidRootfsManager {
         val logger = operationLogger()
         withContext(Dispatchers.Main.immediate) { clearLogs() }
         runCatching {
+            val startedAt = System.currentTimeMillis()
             CrashLogger.log("chroot stop: begin")
             val script = ChDroidPaths.script
             val base = ChDroidPaths.base
@@ -288,7 +291,7 @@ object ChDroidRootfsManager {
                 logger = logger,
                 operationCompletedMessage = operationDoneMessage()
             )
-            CrashLogger.log("chroot stop: command returned success=$success")
+            CrashLogger.log("chroot stop: command returned success=$success in ${System.currentTimeMillis() - startedAt}ms")
             if (!success) {
                 logger.e("")
                 logger.e(operationFailedMessage())
