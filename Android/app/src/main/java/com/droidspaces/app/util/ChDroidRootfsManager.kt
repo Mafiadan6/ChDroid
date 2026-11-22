@@ -9,6 +9,7 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -34,10 +35,21 @@ object ChDroidRootfsManager {
     private const val LOG_KEY = "chdroid-rootfs"
     // Keep in sync with PATCH_VERSION in chdroid_identity.sh. A launch only
     // re-patches the installed script when this revision changes.
-    private const val PATCH_VERSION = 4
+    private const val PATCH_VERSION = 5
     private val logBuffer = mutableStateListOf<Pair<Int, String>>()
     private var appContext: Context? = null
     private val startupPatchRunning = java.util.concurrent.atomic.AtomicBoolean(false)
+    // The launch patch owns this job. start() joins it before dispatch: if the
+    // script is rewritten while `sh chroot.sh start` is already reading the old
+    // inode, the running copy still spawns the namespace holder with inherited
+    // stdout and libsu waits ~30s for EOF. Joining makes the first start fast.
+    @Volatile
+    private var startupPatchJob: kotlinx.coroutines.Job? = null
+    // Teardown after a terminal tab closes must outlive the screen's coroutine
+    // scope, or cancellation lands in the middle of the root command.
+    private val backgroundScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    @Volatile
+    private var shellReleaseJob: kotlinx.coroutines.Job? = null
 
     fun install(context: Context) {
         appContext = context.applicationContext
@@ -49,7 +61,7 @@ object ChDroidRootfsManager {
         // app start so an APK update repairs an existing install in place - no
         // repack, no re-download, no reboot. Cheap: a few shell builtins, and it
         // bails immediately when no rootfs is installed.
-        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+        startupPatchJob = CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             if (!startupPatchRunning.compareAndSet(false, true)) {
                 CrashLogger.log("chroot startup patch: already running, skipped")
                 return@launch
@@ -86,6 +98,7 @@ object ChDroidRootfsManager {
                 }.onFailure { CrashLogger.log("chroot startup patch: error=${it.message}") }
             } finally {
                 startupPatchRunning.set(false)
+                CrashLogger.log("chroot startup patch: finished")
             }
         }
     }
@@ -143,8 +156,16 @@ object ChDroidRootfsManager {
             "  echo 'installed=1'",
             "  echo \"base=\$base\"",
             "  echo \"distro=\$(head -n 1 \"\$base/distro-id\" 2>/dev/null)\"",
-            "  echo \"name=\$(head -n 1 \"\$base/container-name\" 2>/dev/null)\"",
-            "  h=\$(head -n 1 \"\$base/rootfs/etc/hostname\" 2>/dev/null)",
+            // The wizard's container.config is the source of truth for the name and
+            // hostname; the plain files are downstream copies that older installs
+            // left at the release's baked values.
+            "  n=''; h=''",
+            "  while IFS='=' read -r k v; do",
+            "    case \"\$k\" in name) n=\"\$v\" ;; hostname) h=\"\$v\" ;; esac;",
+            "  done < \"\$base/container.config\" 2>/dev/null",
+            "  [ -n \"\$n\" ] || n=\$(head -n 1 \"\$base/container-name\" 2>/dev/null)",
+            "  echo \"name=\$n\"",
+            "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/rootfs/etc/hostname\" 2>/dev/null)",
             "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/distro-id\" 2>/dev/null)",
             "  echo \"hostname=\$h\"",
             "  p=\$(cat \"\$base/holder.pid\" 2>/dev/null)",
@@ -202,16 +223,20 @@ object ChDroidRootfsManager {
 
     /** Container name chosen in the setup screen and written at install time. */
     suspend fun containerName(): String = withContext(Dispatchers.IO) {
-        Shell.cmd("cat '${ChDroidPaths.base}/container-name' 2>/dev/null").exec()
-            .out.firstOrNull()?.trim().orEmpty()
+        persistedConfig()["name"]?.takeIf { it.isNotBlank() }
+            ?: Shell.cmd("cat '${ChDroidPaths.base}/container-name' 2>/dev/null").exec()
+                .out.firstOrNull()?.trim().orEmpty()
     }
 
     /**
-     * Hostname baked into the installed rootfs, not a hardcoded app value.
-     * Ubuntu ships /etc/hostname; Arch does not, so fall back to the distro id
-     * recorded at install time, which is still a property of the installed tarball.
+     * Hostname the user typed in the setup wizard, persisted in container.config.
+     * /etc/hostname inside the rootfs is only a downstream copy the identity script
+     * writes from this value - reading that first is what let the release's baked
+     * "mastermind" override the wizard value on older installs. Fall back to the
+     * baked file, then the distro id, for installs made before the config existed.
      */
     suspend fun hostname(): String = withContext(Dispatchers.IO) {
+        persistedConfig()["hostname"]?.takeIf { it.isNotBlank() }?.let { return@withContext it }
         val baked = Shell.cmd("head -n 1 '${ChDroidPaths.rootfs}/etc/hostname' 2>/dev/null").exec()
             .out.firstOrNull()?.trim().orEmpty()
         baked.ifEmpty { distro().ifEmpty { "localhost" } }
@@ -238,6 +263,13 @@ object ChDroidRootfsManager {
         runCatching {
             val startedAt = System.currentTimeMillis()
             CrashLogger.log("chroot start: begin")
+            // Never start against a script that is being rewritten: the running
+            // shell keeps the replaced inode, whose holder still holds stdout.
+            startupPatchJob?.join()
+            // A Start press wins over a pending post-exit teardown; otherwise the
+            // delayed release would kill the holder this start just created.
+            shellReleaseJob?.cancel()
+            shellReleaseJob = null
             if (!isInstalled()) {
                 logger.e("")
                 logger.e("rootfs is not installed")
@@ -278,22 +310,25 @@ object ChDroidRootfsManager {
         val r = q(rootfs)
         val b = q(base)
         return listOf(
+            "T0=\$(date +%s)",
             "echo '[info] stopping rootfs processes'",
             // One ls over all proc roots beats a readlink fork per PID and never
             // needs lsof or a guest shell.
             "ls -l /proc/[0-9]*/root 2>/dev/null | " +
                 "awk -v t=$r '\$11==t {split(\$9,a,\"/\"); print a[3]}' | " +
                 "while read -r pid; do kill -9 \"\$pid\" 2>/dev/null; done; true",
+            "echo \"[info] processes killed +\$(( \$(date +%s) - T0 ))s\"",
             "echo '[info] unmounting rootfs'",
             "while read -r dev mp rest; do " +
                 "case \"\$mp\" in $r|$r/*) umount -l \"\$mp\" 2>/dev/null ;; esac; " +
                 "done < /proc/mounts; true",
+            "echo \"[info] unmounted +\$(( \$(date +%s) - T0 ))s\"",
             "p=\$(cat $b/holder.pid 2>/dev/null); " +
                 "[ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; true",
             "rm -f $b/holder.pid $b/holder.pid.flags 2>/dev/null; true",
             "if [ -x /system/bin/setenforce ]; then /system/bin/setenforce 1 2>/dev/null; " +
                 "else setenforce 1 2>/dev/null; fi; true",
-            "echo '[info] rootfs stopped'",
+            "echo \"[info] rootfs stopped +\$(( \$(date +%s) - T0 ))s\"",
         ).joinToString("\n")
     }
 
@@ -310,8 +345,29 @@ object ChDroidRootfsManager {
         }.onFailure { CrashLogger.log("chroot shell exit: release error=${it.message}") }
     }
 
+    /**
+     * Called when the last terminal tab goes away. The release runs on a global
+     * scope because the composable that called it is being disposed, and a short
+     * delay lets terminalSession's own terminate/EOF cleanup finish first. The
+     * guard also absorbs the double-close when X and onSessionFinished both fire.
+     */
+    fun releaseAfterShellExitAsync() {
+        if (shellReleaseJob?.isActive == true) return
+        shellReleaseJob = backgroundScope.launch {
+            delay(500)
+            releaseAfterShellExit()
+        }
+    }
+
     /** Path of the rootfs's persisted setup-wizard configuration. */
     private val configPath: String get() = "${ChDroidPaths.base}/container.config"
+
+    /** Key/values the setup wizard wrote at install time; the source of truth for name and hostname. */
+    private suspend fun persistedConfig(): Map<String, String> = withContext(Dispatchers.IO) {
+        val q = ContainerCommandBuilder::quote
+        val raw = Shell.cmd("cat ${q(configPath)} 2>/dev/null").exec().out.joinToString("\n")
+        ContainerManager.parseConfigValues(raw)
+    }
 
     /**
      * Rebuild the exact field set the install wizard offered, from the config
@@ -693,6 +749,19 @@ object ChDroidRootfsManager {
             [ -n "~HOST" ] || HOST=~DISTRO
             IP=~(getprop dhcp.wlan0.ipaddress 2>/dev/null); IP=~{IP%% *}
             [ -n "~IP" ] || { IP=~(getprop dhcp.eth0.ipaddress 2>/dev/null); IP=~{IP%% *}; }
+            # Modern Android often leaves the dhcp.* props empty. toybox `ip` reads
+            # the live interface address; this chroot shares the host net namespace.
+            if [ -z "~IP" ]; then
+              IPL=~(/system/bin/ip -4 addr show wlan0 2>/dev/null)
+              case "~IPL" in *'inet '*) IP=~{IPL#*inet }; IP=~{IP%%/*}; IP=~{IP%% *} ;; esac
+            fi
+            if [ -z "~IP" ]; then
+              for IF in wlan1 eth0 rmnet_data0 rmnet_data1 rmnet0; do
+                [ -n "~IP" ] && break
+                IPL=~(/system/bin/ip -4 addr show "~IF" 2>/dev/null)
+                case "~IPL" in *'inet '*) IP=~{IPL#*inet }; IP=~{IP%%/*}; IP=~{IP%% *} ;; esac
+              done
+            fi
 
             # MemTotal straight from the kernel via the read builtin.
             MEMTOTAL=0
@@ -717,18 +786,29 @@ object ChDroidRootfsManager {
               UPTIME_S=~(( ~{NOW%.*} - START / 100 ))
             fi
 
-            # A process belongs to the chroot if its root symlink is the rootfs.
-            # Include the holder itself as a baseline so CPU/RAM are never blank.
+            # One `ls -l` over the proc roots finds every PID rooted in the rootfs.
+            # The old code did a readlink fork per PID three times over, which made
+            # CPU take seconds to first appear. Re-read only these PIDs for the delta.
+            PIDS=~(ls -l /proc/[0-9]*/root 2>/dev/null | while read -r _a _b _c _d _e _f _g _h link arrow target; do
+              [ "~target" = '$rootfs' ] && printf '%s\n' "~{link##*/}"
+            done)
+            # The namespace holder is not chrooted, so add it explicitly as the
+            # baseline - CPU/RAM are never blank while the container is up.
+            case " ~PIDS " in *" ~PID "*) ;; *) [ -n "~PID" ] && PIDS="~PIDS ~PID" ;; esac
+
+            RSS_KB=0
+            for p in ~PIDS; do
+              read -r _ rss _ < /proc/~p/statm 2>/dev/null || continue
+              RSS_KB=~((RSS_KB + rss * 4))
+            done
+
             ticks() {
               t=0
-              for d in /proc/[0-9]*; do
-                r=~(readlink "~d/root" 2>/dev/null)
-                if [ "~r" = '$rootfs' ] || [ "~d" = "/proc/~PID" ]; then
-                  IFS= read -r line < "~d/stat" 2>/dev/null || continue
-                  rest=~{line##*) }
-                  set -- ~rest
-                  t=~((t + ~{12} + ~{13}))
-                fi
+              for p in ~PIDS; do
+                IFS= read -r line < /proc/~p/stat 2>/dev/null || continue
+                rest=~{line##*) }
+                set -- ~rest
+                t=~((t + ~{12} + ~{13}))
               done
               echo "~t"
             }
@@ -736,16 +816,9 @@ object ChDroidRootfsManager {
               read -r _ u n s i w q r _ < /proc/stat
               echo ~((u+n+s+w+q+r))
             }
-            CPU=''; RSS_KB=0
-            for d in /proc/[0-9]*; do
-              r=~(readlink "~d/root" 2>/dev/null)
-              if [ "~r" = '$rootfs' ] || [ "~d" = "/proc/~PID" ]; then
-                read -r _ rss _ < "~d/statm" 2>/dev/null || continue
-                RSS_KB=~((RSS_KB + rss * 4))
-              fi
-            done
+            CPU=''
             T1=~(ticks); H1=~(host_ticks)
-            sleep 0.25
+            sleep 0.15
             T2=~(ticks); H2=~(host_ticks)
             DT=~((T2 - T1)); [ ~DT -lt 0 ] && DT=0
             DH=~((H2 - H1))

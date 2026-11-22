@@ -24,7 +24,7 @@
 # Bump when the patch rules change. The app checks this marker at launch so an
 # unchanged APK does not rewrite chroot.sh on every start (that root-shell
 # contention was implicated in the launch crash reports).
-PATCH_VERSION=4
+PATCH_VERSION=5
 
 BASE="$1"
 HOST="$2"
@@ -266,7 +266,19 @@ SE=/system/bin/setenforce
 "$SE" 1 2>/dev/null && say "SELinux enforcing" || say "SELinux already enforcing or unsupported"
 rm_f -f "$BASE/selinux-original" 2>/dev/null
 
-# 7. Patch revision marker. The app reads this at launch and skips the whole
+# 7. pacman needs its cache directory to exist and /etc/mtab to point at the
+#    namespace's live mount table. Minimal Arch images ship without the cache
+#    dir and with a stale regular mtab, which makes pacman report "could not
+#    determine cachedir mount point" and refuse every install.
+mkdir -p "$ROOTFS/var/cache/pacman/pkg" 2>/dev/null
+MTAB="$ROOTFS/etc/mtab"
+if [ ! -L "$MTAB" ]; then
+  rm_f -f "$MTAB" 2>/dev/null
+  ln -sfn /proc/self/mounts "$MTAB" 2>/dev/null
+  say "pacman mtab linked"
+fi
+
+# 8. Patch revision marker. The app reads this at launch and skips the whole
 #    re-patch when the installed chroot.sh is already at this revision.
 printf '%s\n' "$PATCH_VERSION" > "$BASE/chdroid-patch-version" 2>/dev/null
 say "patch version=$PATCH_VERSION"

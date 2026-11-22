@@ -5,7 +5,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -229,23 +231,32 @@ fun ContainerTerminalScreen(
         }
     }
 
-    fun closeTab(tab: TerminalTab) {
-        // terminateSession handles the immediate UI state update (globalSessionList.remove)
-        // and internal cleanup delays (EOF propagation).
-        binder?.terminateSession(tab.id)
+    // The X button, shell EOF (onSessionFinished) and the service-sync effect can
+    // all race to close the same tab. Remembering closed ids makes closeTab
+    // idempotent, and every mutation runs on the main looper even when the shell's
+    // EOF callback arrives on a binder thread - the double close/navigate was the
+    // X-button crash.
+    val closedTabIds = remember { mutableSetOf<String>() }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
 
-        if (tabs.size == 1) hideKeyboard()
-        val idx = tabs.indexOf(tab)
-        tabs.remove(tab)
-        if (tabs.isEmpty()) {
-            if (isHostShell) {
-                // The CLI rootfs keeps a namespace holder after the shell exits.
-                // Without this the card still reads "running" and Start reports
-                // "already running" until some unrelated refresh happens.
-                scope.launch { ChDroidRootfsManager.releaseAfterShellExit() }
-            }
-            onNavigateBack()
-        } else activeTabId = tabs.getOrElse(idx.coerceAtMost(tabs.lastIndex)) { tabs.last() }.id
+    fun closeTab(tab: TerminalTab) {
+        mainHandler.post {
+            if (!closedTabIds.add(tab.id)) return@post
+            if (tab !in tabs) return@post
+            // terminateSession handles the immediate UI state update
+            // (globalSessionList.remove) and internal cleanup delays (EOF).
+            binder?.terminateSession(tab.id)
+
+            if (tabs.size == 1) hideKeyboard()
+            val idx = tabs.indexOf(tab)
+            tabs.remove(tab)
+            if (tabs.isEmpty()) {
+                // The namespace holder is independent of the login shell. Keeping
+                // it alive leaves the rootfs "running" on the Panel after the
+                // terminal closes; only the Stop button tears it down.
+                onNavigateBack()
+            } else activeTabId = tabs.getOrElse(idx.coerceAtMost(tabs.lastIndex)) { tabs.last() }.id
+        }
     }
 
     val exitScreen = {

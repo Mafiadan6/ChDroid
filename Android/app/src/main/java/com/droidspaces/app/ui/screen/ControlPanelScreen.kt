@@ -153,7 +153,10 @@ fun ControlPanelScreen(
                                         hostname = displayName,
                                         rootfsPath = ""
                                     ),
-                                    onEnter = onOpenRootfsTerminal,
+                                    // Only the Terminal pill opens a shell. The card
+                                    // body stays inert so a tap on the box never
+                                    // navigates away from the Panel.
+                                    onEnter = {},
                                     onTerminalClick = onOpenRootfsTerminal,
                                     osInfo = rootfsStats
                                 )
