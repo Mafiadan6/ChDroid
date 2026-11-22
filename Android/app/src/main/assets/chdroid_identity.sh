@@ -22,6 +22,10 @@ BASE="$1"
 HOST="$2"
 CNAME="$3"
 ROOTFS="$BASE/rootfs"
+POINTER=/data/local/chdroid-active-rootfs
+# Keep the app's active-base pointer in sync when an existing install is
+# re-identified (app start or the edit action) without a reinstall.
+printf '%s\n' "$BASE" > "$POINTER" 2>/dev/null
 TB=/system/bin/toybox
 [ -x "$TB" ] || TB=toybox
 
@@ -98,6 +102,11 @@ if [ -f "$PATCH" ]; then
         C_HOSTNAME=*)
           printf 'C_HOSTNAME="%s"\n' "$HOST"
           ;;
+        BASE_CHROOT_DIR=*)
+          # The release hardcodes /data/local/ubuntu-chroot. Point the installed
+          # script at the setup-named directory instead.
+          printf 'BASE_CHROOT_DIR="%s"\n' "$BASE"
+          ;;
         *'Use lsof to find all PIDs'*)
           printf '%s\n' '    # Walk /proc/PID/root instead of lsof: lsof scans the whole device.'
           ;;
@@ -137,7 +146,7 @@ if [ -f "$PATCH" ]; then
     done < "$PATCH" >> "$TMP"
     if mv_f -f "$TMP" "$PATCH"; then
       chmod_f 755 "$PATCH" 2>/dev/null
-      say "chroot.sh C_HOSTNAME=$HOST, fast-stop applied"
+      say "chroot.sh base=$BASE, C_HOSTNAME=$HOST, fast-stop applied"
     else
       rm_f -f "$TMP" 2>/dev/null
       say "WARNING: could not patch chroot.sh"

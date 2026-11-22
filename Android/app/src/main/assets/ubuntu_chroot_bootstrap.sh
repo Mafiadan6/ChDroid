@@ -20,7 +20,9 @@ BB=$BIN_DIR/busybox
 MARKER=$DS_DIR/.ubuntu-chroot-cli
 PKG_FORK=com.chdroid.app
 PKG_STOCK=com.droidspaces.app
-UC_BASE=/data/local/ubuntu-chroot
+UC_POINTER=/data/local/chdroid-active-rootfs
+UC_BASE=$(cat "$UC_POINTER" 2>/dev/null)
+case "$UC_BASE" in /data/local/*-chroot) ;; *) UC_BASE=/data/local/ubuntu-chroot ;; esac
 UC_SH=$UC_BASE/chroot.sh
 
 log() { echo "[uc-cli] $1"; }

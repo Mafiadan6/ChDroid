@@ -805,7 +805,7 @@
     <string name="chdroid_rootfs_invalid_url">Enter an http:// or https:// link</string>
     <string name="chdroid_rootfs_add_link">Download link</string>
     <string name="chdroid_rootfs_import">Import from file</string>
-    <string name="chdroid_rootfs_note">ZIP files install straight to /data/local/ubuntu-chroot. Files stay in Downloads until you remove them.</string>
+    <string name="chdroid_rootfs_note">ZIP files install to a folder named after the setup entry, for example arch-chroot. Files stay in Downloads until you remove them.</string>
     <string name="chdroid_install_title">Installing %1$s</string>
     <string name="chdroid_install_running">Installing the CLI release and rootfs…</string>
     <string name="chdroid_install_done">%1$s is ready. Open the terminal to use it.</string>
@@ -814,7 +814,7 @@
     <string name="chdroid_install_back">Done</string>
     <!-- Installed-rootfs card in the Containers tab -->
     <string name="chdroid_rootfs_card_title">ChDroid rootfs</string>
-    <string name="chdroid_rootfs_card_path">/data/local/ubuntu-chroot</string>
+    <string name="chdroid_rootfs_card_path">%1$s</string>
     <string name="chdroid_rootfs_console">View console</string>
     <string name="chdroid_rootfs_console_title">Console: %1$s</string>
     <string name="chdroid_rootfs_console_clipboard">ChDroid console logs</string>

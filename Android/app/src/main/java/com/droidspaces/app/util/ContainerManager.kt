@@ -93,7 +93,9 @@ data class ContainerInfo(
         appendLine("enable_virgl=${if (enableVirgl) "1" else "0"}")
         if (virglExtraFlags.isNotBlank()) appendLine("virgl_extra_flags=$virglExtraFlags")
         appendLine("enable_pulseaudio=${if (enablePulseaudio) "1" else "0"}")
-        appendLine("selinux_permissive=${if (selinuxPermissive) "1" else "0"}")
+        // The device stays enforcing. ChDroid never asks the backend to flip the
+        // host policy, regardless of what a saved upstream config used to say.
+        appendLine("selinux_permissive=0")
         appendLine("allow_sandboxing=${if (allowSandboxing) "1" else "0"}")
         appendLine("volatile_mode=${if (volatileMode) "1" else "0"}")
         if (bindMounts.isNotEmpty()) {

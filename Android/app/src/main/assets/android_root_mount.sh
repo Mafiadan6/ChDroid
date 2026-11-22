@@ -4,7 +4,9 @@
 # The mount happens inside the chroot's own mount namespace via the release
 # busybox nsenter, so it is visible to the chroot but not to the host.
 
-BASE=/data/local/ubuntu-chroot
+POINTER=/data/local/chdroid-active-rootfs
+BASE=$(cat "$POINTER" 2>/dev/null)
+case "$BASE" in /data/local/*-chroot) ;; *) BASE=/data/local/ubuntu-chroot ;; esac
 FLAG=$BASE/mount-android-root
 [ -f "$FLAG" ] || exit 0
 

@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.dp
 import com.droidspaces.app.R
 
 /**
- * Card for the ChDroid CLI rootfs installed at /data/local/ubuntu-chroot.
+ * Card for the ChDroid CLI rootfs, which lives in a setup-named directory.
  *
  * This is not a Droidspaces container - chroot.sh owns the namespace and shell -
  * so it is listed separately from the backend container cards and its actions
@@ -56,6 +56,7 @@ import com.droidspaces.app.R
 @Composable
 fun ChDroidRootfsCard(
     distro: String,
+    path: String,
     isRunning: Boolean,
     isBusy: Boolean,
     onStart: () -> Unit,
@@ -98,7 +99,7 @@ fun ChDroidRootfsCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = context.getString(R.string.chdroid_rootfs_card_path),
+                        text = context.getString(R.string.chdroid_rootfs_card_path, path),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

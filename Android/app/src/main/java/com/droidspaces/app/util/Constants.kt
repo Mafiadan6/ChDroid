@@ -25,13 +25,10 @@ object Constants {
     // fork runs on any rooted phone.
     const val SESSION_DAEMON_LOG = "/data/local/Droidspaces/Logs/ubuntu-chroot-daemon.log"
     const val SESSION_BOOTSTRAP_SCRIPT = "$INSTALL_PATH/ubuntu-chroot-bootstrap.sh"
-    // Ubuntu-Chroot CLI v4.4 installs itself here. Its own chroot.sh - not a
-    // Droidspaces container - owns the namespace, mounts and login shell.
-    const val CHDROID_ROOTFS_BASE = "/data/local/ubuntu-chroot"
-    const val CHDROID_ROOTFS_SCRIPT = "$CHDROID_ROOTFS_BASE/chroot.sh"
-    const val CHDROID_ROOTFS_DIR = "$CHDROID_ROOTFS_BASE/rootfs"
-    // Optional full-Android-root bind mount chosen in the setup screen.
-    const val CHDROID_MOUNT_FLAG = "$CHDROID_ROOTFS_BASE/mount-android-root"
+    // The active rootfs lives in a distro-named directory, e.g.
+    // /data/local/arch-chroot. ChDroidPaths reads the pointer and resolves it.
+    const val CHDROID_ROOTFS_POINTER = "/data/local/chdroid-active-rootfs"
+    const val CHDROID_ROOTFS_LEGACY_BASE = "/data/local/ubuntu-chroot"
     const val CHDROID_MOUNT_SCRIPT = "$INSTALL_PATH/android-root-mount.sh"
     const val CONTAINER_CONFIG_FILE = "container.config"
     // Default network mode, the single source of truth for both the ContainerInfo

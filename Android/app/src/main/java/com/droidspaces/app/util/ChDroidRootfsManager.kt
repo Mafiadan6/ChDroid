@@ -56,7 +56,7 @@ object ChDroidRootfsManager {
                 try {
                     val result = Shell.cmd(
                         "${q(identity.absolutePath)} " +
-                            "${q(Constants.CHDROID_ROOTFS_BASE)} " +
+                            "${q(ChDroidPaths.base)} " +
                             "${q(host)} " +
                             "${q(name)} 2>&1"
                     ).exec()
@@ -102,26 +102,26 @@ object ChDroidRootfsManager {
     /** True when the CLI manager and a usable rootfs are on the device. */
     suspend fun isInstalled(): Boolean = withContext(Dispatchers.IO) {
         Shell.cmd(
-            "test -x '${Constants.CHDROID_ROOTFS_SCRIPT}' && " +
-                "test -x '${Constants.CHDROID_ROOTFS_DIR}/bin/sh'"
+            "test -x '${ChDroidPaths.script}' && " +
+                "test -x '${ChDroidPaths.rootfs}/bin/sh'"
         ).exec().isSuccess
     }
 
     suspend fun status(): String = withContext(Dispatchers.IO) {
         if (!isInstalled()) return@withContext "not installed"
-        Shell.cmd("sh '${Constants.CHDROID_ROOTFS_SCRIPT}' status 2>&1").exec()
+        Shell.cmd("sh '${ChDroidPaths.script}' status 2>&1").exec()
             .out.joinToString(" ").trim().ifEmpty { "unknown" }
     }
 
     /** Distro id written by the installer into the rootfs base. */
     suspend fun distro(): String = withContext(Dispatchers.IO) {
-        Shell.cmd("cat '${Constants.CHDROID_ROOTFS_BASE}/distro-id' 2>/dev/null").exec()
+        Shell.cmd("cat '${ChDroidPaths.base}/distro-id' 2>/dev/null").exec()
             .out.firstOrNull()?.trim().orEmpty()
     }
 
     /** Container name chosen in the setup screen and written at install time. */
     suspend fun containerName(): String = withContext(Dispatchers.IO) {
-        Shell.cmd("cat '${Constants.CHDROID_ROOTFS_BASE}/container-name' 2>/dev/null").exec()
+        Shell.cmd("cat '${ChDroidPaths.base}/container-name' 2>/dev/null").exec()
             .out.firstOrNull()?.trim().orEmpty()
     }
 
@@ -131,7 +131,7 @@ object ChDroidRootfsManager {
      * recorded at install time, which is still a property of the installed tarball.
      */
     suspend fun hostname(): String = withContext(Dispatchers.IO) {
-        val baked = Shell.cmd("head -n 1 '${Constants.CHDROID_ROOTFS_DIR}/etc/hostname' 2>/dev/null").exec()
+        val baked = Shell.cmd("head -n 1 '${ChDroidPaths.rootfs}/etc/hostname' 2>/dev/null").exec()
             .out.firstOrNull()?.trim().orEmpty()
         baked.ifEmpty { distro().ifEmpty { "localhost" } }
     }
@@ -162,7 +162,7 @@ object ChDroidRootfsManager {
                 throw Exception("rootfs is not installed")
             }
             val command =
-                "sh '${Constants.CHDROID_ROOTFS_SCRIPT}' start --no-shell; " +
+                "sh '${ChDroidPaths.script}' start --no-shell; " +
                     androidRootMountCmd()
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,
@@ -185,9 +185,9 @@ object ChDroidRootfsManager {
         withContext(Dispatchers.Main.immediate) { clearLogs() }
         runCatching {
             CrashLogger.log("chroot stop: begin")
-            val script = Constants.CHDROID_ROOTFS_SCRIPT
-            val base = Constants.CHDROID_ROOTFS_BASE
-            val rootfs = Constants.CHDROID_ROOTFS_DIR
+            val script = ChDroidPaths.script
+            val base = ChDroidPaths.base
+            val rootfs = ChDroidPaths.rootfs
             val log = "$base/stop.log"
             // Stop output goes to a file, not to the root shell's stdout. A
             // lingering child of chroot.sh holding stdout open makes libsu's
@@ -248,7 +248,7 @@ object ChDroidRootfsManager {
             try {
                 val result = Shell.cmd(
                     "${q(identity.absolutePath)} " +
-                        "${q(Constants.CHDROID_ROOTFS_BASE)} " +
+                        "${q(ChDroidPaths.base)} " +
                         "${q(hostname)} " +
                         "${q(containerName)} 2>&1"
                 ).exec()
@@ -265,13 +265,13 @@ object ChDroidRootfsManager {
     /**
      * Remove the CLI rootfs completely. Stop first, then kill anything still
      * rooted in it and drop its mounts, so a half-stopped container cannot keep
-     * /data/local/ubuntu-chroot busy and defeat the delete.
+     * the active rootfs busy and defeat the delete.
      */
     suspend fun uninstall(context: Context, logger: ViewModelLogger): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
-            val base = Constants.CHDROID_ROOTFS_BASE
-            val rootfs = Constants.CHDROID_ROOTFS_DIR
-            val script = Constants.CHDROID_ROOTFS_SCRIPT
+            val base = ChDroidPaths.base
+            val rootfs = ChDroidPaths.rootfs
+            val script = ChDroidPaths.script
             logger.i("stopping rootfs before uninstall")
             val command =
                 "if [ -f '$script' ]; then " +
@@ -285,7 +285,8 @@ object ChDroidRootfsManager {
                     "while read -r dev mp rest; do " +
                     "case \"\$mp\" in '$rootfs'|'$rootfs'/*) umount -l \"\$mp\" 2>/dev/null ;; esac; " +
                     "done < /proc/mounts; " +
-                    "rm -rf '$base' || exit 1"
+                    "rm -rf '$base' || exit 1; " +
+                    "rm -f '${Constants.CHDROID_ROOTFS_POINTER}' 2>/dev/null"
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,
                 operation = "uninstall",
@@ -363,7 +364,8 @@ object ChDroidRootfsManager {
                         "${ContainerCommandBuilder.quote(installer.absolutePath)} " +
                         "${ContainerCommandBuilder.quote(zip)} " +
                         "${ContainerCommandBuilder.quote(bootstrap)} " +
-                        "${ContainerCommandBuilder.quote(cacheDir.absolutePath)} 2>&1"
+                        "${ContainerCommandBuilder.quote(cacheDir.absolutePath)} " +
+                        "${ContainerCommandBuilder.quote(containerName)} 2>&1"
                 ).exec()
                 result.out.map { it.trim() }.filter { it.isNotEmpty() }.forEach { line ->
                     if (line.startsWith("[UC-INSTALL]")) logger.i(line) else logger.d(line)
@@ -371,6 +373,11 @@ object ChDroidRootfsManager {
                 if (!result.isSuccess) {
                     throw Exception(result.err.joinToString("\n").ifEmpty { "CLI install failed" })
                 }
+                // The installer picks a distro-named base from the ZIP manifest and
+                // reports it back so the rest of this session uses the same path.
+                result.out.firstOrNull { it.contains("[UC-INSTALL] base=") }
+                    ?.substringAfter("base=")?.trim()?.takeIf { it.isNotBlank() }
+                    ?.let { ChDroidPaths.use(it) }
                 check(isInstalled()) { "installer finished but rootfs is not usable" }
 
                 // Apply the setup screen's identity to the installed rootfs. The
@@ -383,7 +390,7 @@ object ChDroidRootfsManager {
                 try {
                     val apply = Shell.cmd(
                         "${q(identity.absolutePath)} " +
-                            "${q(Constants.CHDROID_ROOTFS_BASE)} " +
+                            "${q(ChDroidPaths.base)} " +
                             "${q(hostname)} " +
                             "${q(containerName)} 2>&1"
                     ).exec()
@@ -401,10 +408,10 @@ object ChDroidRootfsManager {
                 // mount script checks at every start; deploying the script here
                 // keeps it alongside the other CLI tools, outside the app APK.
                 val flagSetup = if (mountAndroidRoot) {
-                    "mkdir -p ${q(Constants.CHDROID_ROOTFS_BASE)} && " +
-                        "printf '1\\n' > ${q(Constants.CHDROID_MOUNT_FLAG)}"
+                    "mkdir -p ${q(ChDroidPaths.base)} && " +
+                        "printf '1\\n' > ${q(ChDroidPaths.mountFlag)}"
                 } else {
-                    "rm -f ${q(Constants.CHDROID_MOUNT_FLAG)}"
+                    "rm -f ${q(ChDroidPaths.mountFlag)}"
                 }
                 Shell.cmd("$flagSetup 2>&1").exec()
 
@@ -419,7 +426,7 @@ object ChDroidRootfsManager {
                     logger.i("android-root bind mount ${if (mountAndroidRoot) "enabled" else "disabled"}")
                 }
 
-                logger.i("rootfs ready at ${Constants.CHDROID_ROOTFS_SCRIPT}")
+                logger.i("rootfs ready at ${ChDroidPaths.script}")
             } finally {
                 installer.delete()
             }
@@ -445,7 +452,7 @@ object ChDroidRootfsManager {
         // fallback sits on the SETUP pass only: a failed `exit` leaves a non-zero
         // $? that a trailing `|| exec su` would mistake for a failed entry and
         // drop He into /system/bin/sh instead of closing the tab.
-        val script = Constants.CHDROID_ROOTFS_SCRIPT
+        val script = ChDroidPaths.script
         val mount = Constants.CHDROID_MOUNT_SCRIPT
         val body =
             "sh $script -s start --no-shell >/dev/null 2>&1 || exec su; " +
@@ -464,7 +471,7 @@ object ChDroidRootfsManager {
      * tmpfs, so a host-side write hits the underlying directory instead.
      */
     private fun refreshDnsCmd(): String {
-        val script = Constants.CHDROID_ROOTFS_SCRIPT
+        val script = ChDroidPaths.script
         return "dnscmd=; first=1; " +
             "for i in 1 2 3 4; do d=\$(getprop net.dns\$i); " +
             "[ x\$d != x ] && { if [ \$first -eq 1 ]; then " +
@@ -484,8 +491,8 @@ object ChDroidRootfsManager {
      */
     suspend fun stats(): ContainerOSInfoManager.OSInfo? = withContext(Dispatchers.IO) {
         if (!isInstalled()) return@withContext null
-        val rootfs = Constants.CHDROID_ROOTFS_DIR
-        val base = Constants.CHDROID_ROOTFS_BASE
+        val rootfs = ChDroidPaths.rootfs
+        val base = ChDroidPaths.base
         // The release's bundled busybox is a minimal build with no awk/sed/cut/
         // cat/ip applets, so this whole pass uses POSIX shell builtins (read,
         // parameter expansion, $(( ))) plus readlink/sleep/getprop, which exist

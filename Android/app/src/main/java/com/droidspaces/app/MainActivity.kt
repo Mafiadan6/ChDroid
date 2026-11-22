@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         super.onCreate(savedInstanceState)
         CrashLogger.install(this)
+        com.droidspaces.app.util.ChDroidPaths.refresh()
         com.droidspaces.app.util.ChDroidRootfsManager.install(this)
 
         // Set condition immediately - UI will hide splash when ready

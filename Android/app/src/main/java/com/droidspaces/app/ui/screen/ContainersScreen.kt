@@ -325,6 +325,7 @@ fun ContainersScreen(
                         item(key = "chdroid-rootfs-card") {
                             ChDroidRootfsCard(
                                 distro = chdroidDistro,
+                                path = com.droidspaces.app.util.ChDroidPaths.base,
                                 isRunning = chdroidRunning,
                                 isBusy = chdroidBusy,
                                 onStart = { chdroidAction(start = true) },
