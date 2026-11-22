@@ -32,8 +32,12 @@ object ChDroidRootfsManager {
      * action is still readable after an app restart.
      */
     private const val LOG_KEY = "chdroid-rootfs"
+    // Keep in sync with PATCH_VERSION in chdroid_identity.sh. A launch only
+    // re-patches the installed script when this revision changes.
+    private const val PATCH_VERSION = 4
     private val logBuffer = mutableStateListOf<Pair<Int, String>>()
     private var appContext: Context? = null
+    private val startupPatchRunning = java.util.concurrent.atomic.AtomicBoolean(false)
 
     fun install(context: Context) {
         appContext = context.applicationContext
@@ -46,28 +50,43 @@ object ChDroidRootfsManager {
         // repack, no re-download, no reboot. Cheap: a few shell builtins, and it
         // bails immediately when no rootfs is installed.
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
-            runCatching {
-                if (!isInstalled()) return@runCatching
-                CrashLogger.log("chroot startup patch: begin")
-                val host = hostname()
-                val name = containerName()
-                val q = ContainerCommandBuilder::quote
-                val identity = ContainerInstaller.deployAsset(appContext!!, "chdroid_identity.sh")
-                try {
-                    val result = Shell.cmd(
-                        "${q(identity.absolutePath)} " +
-                            "${q(ChDroidPaths.base)} " +
-                            "${q(host)} " +
-                            "${q(name)} 2>&1"
-                    ).exec()
-                    CrashLogger.log(
-                        "chroot startup patch: code=${result.code} " +
-                            "out=${result.out.joinToString(" | ").take(300)}"
-                    )
-                } finally {
-                    identity.delete()
-                }
-            }.onFailure { CrashLogger.log("chroot startup patch: error=${it.message}") }
+            if (!startupPatchRunning.compareAndSet(false, true)) {
+                CrashLogger.log("chroot startup patch: already running, skipped")
+                return@launch
+            }
+            try {
+                runCatching {
+                    if (!isInstalled()) return@runCatching
+                    val marker = Shell.cmd(
+                        "cat '${ChDroidPaths.base}/chdroid-patch-version' 2>/dev/null"
+                    ).exec().out.firstOrNull()?.trim()
+                    if (marker == PATCH_VERSION.toString()) {
+                        CrashLogger.log("chroot startup patch: v$marker current, skipped")
+                        return@runCatching
+                    }
+                    CrashLogger.log("chroot startup patch: begin (was $marker)")
+                    val host = hostname()
+                    val name = containerName()
+                    val q = ContainerCommandBuilder::quote
+                    val identity = ContainerInstaller.deployAsset(appContext!!, "chdroid_identity.sh")
+                    try {
+                        val result = Shell.cmd(
+                            "${q(identity.absolutePath)} " +
+                                "${q(ChDroidPaths.base)} " +
+                                "${q(host)} " +
+                                "${q(name)} 2>&1"
+                        ).exec()
+                        CrashLogger.log(
+                            "chroot startup patch: code=${result.code} " +
+                                "out=${result.out.joinToString(" | ").take(300)}"
+                        )
+                    } finally {
+                        identity.delete()
+                    }
+                }.onFailure { CrashLogger.log("chroot startup patch: error=${it.message}") }
+            } finally {
+                startupPatchRunning.set(false)
+            }
         }
     }
 
@@ -224,8 +243,11 @@ object ChDroidRootfsManager {
                 logger.e("rootfs is not installed")
                 throw Exception("rootfs is not installed")
             }
+            // CLI mode: the namespace and mounts are all chroot.sh needs. The
+            // release's post_exec.sh is a guest-side script that can spend many
+            // seconds inside nsenter+bash on every start, so skip it here.
             val command =
-                "sh '${ChDroidPaths.script}' start --no-shell; " +
+                "sh '${ChDroidPaths.script}' start --no-shell --skip-post-exec; " +
                     androidRootMountCmd()
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,
@@ -244,46 +266,128 @@ object ChDroidRootfsManager {
         }
     }
 
+    /**
+     * Host-side teardown, shared by the Stop button and the last terminal exit.
+     * Everything here touches only /proc and the rootfs base; no guest process is
+     * spawned, so libsu's exec() returns as soon as the commands finish.
+     */
+    private fun teardownCommand(): String {
+        val rootfs = ChDroidPaths.rootfs
+        val base = ChDroidPaths.base
+        val q = ContainerCommandBuilder::quote
+        val r = q(rootfs)
+        val b = q(base)
+        return listOf(
+            "echo '[info] stopping rootfs processes'",
+            // One ls over all proc roots beats a readlink fork per PID and never
+            // needs lsof or a guest shell.
+            "ls -l /proc/[0-9]*/root 2>/dev/null | " +
+                "awk -v t=$r '\$11==t {split(\$9,a,\"/\"); print a[3]}' | " +
+                "while read -r pid; do kill -9 \"\$pid\" 2>/dev/null; done; true",
+            "echo '[info] unmounting rootfs'",
+            "while read -r dev mp rest; do " +
+                "case \"\$mp\" in $r|$r/*) umount -l \"\$mp\" 2>/dev/null ;; esac; " +
+                "done < /proc/mounts; true",
+            "p=\$(cat $b/holder.pid 2>/dev/null); " +
+                "[ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; true",
+            "rm -f $b/holder.pid $b/holder.pid.flags 2>/dev/null; true",
+            "if [ -x /system/bin/setenforce ]; then /system/bin/setenforce 1 2>/dev/null; " +
+                "else setenforce 1 2>/dev/null; fi; true",
+            "echo '[info] rootfs stopped'",
+        ).joinToString("\n")
+    }
+
+    /**
+     * Typing `exit` in the last rootfs shell ends the guest session but leaves
+     * chroot.sh's namespace holder alive, which made the card still read
+     * "running" and Start answer "already running". Tear the holder down when
+     * the last terminal tab closes so the 2s status poll sees the truth.
+     */
+    suspend fun releaseAfterShellExit() = withContext(Dispatchers.IO) {
+        runCatching {
+            Shell.cmd(teardownCommand()).exec()
+            CrashLogger.log("chroot shell exit: holder released")
+        }.onFailure { CrashLogger.log("chroot shell exit: release error=${it.message}") }
+    }
+
+    /** Path of the rootfs's persisted setup-wizard configuration. */
+    private val configPath: String get() = "${ChDroidPaths.base}/container.config"
+
+    /**
+     * Rebuild the exact field set the install wizard offered, from the config
+     * file written at install time. Installs made before that file existed fall
+     * back to defaults plus the live name/hostname, so Edit still opens full.
+     */
+    suspend fun loadEditableConfig(): ContainerInfo = withContext(Dispatchers.IO) {
+        val snap = snapshot()
+        val q = ContainerCommandBuilder::quote
+        val raw = Shell.cmd("cat ${q(configPath)} 2>/dev/null").exec().out.joinToString("\n")
+        val parsed = if (raw.isNotBlank()) ContainerManager.parseConfig(raw, snap.name) else null
+        val flagOn = Shell.cmd("[ -f ${q(ChDroidPaths.mountFlag)} ] && echo 1").exec()
+            .out.firstOrNull()?.trim() == "1"
+        val base = parsed ?: ContainerInfo(
+            name = snap.name,
+            hostname = snap.hostname,
+            rootfsPath = ChDroidPaths.rootfs,
+        )
+        base.copy(
+            name = snap.name.ifBlank { base.name },
+            hostname = snap.hostname.ifBlank { base.hostname },
+            rootfsPath = ChDroidPaths.rootfs,
+            status = ContainerStatus.STOPPED,
+            pid = null,
+            selinuxPermissive = false,
+            mountAndroidRoot = flagOn,
+        )
+    }
+
+    private fun persistConfig(context: Context, info: ContainerInfo) {
+        val tmp = File(context.cacheDir, "chdroid-rootfs.config")
+        tmp.writeText(
+            info.copy(
+                rootfsPath = ChDroidPaths.rootfs,
+                selinuxPermissive = false,
+            ).toConfigContent()
+        )
+        val written = ContainerManager.installFileDurably(tmp.absolutePath, configPath, "644")
+        tmp.delete()
+        if (!written.isSuccess) {
+            throw Exception("could not save rootfs config: ${written.err.joinToString(" ").ifBlank { "write failed" }}")
+        }
+    }
+
+    /** Save every wizard field, then re-apply identity and the Android-root flag. */
+    suspend fun saveEditableConfig(
+        context: Context,
+        info: ContainerInfo,
+        logger: ViewModelLogger,
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            persistConfig(context, info)
+            applyIdentity(context, info.hostname, info.name, logger).getOrThrow()
+            val q = ContainerCommandBuilder::quote
+            val flag = if (info.mountAndroidRoot) {
+                "mkdir -p ${q(ChDroidPaths.base)} && printf '1\\n' > ${q(ChDroidPaths.mountFlag)}"
+            } else {
+                "rm -f ${q(ChDroidPaths.mountFlag)}"
+            }
+            Shell.cmd(flag).exec()
+            CrashLogger.log("chroot config saved: name='${info.name}' hostname='${info.hostname}'")
+        }
+    }
+
     suspend fun stop(): Result<Unit> = withContext(Dispatchers.IO) {
         val logger = operationLogger()
         withContext(Dispatchers.Main.immediate) { clearLogs() }
         runCatching {
             val startedAt = System.currentTimeMillis()
             CrashLogger.log("chroot stop: begin")
-            val script = ChDroidPaths.script
-            val base = ChDroidPaths.base
-            val rootfs = ChDroidPaths.rootfs
-            val log = "$base/stop.log"
-            // Stop output goes to a file, not to the root shell's stdout. A
-            // lingering child of chroot.sh holding stdout open makes libsu's
-            // exec() wait forever even after the script exits - that was the
-            // "dang container won't stop" hang. timeout caps the script itself;
-            // the file is then cat'd into the console for the normal log shape.
-            // chroot.sh stop is best effort with a hard 6s watchdog: Android has
-            // no reliable timeout binary, so the watchdog is pure shell. Its
-            // output goes to a file, which also keeps a lingering guest child
-            // from holding libsu's stdout open after the script exits.
-            val command =
-                ": > '$log'; " +
-                    "( sh '$script' stop > '$log' 2>&1 ) </dev/null & " +
-                    "sp=\$!; " +
-                    "( sleep 6; kill -9 \"\$sp\" 2>/dev/null ) >/dev/null 2>&1 & " +
-                    "wd=\$!; " +
-                    "wait \"\$sp\" 2>/dev/null || true; " +
-                    "kill -9 \"\$wd\" 2>/dev/null || true; " +
-                    "cat '$log'; " +
-                    "echo '[chdroid] forcing holder down'; " +
-                    // One ls over all proc roots beats a readlink fork per PID.
-                    // The per-PID loop cost several seconds on a busy phone and
-                    // was most of the stop latency once fstrim/lsof were gone.
-                    "ls -l /proc/[0-9]*/root 2>/dev/null | " +
-                    "awk -v t='$rootfs' '\$11==t {split(\$9,a,\"/\"); print a[3]}' | " +
-                    "while read -r pid; do kill -9 \"\$pid\" 2>/dev/null; done; " +
-                    "p=\$(cat '$base/holder.pid' 2>/dev/null); " +
-                    "[ -n \"\$p\" ] && kill -9 \"\$p\" 2>/dev/null; " +
-                    "rm -f '$base/holder.pid' '$base/holder.pid.flags'; " +
-                    "if [ -x /system/bin/setenforce ]; then /system/bin/setenforce 1 2>/dev/null; " +
-                    "else setenforce 1 2>/dev/null; fi; true"
+            // Do not call chroot.sh stop here. Even with its slow steps patched
+            // out, that script spawns guest children that can keep libsu's stdout
+            // pipe open for tens of seconds after the teardown itself is done.
+            // Everything stop actually needs is host-side and instant: one proc
+            // scan, one lazy-unmount pass, the holder PID, the state files.
+            val command = teardownCommand()
             CrashLogger.log("chroot stop: dispatching command")
             val success = ContainerOperationExecutor.executeCommand(
                 command = command,
@@ -412,6 +516,7 @@ object ChDroidRootfsManager {
         hostname: String,
         mountAndroidRoot: Boolean,
         logger: ViewModelLogger,
+        config: ContainerInfo? = null,
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val zip = FilePickerUtils.realPath(context, zipUri) ?: run {
@@ -498,6 +603,10 @@ object ChDroidRootfsManager {
                     logger.i("android-root bind mount ${if (mountAndroidRoot) "enabled" else "disabled"}")
                 }
 
+                // Persist the whole setup-wizard configuration alongside the rootfs
+                // so the edit screen can reopen every field the install wizard offered.
+                if (config != null) persistConfig(context, config)
+
                 logger.i("rootfs ready at ${ChDroidPaths.script}")
             } finally {
                 installer.delete()
@@ -527,7 +636,7 @@ object ChDroidRootfsManager {
         val script = ChDroidPaths.script
         val mount = Constants.CHDROID_MOUNT_SCRIPT
         val body =
-            "sh $script -s start --no-shell >/dev/null 2>&1 || exec su; " +
+            "sh $script -s start --no-shell --skip-post-exec >/dev/null 2>&1 || exec su; " +
                 "${refreshDnsCmd()}; " +
                 "[ -f $mount ] && sh $mount 2>/dev/null; " +
                 "sh $script start root"

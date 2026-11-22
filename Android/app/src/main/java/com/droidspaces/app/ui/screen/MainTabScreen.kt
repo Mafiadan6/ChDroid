@@ -79,6 +79,7 @@ fun MainTabScreen(
     onNavigateToInstallation: () -> Unit = {},
     onNavigateToContainerInstallation: (android.net.Uri) -> Unit = {},
     onNavigateToEditContainer: (String) -> Unit = {},
+    onNavigateToEditRootfs: () -> Unit = {},
     onNavigateToContainerDetails: (String) -> Unit = {},
     onNavigateToTerminal: (String) -> Unit = {},
 ) {
@@ -333,6 +334,7 @@ fun MainTabScreen(
                                 isKernelSupported = isKernelSupported,
                                 onNavigateToInstallation = onNavigateToContainerInstallation,
                                 onNavigateToEditContainer = onNavigateToEditContainer,
+                                onNavigateToEditRootfs = onNavigateToEditRootfs,
                                 onNavigateToContainerDetails = onNavigateToContainerDetails,
                                 containerViewModel = containerViewModel,
                                 expandedContainerName = expandedContainerName,

@@ -35,7 +35,8 @@ object ContainerInstaller {
         ) {
             logger.i("ChDroid rootfs ZIP detected - installing chroot directly")
             return@withContext ChDroidRootfsManager.install(
-                context, tarballUri, config.name, config.hostname, config.mountAndroidRoot, logger
+                context, tarballUri, config.name, config.hostname, config.mountAndroidRoot, logger,
+                config = config
             )
         }
 

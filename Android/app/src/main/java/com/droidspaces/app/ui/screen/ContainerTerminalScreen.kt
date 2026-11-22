@@ -237,8 +237,15 @@ fun ContainerTerminalScreen(
         if (tabs.size == 1) hideKeyboard()
         val idx = tabs.indexOf(tab)
         tabs.remove(tab)
-        if (tabs.isEmpty()) onNavigateBack()
-        else activeTabId = tabs.getOrElse(idx.coerceAtMost(tabs.lastIndex)) { tabs.last() }.id
+        if (tabs.isEmpty()) {
+            if (isHostShell) {
+                // The CLI rootfs keeps a namespace holder after the shell exits.
+                // Without this the card still reads "running" and Start reports
+                // "already running" until some unrelated refresh happens.
+                scope.launch { ChDroidRootfsManager.releaseAfterShellExit() }
+            }
+            onNavigateBack()
+        } else activeTabId = tabs.getOrElse(idx.coerceAtMost(tabs.lastIndex)) { tabs.last() }.id
     }
 
     val exitScreen = {

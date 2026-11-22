@@ -12,11 +12,19 @@
 #     script replaced it with a plain one and He wants the original look back.
 #   - fast stop: replace lsof scanning, bash-only mount arrays, and the blocking
 #     binfmt-support stop with POSIX builtins. Stops stay quick on /system/bin/sh.
+#   - fast start: drop the in-chroot /dev/fd and networking helpers (each one was a
+#     full nsenter+bash round trip) and stamp elapsed seconds on the phase logs so
+#     the console shows exactly where setup time goes.
 #
 # The release's bundled busybox is minimal, so every text operation here is a
 # shell builtin. toybox is only used for mv/chmod/rm.
 #
 # usage: chdroid_identity.sh <base> <hostname> <container-name>
+
+# Bump when the patch rules change. The app checks this marker at launch so an
+# unchanged APK does not rewrite chroot.sh on every start (that root-shell
+# contention was implicated in the launch crash reports).
+PATCH_VERSION=4
 
 BASE="$1"
 HOST="$2"
@@ -82,7 +90,19 @@ if [ -f "$PATCH" ]; then
   TMP="$PATCH.id.$$"
   if : > "$TMP" 2>/dev/null; then
     skip_array=0
+    t0_added=0
     while IFS= read -r line || [ -n "$line" ]; do
+      # Start the elapsed clock once, right after the shebang. Phase logs below
+      # then print +Ns so a slow start is visible in the console without logcat.
+      case "$line" in
+        'CHDROID_T0='*) continue ;;
+      esac
+      if [ "$t0_added" -eq 0 ]; then
+        case "$line" in
+          '#!'*) printf '%s\n' "$line" 'CHDROID_T0=$(date +%s)' > "$TMP"; t0_added=1; continue ;;
+        esac
+      fi
+
       # Drop the bash-only `custom_linux_mounts=(...)` declaration. The loop
       # below gets a literal list instead so /system/bin/sh can parse the file.
       case "$line" in
@@ -106,6 +126,36 @@ if [ -f "$PATCH" ]; then
           # The release hardcodes /data/local/ubuntu-chroot. Point the installed
           # script at the setup-named directory instead.
           printf 'BASE_CHROOT_DIR="%s"\n' "$BASE"
+          ;;
+        *'log "Setting up advanced chroot environment..."'*)
+          printf '%s\n' '    log "Setting up advanced chroot environment... +$(( $(date +%s) - CHDROID_T0 ))s"'
+          ;;
+        *'log "Creating new isolated namespace..."'*)
+          printf '%s\n' '        log "Creating new isolated namespace... +$(( $(date +%s) - CHDROID_T0 ))s"'
+          ;;
+        *'log "Setting up system mounts..."'*)
+          printf '%s\n' '    log "Setting up system mounts... +$(( $(date +%s) - CHDROID_T0 ))s"'
+          ;;
+        *'log "Applying networking fixes..."'*)
+          printf '%s\n' '    log "Applying networking fixes... +$(( $(date +%s) - CHDROID_T0 ))s"'
+          ;;
+        *'log "Chroot environment setup completed successfully!"'*)
+          printf '%s\n' '    log "Chroot environment setup completed successfully! +$(( $(date +%s) - CHDROID_T0 ))s"'
+          ;;
+        *'run_in_chroot "umount /dev/fd'*)
+          # /dev/fd lives on the rootfs filesystem, visible from the host. Do the
+          # symlink here instead of paying for nsenter + chroot bash on every start.
+          printf '%s\n' '    rm -rf "$CHROOT_PATH/dev/fd" 2>/dev/null; ln -sfn /proc/self/fd "$CHROOT_PATH/dev/fd" 2>/dev/null'
+          ;;
+        *'if run_in_chroot "${internet_fix_cmd}"; then'*)
+          # The release's in-chroot networking block runs find/usermod/sed through
+          # nsenter+bash. DNS and hosts are plain files on the host side; write them
+          # directly and keep the if/else that follows so the log shape is unchanged.
+          printf '%s\n' '    mkdir -p "$CHROOT_PATH/run/resolvconf" "$CHROOT_PATH/run/sshd" 2>/dev/null'
+          printf '%s\n' '    printf "%b" "$dns_servers" > "$CHROOT_PATH/run/resolvconf/resolv.conf"'
+          printf '%s\n' '    ln -sfn /run/resolvconf/resolv.conf "$CHROOT_PATH/etc/resolv.conf" 2>/dev/null'
+          printf '%s\n' '    printf "127.0.0.1\\tlocalhost %s\\n" "$C_HOSTNAME" > "$CHROOT_PATH/etc/hosts"'
+          printf '%s\n' '    if :; then'
           ;;
         *'"$2" sleep infinity &'*)
           # The namespace holder is backgrounded by chroot.sh start. Left as-is
@@ -215,5 +265,10 @@ SE=/system/bin/setenforce
 [ -x "$SE" ] || SE=setenforce
 "$SE" 1 2>/dev/null && say "SELinux enforcing" || say "SELinux already enforcing or unsupported"
 rm_f -f "$BASE/selinux-original" 2>/dev/null
+
+# 7. Patch revision marker. The app reads this at launch and skips the whole
+#    re-patch when the installed chroot.sh is already at this revision.
+printf '%s\n' "$PATCH_VERSION" > "$BASE/chdroid-patch-version" 2>/dev/null
+say "patch version=$PATCH_VERSION"
 
 exit 0

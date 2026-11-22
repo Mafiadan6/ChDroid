@@ -36,6 +36,7 @@ import com.droidspaces.app.ui.screen.ContainerConfigScreen
 import com.droidspaces.app.ui.screen.InstallationSummaryScreen
 import com.droidspaces.app.ui.screen.InstallationProgressScreen
 import com.droidspaces.app.ui.screen.EditContainerScreen
+import com.droidspaces.app.ui.screen.ChDroidRootfsEditScreen
 import com.droidspaces.app.ui.screen.ContainerDetailsScreen
 import com.droidspaces.app.ui.screen.SystemdScreen
 import com.droidspaces.app.ui.screen.UnitDetailScreen
@@ -91,6 +92,9 @@ sealed class Screen(val route: String) {
     data object EditContainer : Screen("edit_container/{containerName}") {
         fun createRoute(containerName: String) = "edit_container/${Uri.encode(containerName)}"
     }
+
+    /** Full setup-wizard editor for the CLI rootfs. */
+    data object EditRootfs : Screen("edit_rootfs")
 
     // Container management screens
     data object ContainerDetails : Screen("container_details/{containerName}") {
@@ -350,6 +354,9 @@ fun DroidspacesNavigation(
                 onNavigateToEditContainer = { containerName ->
                     navController.navigate(Screen.EditContainer.createRoute(containerName))
                 },
+                onNavigateToEditRootfs = {
+                    navController.navigate(Screen.EditRootfs.route)
+                },
                 onNavigateToContainerDetails = { containerName ->
                     navController.navigate(Screen.ContainerDetails.createRoute(containerName))
                 },
@@ -539,6 +546,13 @@ fun DroidspacesNavigation(
                     navController.popBackStack()
                 }
             }
+        }
+
+        composable(Screen.EditRootfs.route) {
+            ChDroidRootfsEditScreen(
+                containerViewModel = sharedContainerViewModel,
+                onBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Settings.route) {

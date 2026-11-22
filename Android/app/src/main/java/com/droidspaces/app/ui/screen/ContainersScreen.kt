@@ -93,6 +93,7 @@ fun ContainersScreen(
     isKernelSupported: Boolean = true,
     onNavigateToInstallation: (Uri) -> Unit = {},
     onNavigateToEditContainer: (String) -> Unit = {},
+    onNavigateToEditRootfs: () -> Unit = {},
     onNavigateToContainerDetails: (String) -> Unit = {},
     containerViewModel: ContainerViewModel,
     expandedContainerName: String?,
@@ -326,11 +327,7 @@ fun ContainersScreen(
                                 onStart = { chdroidAction(start = true) },
                                 onStop = { chdroidAction(start = false) },
                                 onShowLogs = { showRootfsLogs = true },
-                                onEdit = {
-                                    chdroidEditName = chdroidName
-                                    chdroidEditHostname = chdroidHostname
-                                    showChdroidEdit = true
-                                },
+                                onEdit = onNavigateToEditRootfs,
                                 onUninstall = {
                                     chdroidConfirmName = ""
                                     showChdroidUninstall = true
