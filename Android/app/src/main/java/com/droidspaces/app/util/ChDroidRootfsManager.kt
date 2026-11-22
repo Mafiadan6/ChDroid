@@ -35,7 +35,7 @@ object ChDroidRootfsManager {
     private const val LOG_KEY = "chdroid-rootfs"
     // Keep in sync with PATCH_VERSION in chdroid_identity.sh. A launch only
     // re-patches the installed script when this revision changes.
-    private const val PATCH_VERSION = 5
+    private const val PATCH_VERSION = 6
     private val logBuffer = mutableStateListOf<Pair<Int, String>>()
     private var appContext: Context? = null
     private val startupPatchRunning = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -165,6 +165,7 @@ object ChDroidRootfsManager {
             "  done < \"\$base/container.config\" 2>/dev/null",
             "  [ -n \"\$n\" ] || n=\$(head -n 1 \"\$base/container-name\" 2>/dev/null)",
             "  echo \"name=\$n\"",
+            "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/hostname\" 2>/dev/null)",
             "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/rootfs/etc/hostname\" 2>/dev/null)",
             "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/distro-id\" 2>/dev/null)",
             "  echo \"hostname=\$h\"",
@@ -229,14 +230,17 @@ object ChDroidRootfsManager {
     }
 
     /**
-     * Hostname the user typed in the setup wizard, persisted in container.config.
-     * /etc/hostname inside the rootfs is only a downstream copy the identity script
-     * writes from this value - reading that first is what let the release's baked
-     * "mastermind" override the wizard value on older installs. Fall back to the
-     * baked file, then the distro id, for installs made before the config existed.
+     * Hostname the user typed in the setup wizard. container.config is the source
+     * of truth; the plain base/hostname file is the fallback for installs made
+     * before that config existed. /etc/hostname inside the rootfs is only a
+     * downstream copy, and the release's baked value must never win over either.
      */
     suspend fun hostname(): String = withContext(Dispatchers.IO) {
         persistedConfig()["hostname"]?.takeIf { it.isNotBlank() }?.let { return@withContext it }
+        val q = ContainerCommandBuilder::quote
+        val saved = Shell.cmd("head -n 1 ${q("${ChDroidPaths.base}/hostname")} 2>/dev/null").exec()
+            .out.firstOrNull()?.trim().orEmpty()
+        if (saved.isNotBlank()) return@withContext saved
         val baked = Shell.cmd("head -n 1 '${ChDroidPaths.rootfs}/etc/hostname' 2>/dev/null").exec()
             .out.firstOrNull()?.trim().orEmpty()
         baked.ifEmpty { distro().ifEmpty { "localhost" } }
@@ -410,6 +414,15 @@ object ChDroidRootfsManager {
         if (!written.isSuccess) {
             throw Exception("could not save rootfs config: ${written.err.joinToString(" ").ifBlank { "write failed" }}")
         }
+        // Keep plain copies too. The identity script and the stats/snapshot readers
+        // use them when a config written by an older build is absent or incomplete.
+        val q = ContainerCommandBuilder::quote
+        val base = q(ChDroidPaths.base)
+        Shell.cmd(
+            "mkdir -p $base && " +
+                "printf '%s\\n' ${q(info.hostname)} > $base/hostname && " +
+                "printf '%s\\n' ${q(info.name)} > $base/container-name"
+        ).exec()
     }
 
     /** Save every wizard field, then re-apply identity and the Android-root flag. */
@@ -738,7 +751,8 @@ object ChDroidRootfsManager {
         val script = """
             PID=''; IFS= read -r PID < '$base/holder.pid' 2>/dev/null
             DISTRO=''; IFS= read -r DISTRO < '$base/distro-id' 2>/dev/null
-            HOST=''; IFS= read -r HOST < '$rootfs/etc/hostname' 2>/dev/null
+            HOST=''; IFS= read -r HOST < '$base/hostname' 2>/dev/null
+            [ -n "~HOST" ] || IFS= read -r HOST < '$rootfs/etc/hostname' 2>/dev/null
             # PRETTY_NAME via the read builtin - no grep/head/sed on this device.
             PRETTY=''
             while IFS= read -r line; do

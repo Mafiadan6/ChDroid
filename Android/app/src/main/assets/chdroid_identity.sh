@@ -24,7 +24,7 @@
 # Bump when the patch rules change. The app checks this marker at launch so an
 # unchanged APK does not rewrite chroot.sh on every start (that root-shell
 # contention was implicated in the launch crash reports).
-PATCH_VERSION=5
+PATCH_VERSION=6
 
 BASE="$1"
 HOST="$2"
@@ -96,6 +96,10 @@ if [ -f "$PATCH" ]; then
       # then print +Ns so a slow start is visible in the console without logcat.
       case "$line" in
         'CHDROID_T0='*) continue ;;
+        *'# ChDroid: pacman'*)
+          printf '%s\n' "$line"
+          continue
+          ;;
       esac
       if [ "$t0_added" -eq 0 ]; then
         case "$line" in
@@ -138,6 +142,10 @@ if [ -f "$PATCH" ]; then
           ;;
         *'log "Applying networking fixes..."'*)
           printf '%s\n' '    log "Applying networking fixes... +$(( $(date +%s) - CHDROID_T0 ))s"'
+          # Do this at every start, not only at patch time: a sparse/image rootfs
+          # is empty while unmounted, so host-side writes made by this script can
+          # vanish once the image is loop-mounted.
+          printf '%s\n' '    mkdir -p "$CHROOT_PATH/var/cache/pacman/pkg" 2>/dev/null; ln -sfn /proc/self/mounts "$CHROOT_PATH/etc/mtab" 2>/dev/null # ChDroid: pacman'
           ;;
         *'log "Chroot environment setup completed successfully!"'*)
           printf '%s\n' '    log "Chroot environment setup completed successfully! +$(( $(date +%s) - CHDROID_T0 ))s"'
@@ -236,7 +244,10 @@ if [ -f "$BASHRC" ]; then
     while IFS= read -r line || [ -n "$line" ]; do
       case "$line" in
         export\ PS1=*)
-          printf '%b\n' 'export PS1="\\[\033[38;5;208m\\]\\u@\\h\\[\033[m\\]:\\[\033[34m\\]\\w\\[\033[m\\]# "'
+          # The UTS namespace cannot write /proc/sys/kernel/hostname on Android, so
+          # \h resolves to the phone's "localhost". Bake the wizard hostname into
+          # the prompt literally instead - the colours and layout stay canonical.
+          printf '%s\n' "export PS1=\"\\[\\033[38;5;208m\\]\\u@${HOST}\\[\\033[m\\]:\\[\\033[34m\\]\\w\\[\\033[m\\]# \""
           ;;
         *)
           printf '%s\n' "$line"
@@ -254,10 +265,12 @@ if [ -f "$BASHRC" ]; then
   fi
 fi
 
-# 5. Container name for the UI card.
+# 5. Container name and hostname for the UI and the terminal label. These plain
+#    files are the fallback when container.config was written by an older build.
 [ -n "$CNAME" ] || CNAME="$HOST"
 printf '%s\n' "$CNAME" > "$BASE/container-name"
-say "container-name=$CNAME"
+printf '%s\n' "$HOST" > "$BASE/hostname"
+say "container-name=$CNAME, hostname=$HOST"
 
 # 6. Earlier builds flipped the whole phone permissive. Put it back now and drop
 #    the stale state file so a later chroot.sh cannot restore a permissive mode.

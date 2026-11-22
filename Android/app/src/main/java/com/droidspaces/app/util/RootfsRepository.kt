@@ -102,19 +102,23 @@ object RootfsRepository {
     internal fun httpGet(url: String): String? {
         // Refuse cleartext: the rootfs supply chain must not be MITM-able (V13).
         if (!url.startsWith("https://", ignoreCase = true)) return null
-        val conn = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = CONNECT_TIMEOUT
-            readTimeout    = READ_TIMEOUT
-            setRequestProperty("Accept", "application/vnd.github+json")
-            setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
+        var conn: HttpURLConnection? = null
+        return try {
+            conn = (URL(url).openConnection() as HttpURLConnection).apply {
+                connectTimeout = CONNECT_TIMEOUT
+                readTimeout    = READ_TIMEOUT
+                setRequestProperty("Accept", "application/vnd.github+json")
+                setRequestProperty("X-GitHub-Api-Version", "2022-11-28")
+            }
+            if (conn.responseCode != 200) return null
+            conn.inputStream.bufferedReader().use { it.readText() }
+        } catch (_: Exception) {
+            // A dropped TLS handshake on app start is a missing manifest, not a
+            // crash. callers already fall back to the built-in release asset.
+            null
+        } finally {
+            conn?.disconnect()
         }
-        if (conn.responseCode != 200) {
-            conn.disconnect()
-            return null
-        }
-        val body = conn.inputStream.bufferedReader().readText()
-        conn.disconnect()
-        return body
     }
 
     private fun parseRootfsJson(json: String, repoName: String): List<RootfsAsset> {
