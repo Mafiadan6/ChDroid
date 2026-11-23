@@ -17,6 +17,7 @@ import androidx.compose.material3.Surface
 import com.chdroid.app.service.RootfsDownloadService
 import com.chdroid.app.ui.component.rememberPermissionRequest
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +36,7 @@ import com.chdroid.app.ui.navigation.ChDroidNavigation
 import com.chdroid.app.ui.theme.ChDroidTheme
 import com.chdroid.app.ui.theme.rememberThemeState
 import com.chdroid.app.util.CrashLogger
+import com.chdroid.app.util.PreferencesManager
 
 class MainActivity : AppCompatActivity() {
 
@@ -105,7 +107,10 @@ class MainActivity : AppCompatActivity() {
                         onShortcutHandled = { pendingShortcut = null }
                     )
                 }
-                CrashReportDialog()
+                val context = LocalContext.current
+                val prefs = remember(context) { PreferencesManager.getInstance(context) }
+                val showCrashReports by prefs.showCrashReportsFlow.collectAsState(false)
+                if (showCrashReports) CrashReportDialog()
             }
         }
     }

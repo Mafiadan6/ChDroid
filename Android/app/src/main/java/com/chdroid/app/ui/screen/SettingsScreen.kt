@@ -465,6 +465,18 @@ fun SettingsScreen(
             GroupHeader(context.getString(R.string.debugging_section))
 
             SettingsGroup {
+                var showCrashReports by remember { mutableStateOf(prefsManager.showCrashReports) }
+                SwitchItem(
+                    icon = Icons.Default.Report,
+                    title = context.getString(R.string.show_crash_reports),
+                    summary = context.getString(R.string.show_crash_reports_description),
+                    checked = showCrashReports,
+                    onCheckedChange = { checked ->
+                        showCrashReports = checked
+                        prefsManager.showCrashReports = checked
+                    }
+                )
+                GroupDivider()
                 NavRow(
                     icon = Icons.Default.BugReport,
                     title = context.getString(R.string.generate_bug_report),

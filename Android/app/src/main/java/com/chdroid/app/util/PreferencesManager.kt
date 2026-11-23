@@ -125,6 +125,11 @@ class PreferencesManager private constructor(context: Context) {
     // app only ships through GitHub Releases and nobody polls that page by hand.
     var checkAppUpdates: Boolean by pref(KEY_CHECK_APP_UPDATES, true)
 
+    // Off by default: a stale crash log used to greet every app open with a dialog.
+    var showCrashReports: Boolean by pref(KEY_SHOW_CRASH_REPORTS, false)
+
+    val showCrashReportsFlow: Flow<Boolean> = booleanPrefFlow(KEY_SHOW_CRASH_REPORTS, false)
+
     private fun booleanPrefFlow(key: String, default: Boolean): Flow<Boolean> = callbackFlow {
         trySend(prefs.getBoolean(key, default))
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, changedKey ->
@@ -349,6 +354,7 @@ class PreferencesManager private constructor(context: Context) {
         private const val KEY_SYMLINK_ENABLED = "symlink_enabled"
         private const val KEY_TREAT_AS_64BIT = "treat_as_64bit"
         private const val KEY_CHECK_APP_UPDATES = "check_app_updates"
+        private const val KEY_SHOW_CRASH_REPORTS = "show_crash_reports"
         private const val KEY_CONTAINER_LOG_PREFIX = "container_log_"
         private const val KEY_CONTAINER_OS_INFO_PREFIX = "container_os_info_"
         private const val KEY_CACHED_CONTAINER_NAMES = "cached_container_names"
