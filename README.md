@@ -1,56 +1,137 @@
 English | [简体中文](./Documentation/zh-CN/README.md)
 
-<img src="Documentation/resources/readme/hero.png" alt="Real Linux on Android, systemd and all. ChDroid runs full Linux distributions directly on your phone's own kernel." width="100%">
+<img src="Documentation/resources/readme/hero.png" alt="Real Linux on your rooted phone. ChDroid runs a native distro rootfs on the phone's own kernel." width="100%">
 
 [![Latest release](https://img.shields.io/github/v/release/Mafiadan6/ChDroid?label=Release&style=for-the-badge)](https://github.com/Mafiadan6/ChDroid/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](./LICENSE)
-[![Website](https://img.shields.io/badge/Website-chdroid-1F6FEB?style=for-the-badge&logo=googlechrome&logoColor=white)](https://github.com/Mafiadan6/ChDroid)
+[![Rootfs releases](https://img.shields.io/badge/Rootfs-v4.4-2EA44F?style=for-the-badge)](https://github.com/Mafiadan6/ChDroid-rootfs/releases/tag/v4.4)
 [![Telegram channel](https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/chdroid)
 
 # ChDroid
 
-ChDroid is a ChDroid-OSS fork that drives the **Ubuntu-Chroot v4.4 CLI** release on any rooted phone. Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts and login shell; ChDroid is the UI and the terminal in front of it. No boot module, no root-method detection, no reboot dependency.
+ChDroid is a CLI-first Linux rootfs frontend for rooted Android. It runs a real distro rootfs directly on the phone's own kernel, with no emulation and no virtual machine. The release's own `chroot.sh` owns the namespace, mounts, DNS and login shell. ChDroid supplies the installer, the status console, the rootfs card and the terminal.
 
-The stock ChDroid container runtime remains in the tree for container builds and Linux use.
+This is the CLI-only fork. It uses the `su` already on the device, with no root-method detection, no boot module, no `post-fs-data`, no `service.sh`, no `META-INF`, no `/data/adb/modules` write and no reboot step. SELinux stays enforcing.
 
-**There is no emulation and no virtual machine**, so programs run at native speed. One static binary under 400 KB does all of it, and the Android app drives that binary so you never need a terminal to get started.
+Current app version is **3.0**. Application id is `com.chdroid.app`. Developer: 爪卂丂ㄒ乇尺爪工刀.
+
+## At a glance
+
+| Area | How it works |
+|------|--------------|
+| Runtime | The rootfs release's `chroot.sh` owns namespaces, mounts, DNS and the login shell. |
+| Root access | Generic `su` from any root solution that provides it. |
+| Boot | Nothing is installed into `/data/adb/modules` and nothing auto-starts. |
+| SELinux | Stays enforcing, no permissive toggle. |
+| Rootfs source | ChDroid's own [rootfs repo](https://github.com/Mafiadan6/ChDroid-rootfs), release `v4.4`. |
+| App scope | Android frontend for nine aarch64 CLI rootfs builds. |
+| Native helpers | The APK ships the backend, BusyBox and shell assets used for install, status and terminal plumbing. They do not replace `chroot.sh`. |
 
 ## What you get
 
-- **Native-speed Linux, no emulation.** The stock ChDroid container runtime boots Ubuntu, Debian, Fedora, Arch and more with their own init as PID 1. This fork adds a second path: the Ubuntu-Chroot v4.4 CLI, where the release's own `chroot.sh` sets up the environment and the app supplies the terminal.
-- **Networking that works out of the box.** NAT mode gives every container its own address and internet, with no setup. Gateway mode hands a container's LAN to an OpenWrt container that does DHCP, DNS and firewalling. Macvlan puts a container straight on a wired LAN with its own address from your router.
-- **A desktop on your phone.** Anland or Termux:X11 for the display, VirGL or Qualcomm's Turnip for the GPU, and PulseAudio for sound, all started for you. Turn on the toggles, start the container, and the desktop environment appears with sound.
-- **Hardware when you want it.** GPU, USB, sensors and block devices can be exposed to a container with one toggle. Docker and Podman run inside containers on every supported kernel.
-- **No boot dependency in this fork.** The Ubuntu-Chroot CLI path runs entirely in the current root session. Everything lives under `/data/local/ubuntu-chroot`, and the backend under `/data/local/ChDroid`. Start it again after root is granted on a new boot.
-- **The same binary on Linux.** Every feature of the CLI works the same on a Linux PC. Packages are built for aarch64, armhf, x86_64, x86 and riscv64.
+- **Nine rootfs choices.** Ubuntu, Arch, Debian, Fedora, Alpine, Artix, AzureLinux, Kali and OpenWrt. Every build is aarch64 and ships as a clean ZIP with the rootfs tarball and the chroot tools.
+- **Native speed.** Programs run on the phone kernel. There is no VM layer and no instruction translation.
+- **A complete install wizard.** Name, recommended or custom config, sparse image choice, summary and progress all follow the same path as a normal container install.
+- **Your name becomes the install path.** `Arch Linux` installs to `/data/local/arch-linux-chroot`. The prompt uses that name, so there is no hostname setting.
+- **A real terminal.** The Terminal pill opens the rootfs shell. Typing `exit` or pressing X closes the tab and leaves the rootfs running. Only Stop tears it down.
+- **Useful status.** The Panel tab shows live CPU, memory with available RAM, PIDs and IP for the running rootfs. Start and stop output goes to the console, not into a terminal tab.
+- **Edit and uninstall in place.** The rootfs card action drawer reopens the full wizard. Uninstall asks for the typed name before removing the install.
+- **Optional Android root access.** The only extra bind is `Mount Android root`, which exposes the Android filesystem at `/android-root` with read and write access to `/data` and `/sdcard`.
 
 ## Requirements
 
-**Android**
+- Android 8 or newer, since the app targets `minSdk 26`.
+- A rooted device with a working `su`. Magisk, KernelSU, APatch, a late-loaded root shell and plain `su` are all treated the same.
+- An aarch64 device. All published rootfs builds are aarch64.
+- Kernel 3.10 or newer. Kernel 4.9 or newer is where most distributions behave best. Arch needs kernel 5.10 or newer.
+- Free storage for the ZIP plus the extracted rootfs. ZIP sizes range from about 4 MB to 562 MB.
 
-- A rooted device. Any root solution that provides `su` works — Magisk, KernelSU, APatch, or a late-loaded root shell. This fork makes no distinction between them.
-- A kernel built with the options ChDroid needs. Most stock kernels lack them. See the [kernel configuration guide](Documentation/Kernel-Configuration.md), or pick a phone from the [community-supported devices](Documentation/community-supported-devices.md) list, which links to ready-made kernels.
-- Kernel 3.10 or newer. 4.9 and newer is where most distributions work well.
+## Install the app
 
-**Linux**
+1. Download the newest APK from [GitHub Releases](https://github.com/Mafiadan6/ChDroid/releases/latest). The current release is `v3.0-chdroid` and the asset is `ChDroid-debug.apk`.
+2. Install the APK and grant root when the app asks.
+3. On the Home tab, tap **New to ChDroid?** for the short in-app guide.
+4. Open **Containers**, tap **+**, then choose a rootfs from the repository or share a downloaded ZIP into ChDroid.
 
-- Kernel 3.10 or newer and root. Any current desktop distribution has everything else. Run `sudo ./chdroid check` to confirm.
+The setup flow copies the native helpers into `/data/local/ChDroid/bin` in the current root session. It never writes a boot module and never asks for a reboot.
 
-## Get started
+## Install a rootfs
 
-**Android**
+The app reads `manifest-v2.json` from the [v4.4 release](https://github.com/Mafiadan6/ChDroid-rootfs/releases/tag/v4.4). All nine entries also exist as an offline fallback in the APK, so the picker still works when GitHub is unreachable.
 
-This fork is a front end for the **Ubuntu-Chroot v4.4 CLI** release. Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts and shell; ChDroid provides the UI and the terminal. No boot module, no `post-fs-data`, no `service.sh`, no reboot dependency.
+| Rootfs | ZIP | Size | Package manager | Note |
+|--------|-----|------|-----------------|------|
+| Ubuntu 24.04 CLI rootfs | `ChDroid-ubuntu-rootfs-20261029.zip` | 562 MB | apt | Full clean Ubuntu base |
+| Arch Linux Minimal | `ChDroid-arch-rootfs-minimal-20261029.zip` | 112 MB | pacman | Kernel 5.10 or newer |
+| Debian 13 Minimal | `ChDroid-debian-13-rootfs-20261029.zip` | 100 MB | apt | Stable Debian base |
+| Fedora 45 Minimal | `ChDroid-fedora-45-rootfs-20261029.zip` | 56 MB | dnf | From the official Fedora minimal base |
+| Alpine Minimal | `ChDroid-alpine-rootfs-20261029.zip` | 11 MB | apk | Smallest general-purpose rootfs |
+| Artix Minimal | `ChDroid-artix-rootfs-20261029.zip` | 169 MB | pacman | OpenRC init |
+| AzureLinux 3.0 Minimal | `ChDroid-azurelinux-rootfs-20261029.zip` | 88 MB | tdnf | AzureLinux base |
+| Kali Linux Minimal | `ChDroid-kali-rootfs-20261029.zip` | 117 MB | apt | Minimal Kali base |
+| OpenWrt 24.10 Minimal | `ChDroid-openwrt-rootfs-20261029.zip` | 4 MB | opkg | Smallest build in the set |
 
-1. Install the fork APK (`com.chdroid.app`), grant root, open it, and let it install the backend. Nothing is written to `/data/adb/modules`.
-2. Open **Containers → + → Get Ubuntu rootfs**. ChDroid fetches its own [rootfs repo](https://github.com/Mafiadan6/ChDroid-rootfs) manifest. Pick a clean release — **Ubuntu 24.04 CLI rootfs** (520 MB) or **Arch Linux Minimal** (108 MB, kernel 5.10+) — download it, then install it. The release files land in `/data/local/ubuntu-chroot` — no module packaging, no root-method logic. Installing a different distro replaces the old rootfs; reinstalling the same one keeps your data.
-3. Use **Settings → Start Ubuntu chroot** to set up the namespace, or **Open Ubuntu terminal** to drop straight into the Ubuntu shell.
+After picking a ZIP, the wizard runs in this order:
 
-See [Ubuntu-Chroot CLI on any rooted phone](Documentation/Ubuntu-Chroot-CLI.md) for the full flow, the headless bootstrap and the commands available in the in-app terminal.
+1. **ContainerName.** The typed name becomes the directory and the prompt label.
+2. **RecommendedConfig or ContainerConfig.** A recommendation is loaded when the archive carries one. The full config form is always reachable.
+3. **SparseImageConfig.** Choose the storage layout and size.
+4. **InstallationSummary.** Review the name, archive and config.
+5. **InstallationProgress.** Watch extraction and install output.
 
-**Linux**
+Installing the same distro under the same name keeps the existing rootfs data. Installing a different distro or a different name stops the old install and replaces it. A pointer at `/data/local/chdroid-active-rootfs` records the active base, and older installs at `/data/local/ubuntu-chroot` keep working.
 
-The [Linux installation guide](Documentation/Installation-Linux.md) shows how to install ChDroid, where to get a rootfs and how to put it in an image file.
+## Use the app
+
+### Containers tab
+
+The ChDroid rootfs appears as its own card, with no synthetic backend container beside it. The card shows the setup name, distro id and running state.
+
+- **Start** sets up the namespace and mounts through `chroot.sh start --no-shell --skip-post-exec`. Output goes to the console.
+- **Stop** is the only teardown action. It kills rootfs processes, drops mounts, clears the holder and returns SELinux to enforcing.
+- **Terminal** opens the rootfs shell through `chroot.sh start root`.
+- **Edit** reopens the full wizard, including name, config, storage and the Android root bind.
+- **Uninstall** asks for the typed name to confirm removal.
+
+### Panel tab
+
+The Panel lists running things only, and the ChDroid rootfs uses the same card motion and spacing as a native container card. Live stats include CPU, RAM used with available RAM, PID count and IP address. The terminal control lives here too, so a running rootfs can be opened without going back to Containers.
+
+### Terminal behavior
+
+Only the Terminal pill opens a shell. The app runs the whole chain under `su`, refreshes DNS from the phone's current network, applies the optional Android root bind, then enters the rootfs through `chroot.sh`.
+
+`exit` and the tab X close the terminal tab. They do not stop the rootfs and they never drop into Android's `/system/bin/sh`. Reopen the terminal from the rootfs card at any time. Use Stop when the rootfs itself should shut down.
+
+### Paths and data
+
+- Active base: the path in `/data/local/chdroid-active-rootfs`, for example `/data/local/arch-linux-chroot`.
+- Legacy base: `/data/local/ubuntu-chroot`, used by installs made before the pointer existed.
+- CLI tools: `chroot.sh`, `post_exec.sh`, `start-hotspot`, `sparsemgr.sh`, `forward-nat.sh`, `bin/busybox` and the ChDroid identity script live in the active base.
+- Native helpers: `/data/local/ChDroid/bin` holds the backend, BusyBox and the Android root mount script.
+- Crash log: `/storage/emulated/0/Android/data/com.chdroid.app/files/chdroid-crash.txt`. The crash report dialog is off by default and can be enabled in Settings.
+
+## Root shell and headless use
+
+The rootfs release manager stays usable from any root shell. Read the active base first so the path follows the setup name:
+
+```sh
+BASE=$(cat /data/local/chdroid-active-rootfs)
+sh "$BASE/chroot.sh" status
+sh "$BASE/chroot.sh" start --no-shell --skip-post-exec
+sh "$BASE/chroot.sh" start root
+sh "$BASE/chroot.sh" stop
+```
+
+The bootstrap helper installed by the app is available as `ubuntu-chroot-bootstrap.sh` from the app's root shell environment. It supports `status`, `binaries`, `daemon`, `install`, `start`, `shell`, `stop` and `all`.
+
+After a reboot, grant root again, open the app, then start the rootfs. There is no boot service, so nothing starts on its own.
+
+## Security model
+
+Root inside the rootfs is real root. A hostile root process can reach the host. Daily work belongs in an unprivileged user with `sudo`, the same as on any Linux machine.
+
+The app keeps SELinux enforcing. The optional Android root bind is the only broad host mount in the setup flow, and it appears as a single named toggle rather than a generic bind mount list.
 
 ## Screenshots
 
@@ -62,54 +143,50 @@ The [Linux installation guide](Documentation/Installation-Linux.md) shows how to
   </tr>
 </table>
 
-## Security
-
-> [!WARNING]
->
-> ChDroid is a privileged container runtime.
->
-> Root inside a container is powerful, and a hostile root process can reach the host.
->
-> Do not run code you do not trust in a container, and use a normal user with `sudo` for daily work, as you would on any Linux machine.
->
-> Hardware access and privileged mode relax the remaining barriers further, so turn them on only when you need them.
-
 ## Documentation
-
-Everything below is also on the [documentation site](https://github.com/Mafiadan6/ChDroid/docs/), rendered and searchable.
 
 | Page | What it covers |
 |------|----------------|
-| [Android installation](Documentation/Installation-Android.md) | From a rooted phone to a running container, in the app. |
-| [Linux installation](Documentation/Installation-Linux.md) | Installing the binary and preparing a rootfs on a PC. |
-| [Android app guide](Documentation/Usage-Android-App.md) | Every screen in the app and what it does. |
-| [Container settings](Documentation/Features.md) | Each toggle and flag: what it does and when to use it. |
-| [Linux CLI](Documentation/Linux-CLI.md) | Every command, flag and config file key. |
-| [Networking from zero](Documentation/Networking-From-Zero.md) | How the network modes work, from IP addresses up to an OpenWrt gateway. |
-| [Display, audio and desktop](Documentation/Graphics-and-Audio.md) | GPU acceleration, sound and a desktop environment on Android and Linux. |
-| [Anland](Documentation/Anland.md) | A Wayland desktop on Android through the Anland app, for KDE Plasma and other Wayland compositors. |
-| [Kernel configuration](Documentation/Kernel-Configuration.md) | Building an Android kernel with ChDroid support. |
-| [Recipes](Documentation/Cool-things-you-can-do.md) | A phone as a home server with Tailscale, Docker inside a container, and more. |
-| [Troubleshooting](Documentation/Troubleshooting.md) | Symptoms, causes and fixes. |
-| [Community-supported devices](Documentation/community-supported-devices.md) | Phones known to run ChDroid, with kernel sources. |
-| [NixOS](Documentation/Nix-NixOS.md) | Building and configuring a NixOS container. |
-| [Uninstallation](Documentation/Uninstallation.md) | Removing ChDroid from Android or Linux. |
+| [Android app guide](Documentation/Usage-Android-App.md) | Screens, actions and terminal controls. |
+| [CLI rootfs flow](Documentation/Ubuntu-Chroot-CLI.md) | The `chroot.sh` path, paths and shell commands. |
+| [Kernel configuration](Documentation/Kernel-Configuration.md) | Kernel options for Linux containers. |
+| [Community-supported devices](Documentation/community-supported-devices.md) | Devices and kernel sources from the wider project. |
+| [Troubleshooting](Documentation/Troubleshooting.md) | Symptoms and fixes from the wider project. |
+| [Uninstallation](Documentation/Uninstallation.md) | Removing ChDroid from Android. |
+| [Contributing](CONTRIBUTING.md) | Reuse rules, build commands and repository structure. |
+| [Design](DESIGN.md) | Visual rules for Android UI work. |
+
+## Build from source
+
+The C backend and the Android app are both in this repository. The APK build runs `make` for the four phone arches and packages the binaries as assets, so a musl toolchain is required.
+
+```sh
+# backend, host build
+make native
+
+# backend, phone architectures
+make aarch64
+make x86_64
+make armhf
+make x86
+
+# app, from Android/
+cd Android
+./build.sh          # debug
+./build.sh release  # signed release
+```
+
+Adding a C source means adding it to `SRCS` in the Makefile. Commit messages are signed off. App changes use `app:`, backend changes use subsystem prefixes such as `fix:`, `feat:` or `net:`.
 
 ## Community and contributing
 
-Questions and help: the [Telegram channel](https://t.me/chdroid). Bugs and feature requests: [GitHub issues](https://github.com/Mafiadan6/ChDroid/issues).
-
-Code contributions start with [CONTRIBUTING.md](CONTRIBUTING.md). App translations are on Weblate:
-
-<a href="https://hosted.weblate.org/engage/chdroid/">
-<img src="https://hosted.weblate.org/widget/chdroid/open-graph.png" alt="Translation status" />
-</a>
+Questions and help: the [Telegram channel](https://t.me/chdroid). Bugs and feature requests: [GitHub issues](https://github.com/Mafiadan6/ChDroid/issues). Code contributions start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
-- [LXC](https://github.com/lxc/lxc), the architectural inspiration.
-- [BusyBox](https://busybox.net/), the static binary the app uses for extraction and setup ([our build](https://github.com/Mafiadan6/ChDroid), commit d14464f1).
-- [ReTerminal](https://github.com/RohitKushvaha01/ReTerminal), [Termux](https://github.com/termux/termux-app) and [LXC-Manager](https://github.com/Container-On-Android/LXC-Manager), the terminal emulator backend.
+- [LXC](https://github.com/lxc/lxc), architectural inspiration for the wider ChDroid project.
+- [BusyBox](https://busybox.net/), the static binary used for extraction and setup.
+- [ReTerminal](https://github.com/RohitKushvaha01/ReTerminal), [Termux](https://github.com/termux/termux-app) and [LXC-Manager](https://github.com/Container-On-Android/LXC-Manager), terminal emulator backend.
 - [JetBrains Mono](https://www.jetbrains.com/legalforms/fonts/), the monospace typeface in the app, under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).
 
 ## License

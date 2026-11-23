@@ -1,94 +1,84 @@
-# Ubuntu-Chroot CLI on any rooted phone
+# CLI rootfs flow on a rooted phone
 
-ChDroid turns ChDroid-OSS into a front end for the **Ubuntu-Chroot v4.4 CLI** release. It runs on any rooted device — Magisk, KernelSU, APatch, a late-loaded `su`, or a plain root shell. There is no root-method detection, no mode toggle, and no branch in the code that behaves differently per root solution.
+ChDroid is a frontend for the ChDroid rootfs CLI release. It runs on any rooted device with a working `su`, including Magisk, KernelSU, APatch, a late-loaded root shell and plain root. There is no root-method detection and no branch in the code that behaves differently per root solution.
 
-Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts, DNS and login shell. ChDroid is the UI and the terminal in front of it.
+The release's own `chroot.sh` owns the namespace, mounts, DNS and login shell. ChDroid supplies the installer, the console, the status card and the terminal. Nothing is written to `/data/adb/modules`, and no boot script or reboot is part of the flow. SELinux stays enforcing.
 
-Rootfs releases come from ChDroid's own [ChDroid-rootfs](https://github.com/Mafiadan6/ChDroid-rootfs) repo: a clean Ubuntu 24.04 rootfs tarball plus chroot tools. The upstream module packaging (`META-INF`, `module.prop`, `service.sh`, root-method detection) is not part of this build.
+## How this differs from the wider ChDroid runtime
 
-## Design
+| Area | Wider ChDroid runtime | This CLI fork |
+|------|-----------------------|---------------|
+| Root access | expects the installed backend environment | generic `su` from the device |
+| Installation | writes a boot module and suggests reboot | stages helpers in `/data/local/ChDroid/bin` in the current session |
+| Boot files | `post-fs-data.sh`, `service.sh`, `sepolicy.rule` | absent |
+| Rootfs source | generic ChDroid tarballs | ChDroid-rootfs `v4.4` manifest |
+| Rootfs layout | ChDroid container image and config | clean ZIP with rootfs tarball and chroot tools |
+| Login | `chdroid enter` | `chroot.sh start root` |
+| Identity | hostname and config driven | setup name baked into the prompt |
 
-| Area | Stock ChDroid | ChDroid |
-|------|-------------------|-----------|
-| App id | `com.chdroid.app` | `com.chdroid.app` (installs beside stock) |
-| Backend status | requires `/data/adb/modules/chdroid` | both binaries present and executable is enough |
-| Installation | writes boot module, suggests reboot | copies binaries, starts the daemon in-session |
-| Boot module | `post-fs-data.sh`, `service.sh`, `sepolicy.rule` | not shipped, not installed, not needed |
-| Rootfs repo | ChDroid generic tarballs | ChDroid-rootfs manifest, clean v4.4 CLI release only |
-| Rootfs install | ChDroid tarball pipeline | `install_ubuntu_chroot_cli.sh` installs the clean release files directly |
-| Shell | ChDroid container login | `sh /data/local/ubuntu-chroot/chroot.sh start root` |
+The native backend stays in the APK for install, status and terminal plumbing. It is not the runtime for this rootfs.
 
-Nothing is written to `/data/adb/modules`. Nothing depends on a reboot. Root can come from anywhere.
+## Install
 
-## Install flow
+1. Install the ChDroid APK and grant root.
+2. Open the rootfs repository from **Containers**, or share a downloaded rootfs ZIP into the app.
+3. Pick one of the nine `v4.4` rootfs builds. The catalog lives in [`manifest-v2.json`](https://raw.githubusercontent.com/Mafiadan6/ChDroid-rootfs/main/manifest-v2.json) and all entries are built into the APK as an offline fallback.
+4. Follow the wizard: name, recommended or custom config, sparse image choice, summary, progress.
+5. Start or open the terminal from the rootfs card.
 
-1. Install the fork APK. Grant root when prompted.
-2. Open **Installation** and install the backend. Binaries are copied to `/data/local/ChDroid/bin` and the daemon is started in the current root session. No module is written, no reboot is suggested.
-3. Open **Containers → + → Get Ubuntu rootfs**. ChDroid fetches the manifest from ChDroid-rootfs. Two built-in entries exist:
-   - `Ubuntu 24.04 CLI rootfs (ChDroid)` — 520 MB ZIP (`ChDroid-rootfs-v4.4-20260323.zip`), build `20260323`
-   - `Arch Linux Minimal (ChDroid)` — 108 MB ZIP (`ChDroid-arch-rootfs-minimal-20261029.zip`), kernel 5.10+ required
-4. Download it, then install it. `install_ubuntu_chroot_cli.sh` extracts the static busybox, `chroot.sh`, `post_exec.sh`, the helper tools and the rootfs tarball (`.tar.gz` for Ubuntu, `.tar.xz` for Arch) straight from the clean ZIP into `/data/local/ubuntu-chroot`. No module packaging, no `module.prop` — metadata comes from `manifest.json`. Reinstalling the same distro keeps your rootfs data; installing a different one stops the chroot and replaces the old rootfs.
-5. Use **Settings → Start Ubuntu chroot** to set up the namespace and mounts, or **Open Ubuntu terminal** to drop straight into the Ubuntu shell.
+The typed name decides the install path. `Arch Linux` becomes `/data/local/arch-linux-chroot`. `/data/local/chdroid-active-rootfs` points at the active base, and older installs at `/data/local/ubuntu-chroot` keep working.
 
-The app never creates a ChDroid `container.config` for this rootfs and never writes an init. That is deliberate: `chroot.sh` does all of it.
+Installing the same distro under the same name keeps rootfs data. Installing a different distro or name stops the old rootfs and replaces it.
 
-## The in-app terminal
+## Start, stop and terminal
 
-A blank container route (`terminal/`) is the Ubuntu-Chroot shell. `ChDroidTerminalSession` runs:
+The Containers card owns Start and Stop. Start runs:
 
 ```sh
-sh /data/local/ubuntu-chroot/chroot.sh start root
+sh "$BASE/chroot.sh" start --no-shell --skip-post-exec
 ```
 
-`chroot.sh` requires a TTY for `enter_chroot`, which the app terminal provides. The Settings row installs the helper first so the same commands work from the app's root shell:
+Output goes to the console. Stop kills rootfs processes, drops mounts, clears the holder and returns SELinux to enforcing. Stop is the only teardown action.
+
+The Terminal pill runs the whole chain under `su`, refreshes DNS from the current network, applies the optional Android root bind, then enters with:
 
 ```sh
-ubuntu-chroot-bootstrap.sh status
-ubuntu-chroot-bootstrap.sh binaries
-ubuntu-chroot-bootstrap.sh daemon
-ubuntu-chroot-bootstrap.sh install /sdcard/Download/ChDroid-rootfs-v4.4-20260323.zip
-ubuntu-chroot-bootstrap.sh start
-ubuntu-chroot-bootstrap.sh shell
-ubuntu-chroot-bootstrap.sh stop
-ubuntu-chroot-bootstrap.sh all /sdcard/Download/ChDroid-rootfs-v4.4-20260323.zip
+sh "$BASE/chroot.sh" start root
 ```
 
-`status` prints uid, daemon mode, the marker and `chroot.sh status`.
+Typing `exit` or pressing the tab X closes the terminal tab. The rootfs keeps running, and no Android `/system/bin/sh` fallback is left behind. Only Stop shuts the rootfs down. The Panel tab can also open the terminal for a running rootfs and shows live CPU, RAM with available RAM, PIDs and IP.
 
-## Headless bootstrap (no app UI)
+## Optional Android root bind
 
-The helper ships at `scripts/ubuntu-chroot-bootstrap.sh` in the repo and `assets/ubuntu_chroot_bootstrap.sh` in the APK. From any root shell:
+The config form has one host bind switch, `Mount Android root`. When enabled, the Android filesystem appears inside the rootfs at `/android-root` with read and write access to `/data` and `/sdcard`. There is no generic bind mount list in this fork.
+
+## Root shell commands
+
+Read the active base first, then drive the release manager directly:
 
 ```sh
-su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh binaries'
-su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh all /sdcard/Download/ChDroid-rootfs-v4.4-20260323.zip'
+BASE=$(cat /data/local/chdroid-active-rootfs)
+sh "$BASE/chroot.sh" status
+sh "$BASE/chroot.sh" start --no-shell --skip-post-exec
+sh "$BASE/chroot.sh" start root
+sh "$BASE/chroot.sh" stop
+sh "$BASE/chroot.sh" restart
+sh "$BASE/chroot.sh" list-users
 ```
 
-It discovers the fork APK through `pm path com.chdroid.app`, streams the correct-arch backend and BusyBox out of `assets/binaries`, writes the session marker, starts the daemon, and installs the Ubuntu-Chroot CLI files.
+The bootstrap helper is installed at `/data/local/ChDroid/bin/ubuntu-chroot-bootstrap.sh`. From a root shell it accepts `status`, `binaries`, `daemon`, `install <zip>`, `start`, `shell`, `stop` and `all <zip>`.
 
-## Ubuntu-Chroot commands
+After a reboot, grant root again, open the app, then start the rootfs. No boot service exists, so nothing auto-starts.
 
-Once installed, the release manager is available directly:
+## Files
 
-```sh
-sh /data/local/ubuntu-chroot/chroot.sh status
-sh /data/local/ubuntu-chroot/chroot.sh start root
-sh /data/local/ubuntu-chroot/chroot.sh stop
-sh /data/local/ubuntu-chroot/chroot.sh restart
-sh /data/local/ubuntu-chroot/chroot.sh list-users
-```
+| Path | Purpose |
+|------|---------|
+| `/data/local/chdroid-active-rootfs` | active base pointer |
+| `/data/local/<setup-name>-chroot/chroot.sh` | release manager and login entry |
+| `/data/local/<setup-name>-chroot/rootfs/` | extracted distro |
+| `/data/local/<setup-name>-chroot/bin/busybox` | static busybox bundled with the release |
+| `/data/local/ChDroid/bin/` | native helpers, BusyBox and the Android root mount script |
+| `/storage/emulated/0/Android/data/com.chdroid.app/files/chdroid-crash.txt` | crash log, dialog off by default |
 
-`start --no-shell` sets up the environment without consuming a terminal; the Settings **Start** row uses that form. `start root` enters the login shell.
-
-## After a reboot
-
-Root may be gone until it is granted again. Reopen the app (or run `ubuntu-chroot-bootstrap.sh binaries daemon` from a root shell), then start the chroot again. No boot service exists, so nothing auto-starts — expected, not a failure.
-
-## Build
-
-```sh
-cd Android
-./gradlew :app:assembleDebug
-```
-
-The app id is `com.chdroid.app`, so both APKs can coexist.
+There is no hostname setting. The prompt uses the setup name, and the rootfs edit drawer reopens the full wizard.
