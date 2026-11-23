@@ -1,12 +1,12 @@
 [English](../../CONTRIBUTING.md) | 简体中文
 
-# 参与 Droidspaces 贡献
+# 参与 ChDroid 贡献
 
 ## 理念
 
 > 一个不存在的功能，好过一个有 Bug 的实现。
 
-Droidspaces 运行在两种截然不同的平台上：Android（硬件范围从古老的厂商冻结 3.10 内核到
+ChDroid 运行在两种截然不同的平台上：Android（硬件范围从古老的厂商冻结 3.10 内核到
 现代 GKI 设备，涵盖数十种 SoC 和 OEM）以及 Linux 桌面环境。一个在你的环境上能正常工作、
 却在别人的环境上会出问题的补丁，不是贡献，而是倒退。每一个被合入核心的改动，都必须毫无
 例外地遵守这份契约。
@@ -18,7 +18,7 @@ Droidspaces 运行在两种截然不同的平台上：Android（硬件范围从�
 
 ## 平台范围
 
-Droidspaces 核心必须同时在 Android 和 Linux 上正确工作。这两个环境不可互换，必须作为独立
+ChDroid 核心必须同时在 Android 和 Linux 上正确工作。这两个环境不可互换，必须作为独立
 的目标平台对待。
 
 ### 平台检测
@@ -75,12 +75,12 @@ int is_android(void) {
 
 ## SoC 与 OEM 覆盖（Android）
 
-Droidspaces 运行在高通、Exynos、联发科和紫光展锐的芯片上，运行在与主线差异极大的 OEM
+ChDroid 运行在高通、Exynos、联发科和紫光展锐的芯片上，运行在与主线差异极大的 OEM
 内核之下。你的补丁在提交前必须在具有代表性的一批环境上测试过。
 
 请在 PR 中明确写出你在哪些设备和内核版本上测试过。未经测试的兼容性声明一律视为未测试。
 
-针对某一个 SoC 系列或 OEM 内核特有行为的补丁，**只有在 Droidspaces 能够在运行时适配该
+针对某一个 SoC 系列或 OEM 内核特有行为的补丁，**只有在 ChDroid 能够在运行时适配该
 行为的前提下**才可接受，也就是通过检测、条件代码路径或优雅回退来处理，并且不能让未受影响
 的硬件出现回归。如果修复无法这样泛化，它属于下游分支，不属于核心。
 
@@ -101,7 +101,7 @@ make aarch64           # 交叉构建：aarch64、x86_64、armhf、x86、riscv64
 make debug-hardened    # 带 ASan、UBSan、LSan 的构建，用于排查内存问题
 make all-build         # 构建全部架构
 make all-tarball       # all-build 再加上发布用 tarball
-make bump NEW=x.y.z    # 设置 droidspaces.h 中的 DS_VERSION
+make bump NEW=x.y.z    # 设置 chdroid.h 中的 CHDROID_VERSION
 make format            # 用仓库的 .clang-format 对 src/ 执行 clang-format
 make clean
 ```
@@ -121,7 +121,7 @@ make clean
 
 新增 `.c` 文件时必须把它加进 Makefile 的 `SRCS`。这里没有通配符。
 
-版本号从 `src/include/droidspaces.h` 中的 `DS_VERSION` 提取。`make bump NEW=x.y.z` 会改写它；
+版本号从 `src/include/chdroid.h` 中的 `CHDROID_VERSION` 提取。`make bump NEW=x.y.z` 会改写它；
 其他地方都不带版本号。
 
 ### Android App
@@ -134,7 +134,7 @@ make clean
 ```
 
 请使用脚本，而不要直接调用 gradle。APK 构建会为四个手机架构运行 `make`，并把
-`output/droidspaces-<架构>` 作为生成的资源打包，所以它需要 musl 工具链，也永远不会读取你
+`output/chdroid-<架构>` 作为生成的资源打包，所以它需要 musl 工具链，也永远不会读取你
 手动复制的二进制。
 
 ### CI
@@ -144,7 +144,7 @@ make clean
 是你的责任。
 
 发布就是打一个标签：`make bump NEW=x.y.z`，提交，然后推送标签 `vx.y.z`。CI 会拒绝与
-`DS_VERSION` 不一致的标签，并发布 APK、tarball、Debian 包和 `SHA256SUMS` 文件，附带自上一个
+`CHDROID_VERSION` 不一致的标签，并发布 APK、tarball、Debian 包和 `SHA256SUMS` 文件，附带自上一个
 标签以来每个提交的更新日志。
 
 ## 代码风格
@@ -189,13 +189,13 @@ install_policy_rules(cfg);
   如果只有同一目录的文件调用，就放进与源文件同目录的 `internal.h`（`src/<folder>/internal.h`）。
 - 新的常量或类型放进拥有它的那个目录的头文件（`net/net.h`；`struct ds_config` 及其内嵌的
   类型放在 `config/config.h`），即使其他目录也会用到。
-  `src/include/droidspaces.h` 只放全项目通用的内容。
+  `src/include/chdroid.h` 只放全项目通用的内容。
 - 新的跨模块函数使用 `ds_` 前缀。遗留的无前缀名称（`read_file`、`mkdir_p`、`run_command_quiet`、
   `domount`）保持原样，不要重命名，也不要在新代码中模仿它们。
 - `is_*` 用于判定函数，`check_*` 用于可能打印输出的探测函数，`setup_*` 与 `cleanup_*`
   成对表示生命周期，`print_*` 用于纯输出，`free_*` 用于释放。
-- 常量用 `DS_` 加全大写下划线。结构体用 `struct ds_*`。`_t` 后缀只用于 typedef。
-- 头文件保护宏形如 `#ifndef DROIDSPACES_H`，并以带名字的 `#endif /* DROIDSPACES_H */` 结束。
+- 常量用 `CHDROID_` 加全大写下划线。结构体用 `struct ds_*`。`_t` 后缀只用于 typedef。
+- 头文件保护宏形如 `#ifndef CHDROID_H`，并以带名字的 `#endif /* CHDROID_H */` 结束。
   不使用 `#pragma once`。
 - 没有 `xmalloc` 之类的封装。使用普通的 `malloc` 并显式检查 NULL；只要大小有上界，就优先
   使用定长缓冲区。`struct ds_config` 几乎全是定长字段，原因正在于此。
@@ -231,7 +231,7 @@ install_policy_rules(cfg);
 ## 复用清单
 
 在写任何新东西之前先查这份清单。如果已经有相近的东西，就扩展它，而不是另加一个同类。
-Android 路径相对于 `Android/app/src/main/java/com/droidspaces/app/`，C 路径相对于仓库根目录。
+Android 路径相对于 `Android/app/src/main/java/com/chdroid/app/`，C 路径相对于仓库根目录。
 
 这份清单回答"该用什么"；[DESIGN.md](../../DESIGN.md) 回答"它该长什么样"，用于这里没有东西适用、你必须新建组件的场景。
 
@@ -249,9 +249,9 @@ Android 路径相对于 `Android/app/src/main/java/com/droidspaces/app/`，C 路
 | `NetworkModePage(...)` | `ui/component/NetworkModePage.kt` | 网络模式列表以及每种模式的设置（NAT、网关、macvlan）。某个模式的设置加在这里 |
 | `UpstreamPickerSheet`、`HostInterfaceSheet`、`AddPortForwardSheet` | `ui/component/NetworkSheets.kt` | 向网络页面的各个列表中添加条目 |
 | `EnvironmentVariablesPage`、`PrivilegedModePage`、`BindMountsPage` | `ui/component/` | 持有草稿的配置子页面 |
-| `DsDropdown(label, selected, options, displayName, onSelect, ...)` | `ui/component/DsDropdown.kt` | 任何下拉选择框。不要自己手写 `ExposedDropdownMenuBox` |
-| `DsMenuTheme { }` + `Modifier.dsMenuBorder()` | `ui/component/DsMenuTheme.kt` | 任何需要不透明菜单底色的 `DropdownMenu`。`DsDropdown` 已经内置了它 |
-| `DsTextFieldDefaults.colors()` / `.surfaceColors()` | `ui/component/DsTextFieldDefaults.kt` | 每一个 `OutlinedTextField`。界面用 `colors()`，对话框内用 `surfaceColors()` |
+| `ChDroidDropdown(label, selected, options, displayName, onSelect, ...)` | `ui/component/ChDroidDropdown.kt` | 任何下拉选择框。不要自己手写 `ExposedDropdownMenuBox` |
+| `ChDroidMenuTheme { }` + `Modifier.dsMenuBorder()` | `ui/component/ChDroidMenuTheme.kt` | 任何需要不透明菜单底色的 `DropdownMenu`。`ChDroidDropdown` 已经内置了它 |
+| `ChDroidTextFieldDefaults.colors()` / `.surfaceColors()` | `ui/component/ChDroidTextFieldDefaults.kt` | 每一个 `OutlinedTextField`。界面用 `colors()`，对话框内用 `surfaceColors()` |
 | `MonoField(value, onValueChange, label, ...)` | `ui/component/MonoField.kt` | 每一个承载后端原样读取的值的单行输入框：路径、网卡名、flag、DNS。数字输入框和环境变量编辑器另有各自的实现 |
 | `FocusUtils`、`rememberClearFocus()`、`ClearFocusOnClickOutside` | `ui/util/FocusUtils.kt` | 输入法动作，以及收起键盘。`MainActivity` 已经会在每个界面上未被消费的点击时清除焦点；`ClearFocusOnClickOutside` 只用于自成一个窗口的底部弹窗 |
 
@@ -259,13 +259,13 @@ Android 路径相对于 `Android/app/src/main/java/com/droidspaces/app/`，C 路
 
 | 符号 | 路径 | 何时使用 |
 | --- | --- | --- |
-| `DsDialog(onDismiss, modifier, borderColor, scrollableContent, footer) { }` | `ui/component/DsDialog.kt` | 每个对话框。操作按钮放进 `footer`，绝不要放进内容区，否则在较矮的屏幕上会被挤掉。绝不要设置宽度、内边距或滚动 |
+| `ChDroidDialog(onDismiss, modifier, borderColor, scrollableContent, footer) { }` | `ui/component/ChDroidDialog.kt` | 每个对话框。操作按钮放进 `footer`，绝不要放进内容区，否则在较矮的屏幕上会被挤掉。绝不要设置宽度、内边距或滚动 |
 | `DialogDismissButton(label, onDismiss)` | `ui/component/DialogFooterRow.kt` | 只有"关闭"一个操作的对话框的 `footer` |
 | `DialogCloseButton(onClick, enabled)` | `ui/component/DialogCloseButton.kt` | 对话框标题行上的 36.dp 关闭方块，用于从顶部关闭的信息页（终端日志查看器、关于页） |
 | `DialogFooterRow(dismissLabel, confirmLabel, onDismiss, onConfirm, confirmEnabled, destructive)` | `ui/component/DialogFooterRow.kt` | 每个对话框的取消与确认按钮行，已有十三处调用。删除或清空类操作请传 `destructive = true`，绝不要只改颜色 |
 | `FilePickerDialog(onDismiss, onConfirm, title, showFiles)` | `ui/component/FilePickerDialog.kt` | 选择主机路径或文件 |
 | `HardwareAccessDialog(onConfirm, onDismiss)` | `ui/component/HardwareAccessDialog.kt` | 需要手动输入确认短语的开启流程 |
-| `DsBottomSheet(onDismiss, title, footer, titleAction) { }` | `ui/component/DsBottomSheet.kt` | 覆盖在目标页面上方的简短"添加"表单。`footer` 规则与 `DsDialog` 相同 |
+| `ChDroidBottomSheet(onDismiss, title, footer, titleAction) { }` | `ui/component/ChDroidBottomSheet.kt` | 覆盖在目标页面上方的简短"添加"表单。`footer` 规则与 `ChDroidDialog` 相同 |
 | `DiscardEditsDialog(onDiscard, onKeepEditing)` | `ui/component/ContainerConfigHost.kt` | 带着未应用的编辑离开页面时。`rememberDraftBack` 会替你弹出它 |
 | `DangerousWarningCard(title, text)` + `ConfirmPhraseField(value, onValueChange, isError)` | `ui/component/DangerousActionConfirm.kt` | 构建破坏性操作确认框。把这两个和 `DialogFooterRow` 组合起来 |
 | `TerminalDialog(title, logs, onDismiss, onClear, isBlocking)` | `ui/component/TerminalDialog.kt` | 展示实时或流式的命令输出 |
@@ -300,11 +300,11 @@ Android 路径相对于 `Android/app/src/main/java/com/droidspaces/app/`，C 路
 | `screenGutter()`、`isCompactWidth()`、`isShortHeight()` | `ui/component/SettingsGroup.kt` | 窄窗口和矮窗口下的边距与布局切换。见 DESIGN.md "Small screens" |
 | `SettingsCard(title, onClick, icon, subtitleContent, trailing, below, ...)` | `ui/component/SettingsCard.kt` | 分组之外独立的卡片行 |
 | `ToggleCard` | `ui/component/ToggleCard.kt` | 独立的开关卡片。在分组内请用 `SwitchItem` |
-| `DsSlider(value, onValueChange, valueRange, ...)` | `ui/component/DsSlider.kt` | 任何滑块。绝不要在调用处给裸的 `Slider` 重新定样式 |
+| `ChDroidSlider(value, onValueChange, valueRange, ...)` | `ui/component/ChDroidSlider.kt` | 任何滑块。绝不要在调用处给裸的 `Slider` 重新定样式 |
 | `SwitchItem` | `ui/component/SwitchItem.kt` | `SettingsGroup` 内的开关行。见下方重复项说明 |
 | `ContainerCard(container, actions, ...)` + `ContainerCardActions` | `ui/component/ContainerCard.kt` | 可展开的容器行。新增操作加进 `ContainerCardActions`，不要新增参数 |
 | `RunningContainerCard(container, onEnter, onTerminalClick, osInfo)` | `ui/component/RunningContainerCard.kt` | 控制面板上的紧凑运行中容器卡片 |
-| `DroidspacesStatusCard(status, version, ...)` + `DroidspacesStatus` | `ui/component/DroidspacesStatusCard.kt` | 后端或模块状态主卡片 |
+| `ChDroidStatusCard(status, version, ...)` + `ChDroidStatus` | `ui/component/ChDroidStatusCard.kt` | 后端或模块状态主卡片 |
 | `SystemInfoCard`、`ContainerUsersCard`、`HelpCard` | `ui/component/` | 主机资源卡片、容器用户管理、新手引导区块 |
 | `EmptyState(icon, title, description)`、`ErrorState`、`RootUnavailableState` | `ui/component/EmptyState.kt` | 任何空列表、后端不可用状态或无 root 状态 |
 
@@ -325,13 +325,13 @@ Android 路径相对于 `Android/app/src/main/java/com/droidspaces/app/`，C 路
 
 | 符号 | 路径 | 何时使用 |
 | --- | --- | --- |
-| `DroidspacesTheme(darkTheme, dynamicColor, amoledMode, themePalette)` | `ui/theme/Theme.kt` | 唯一的主题根，在 `MainActivity` 中应用 |
+| `ChDroidTheme(darkTheme, dynamicColor, amoledMode, themePalette)` | `ui/theme/Theme.kt` | 唯一的主题根，在 `MainActivity` 中应用 |
 | `rememberThemeState()` + `ThemeState` | `ui/theme/ThemeStateHolder.kt` | 读取实时主题偏好 |
 | `ThemePalette` | `ui/theme/Color.kt` | 新增强调色方案。只在这里加 |
 | `MaterialTheme.colorScheme.*` | | 所有颜色。`ui/theme/Color.kt` 保存 `AMOLED_BLACK`、各调色板、警告色对以及 `ColorScheme.isDark` |
 | `ColorScheme.isDark`、`warningContainer`、`onWarningContainer` | `ui/theme/Color.kt` | 深色模式分支和琥珀色警告色对。绝不要用 `luminance()` 重新推导 |
 | `MaterialTheme.typography.*`、`JetBrainsMono` | `ui/theme/Type.kt` | 所有文字样式，以及终端、日志和代码文本用的等宽字体 |
-| `DsIcons.Logo` | `ui/theme/DsIcons.kt` | 可着色的应用标志图标，用在界面上任何表示容器或其存储的地方。绝不要用 `Icons.Default.Storage` |
+| `ChDroidIcons.Logo` | `ui/theme/ChDroidIcons.kt` | 可着色的应用标志图标，用在界面上任何表示容器或其存储的地方。绝不要用 `Icons.Default.Storage` |
 | 圆角、间距、字体样式 | [DESIGN.md](../../DESIGN.md) | 所有视觉数值。没有形状常量对象，数值都在 DESIGN.md 里 |
 | `AnimationUtils` | `util/AnimationUtils.kt` | 时长、缓动和 tween 规格。不要写字面量 `tween(300)` |
 | `AccentColorPicker`、`ColorPaletteSwatch` | `ui/component/` | 设置里的配色选择器 |
@@ -343,9 +343,9 @@ Android 路径相对于 `Android/app/src/main/java/com/droidspaces/app/`，C 路
 
 | 符号 | 路径 | 何时使用 |
 | --- | --- | --- |
-| `Screen` 密封类 | `ui/navigation/DroidspacesNavigation.kt` | 新增目的地。绝不要写裸的路由字符串 |
+| `Screen` 密封类 | `ui/navigation/ChDroidNavigation.kt` | 新增目的地。绝不要写裸的路由字符串 |
 | `Screen.X.createRoute(...)` | 同上 | 构造路由。参数会自动做 URI 编码 |
-| `DroidspacesNavigation(navController, ...)` | 同上 | 唯一的 `NavHost`，新界面在这里注册 |
+| `ChDroidNavigation(navController, ...)` | 同上 | 唯一的 `NavHost`，新界面在这里注册 |
 
 ### Android：Shell 与 root 执行
 
@@ -358,9 +358,9 @@ Android 路径相对于 `Android/app/src/main/java/com/droidspaces/app/`，C 路
 | `ContainerOperationExecutor.checkCommandSuccess(command)` | 同上 | 执行并只看结果，不记录日志 |
 | `ContainerLogger` / `ViewModelLogger(onLog)` | `util/ContainerLogger.kt` | 所有安装器和执行器都接受的日志接收端 |
 | `ContainerRuntime.scan()` | `util/ContainerRuntime.kt` | 与磁盘上的容器对账。这是访问后端二进制的既定入口 |
-| `Constants.getDroidspacesCommand()` | `util/Constants.kt` | 解析 PATH 中的二进制还是完整路径 |
+| `Constants.getChDroidCommand()` | `util/Constants.kt` | 解析 PATH 中的二进制还是完整路径 |
 
-libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设置它的地方。
+libsu 的全局配置在 `ChDroidApplication.kt` 中，那是唯一应该设置它的地方。
 
 ### Android：校验与安全
 
@@ -401,7 +401,7 @@ libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设
 | `RootChecker` / `RootStatus` | `util/RootChecker.kt` | root 可用性 |
 | `StorageChecker` | `util/StorageChecker.kt` | 剩余空间检查 |
 | `ResourceLimits` + `LimitSupport` | `util/ResourceLimits.kt` | 设备内存和核心总数、当前内核能够强制执行哪些限制（`probe()`），以及内存、核心和 PID 的显示字符串。格式化限制值请通过它，绝不要手写 |
-| `DroidspacesChecker` / `DroidspacesBackendStatus` | `util/DroidspacesChecker.kt` | 后端安装状态与更新可用性 |
+| `ChDroidChecker` / `ChDroidBackendStatus` | `util/ChDroidChecker.kt` | 后端安装状态与更新可用性 |
 | `LocaleHelper` | `util/LocaleHelper.kt` | 语言列表与切换 |
 | `SELinuxChecker` | `util/SELinuxChecker.kt` | 与 `SystemInfoManager.getSELinuxStatus()` 功能重叠，优先用后者，它有缓存 |
 
@@ -443,7 +443,7 @@ libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设
 | --- | --- | --- |
 | `TerminalSessionService` + `SessionBinder` | `service/TerminalSessionService.kt` | 创建、获取和终止终端会话。界面销毁时调用 `detachAllClients()`，避免持有 Activity |
 | `TerminalSessionService.globalSessionList` | 同上 | 进程级、可被 Compose 观察的会话注册表 |
-| `DroidspacesTerminalSession.create(client, containerName, containerUser)` | `ui/terminal/DroidspacesTerminalSession.kt` | 唯一会拉起容器 shell 的地方，它会重新校验容器名和用户名 |
+| `ChDroidTerminalSession.create(client, containerName, containerUser)` | `ui/terminal/ChDroidTerminalSession.kt` | 唯一会拉起容器 shell 的地方，它会重新校验容器名和用户名 |
 | `TerminalBackEnd`、`TerminalScreenState`、`NoOpTerminalSessionClient` | `ui/terminal/` | 终端视图相关的胶水代码 |
 | `AnsiColorParser.parseAnsi/stripAnsi` | `util/AnsiColorParser.kt` | 渲染或清理 ANSI 输出 |
 
@@ -527,14 +527,14 @@ libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设
 | `ds_container_lock(name, wait)` / `ds_container_unlock(fd)` | 每个容器的生命周期锁，基于 `flock`。**任何**修改容器磁盘状态（pidfile、挂载、cgroup）的操作都必须持有它，监视器也不例外。命令传入 `wait=0` 并在忙时报错；监视器传入 `wait=1`。持锁后根据实际状态决定要做什么 |
 | `ds_container_lock_orphan(name)` | 同一把锁，但仅在该名称没有存活的监视器时才会获得。用于清理残留。返回 -1 时不要动这个容器 |
 | `ds_container_claim_supervision(name)` | 由监视器调用一次。`ds_container_lock_orphan` 检查的正是它 |
-| `DS_SIG_STOP`、`ds_init_type_t`、`detect_container_init()` | 优雅停止。每种 init 都有自己的停止和重启信号，在 procd 下 `SIGTERM` 表示重启 |
+| `CHDROID_SIG_STOP`、`ds_init_type_t`、`detect_container_init()` | 优雅停止。每种 init 都有自己的停止和重启信号，在 procd 下 `SIGTERM` 表示重启 |
 
 ### C 后端：平台判定
 
 | 符号 | 何时使用 |
 | --- | --- |
 | `is_android()` | 每个 Android 专用或 Linux 专用路径的强制守卫，两个方向都要 |
-| `get_kernel_version`、`check_kernel_recommendation` | 基于 `DS_MIN_KERNEL_MAJOR` 与 `DS_MIN_KERNEL_MINOR` 的版本判定 |
+| `get_kernel_version`、`check_kernel_recommendation` | 基于 `CHDROID_MIN_KERNEL_MAJOR` 与 `CHDROID_MIN_KERNEL_MINOR` 的版本判定 |
 | `check_ns(flag, name)` | 探测某个 `CLONE_NEW*` 命名空间是否可用。网络命名空间只看 `/proc/self/ns/net` 是否存在：为了探测而创建一个，会让随后真正的 `unshare` 在 4.17 之前的内核上等它拆完 |
 | `ds_cgroup_host_is_v2` | cgroup 版本判定 |
 | `ds_nl_probe_nat_capability(reason, size)` | 内核网桥、veth 与 NAT 能力探测，不 fork。任何 NAT 配置前先跑它。完整通过的结果按 boot_id 记在 `Net/nat_caps` 里，本次开机内不再重探；任何不完整的结果都会重探 |
@@ -552,7 +552,7 @@ libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设
 | `ds_config_add_bind(cfg, src, dest, ro)` | 添加挂载点的唯一方式。会自动扩容、去重和校验 |
 | `ds_config_free` | 释放。它会调用三个按列表的释放函数 |
 | `sort_bind_mounts(cfg)` | 应用挂载前调用，保证父目录先于子目录挂载 |
-| `parse_privileged(value, cfg)` | 把 `--privileged` 解析成 `DS_PRIV_*` 位掩码 |
+| `parse_privileged(value, cfg)` | 把 `--privileged` 解析成 `CHDROID_PRIV_*` 位掩码 |
 | `ds_config_auto_path`、`apply_reset_config` | 推导默认配置路径，以及重置 |
 | `load_etc_environment`、`ds_env_boot_setup`、`ds_env_save`、`parse_env_file_to_config` | 环境变量文件处理 |
 
@@ -593,13 +593,13 @@ libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设
 | `ds_nl_create_bridge`、`ds_nl_create_veth`、`ds_nl_set_master`、`ds_nl_link_up/down`、`ds_nl_del_link`、`ds_nl_rename`、`ds_nl_set_mac` | 链路操作 |
 | `ds_nl_add_addr4`、`ds_nl_add_route4`、`ds_nl_add_addr6`、`ds_nl_add_route6` | 地址与路由。IPv6 路由仅支持链路范围 |
 | `ds_nl_create_veth_in(ctx, host, peer, netns_fd, mac)` | 创建 veth 对，对端直接以最终名字诞生在目标命名空间里。网卡进入容器只有这一种方式：先移入再改名，会和容器里的 netifd 赛跑并输掉 |
-| `ds_nl_add_rule4`、`ds_nl_del_rule4`、`ds_nl_rule6` | FIB 策略路由规则。优先级取自 `DS_RULE_PRIO_TO_SUBNET`、`DS_RULE_PRIO_TETHER`、`DS_RULE_PRIO_FROM_SUBNET`，必须高于 OEM 保留区间、低于 Android 的 VPN 区间 |
+| `ds_nl_add_rule4`、`ds_nl_del_rule4`、`ds_nl_rule6` | FIB 策略路由规则。优先级取自 `CHDROID_RULE_PRIO_TO_SUBNET`、`CHDROID_RULE_PRIO_TETHER`、`CHDROID_RULE_PRIO_FROM_SUBNET`，必须高于 OEM 保留区间、低于 Android 的 VPN 区间 |
 | `ds_nl_get_iface_table`、`ds_nl_get_table_default_oif`、`ds_nl_get_android_default` | 路由表信息读取。三者都需要传入地址族 |
 | `ds_nl_flush_stale_veths`、`ds_nl_list_ifaces`、`ds_nl_count_ifaces_with_prefix` | 枚举与回收 |
 | `ds_ipt_ensure_masquerade`、`ds_ipt_ensure_forward_accept`、`ds_ipt_ensure_input_accept`、`ds_ipt_ensure_mss_clamp` | 写入 netfilter 规则 |
 | `ds_ipt_host_rules_present(family, iface, src_cidr, expect_dnat)` | 对某一地址族整套主机规则的不 fork 探测。路由监视器据此决定是否重新写入 |
 | `ds_ipt_remove_iface_rules`、`ds_ipt_remove_ds_rules` | 清理 |
-| `ds_ipt6_available` | 内核是否支持 NAT66：ip6 nat 表和 MASQUERADE 目标。运行时和 `droidspaces check` 共用 |
+| `ds_ipt6_available` | 内核是否支持 NAT66：ip6 nat 表和 MASQUERADE 目标。运行时和 `chdroid check` 共用 |
 | `ds_ipt_add_portforwards`、`ds_ipt_remove_portforwards` | 端口转发 |
 | `parse_cidr(cidr, ip_out, mask_out)` | 共享的 CIDR 拆分函数 |
 | `fix_networking_host`、`fix_networking_rootfs`、`setup_veth_host_side`、`setup_veth_child_side_named`、`setup_gateway_veth_side` | 网络建立 |
@@ -615,7 +615,7 @@ libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设
 | 符号 | 契约 |
 | --- | --- |
 | `ds_peer_authorized(fd, group_name)` | 全仓库唯一的授权入口。允许 root 或指定组的成员，但前提是对端与我们处于同一 PID 命名空间。每一条失败路径都拒绝。调用方是 `src/daemon/server.c` 和 `src/container/command.c`，后者检查 monitor 命令套接字的客户端（客户端则在那里用 `server_is_monitor` 验证服务端） |
-| `ds_cmd_get_config(name, cfg, pid)`、`ds_cmd_get_pid(name)`、`ds_cmd_for_each(visit, arg)` | 运行中容器启动时使用的配置及其 init pid，取自它的 monitor 命令套接字 `@droidspaces/<name>/command`。这是两者唯一的来源：主机从不读取客体自己的那份副本 |
+| `ds_cmd_get_config(name, cfg, pid)`、`ds_cmd_get_pid(name)`、`ds_cmd_for_each(visit, arg)` | 运行中容器启动时使用的配置及其 init pid，取自它的 monitor 命令套接字 `@chdroid/<name>/command`。这是两者唯一的来源：主机从不读取客体自己的那份副本 |
 | `ds_peer_in_pidns(peer_pid)` | 必须失败即拒绝。pid 为 0 表示对端无法映射进我们的命名空间，readlink 失败表示我们无法证明其归属，两种情况都拒绝。这里一旦失败即放行，调用方就能复用已死的 pid 逃逸到主机 root |
 | `ds_bind_mount_socket(src, dst, uid, label)` | 向容器可控目录写入时防软链接竞态的标准做法 |
 | `set_selinux_context`、`get_selinux_context`、`ds_selinux_dyntransition`、`ds_selinux_enter_domain`、`ds_drop_privileges`、`ds_resolve_termux_uid` | SELinux 与权限处理。`ds_selinux_dyntransition`、`ds_drop_privileges` 和 `ds_resolve_termux_uid` 仅限 `android/`，声明在它的 `internal.h` 中 |
@@ -633,7 +633,7 @@ libsu 的全局配置在 `DroidspacesApplication.kt` 中，那是唯一应该设
 
 - `ToggleCard` 和 `SwitchItem` 是同一种开关行的两种形态。
 - `ContainersScreen` 里内联了一份输入确认短语的逻辑，而 `ConfirmPhraseField` 已经提供了。
-  它还内联了错误色的输入框配色，因为 `DsTextFieldDefaults` 没有错误态变体。请补上这个变体，而不是再加一份拷贝。
+  它还内联了错误色的输入框配色，因为 `ChDroidTextFieldDefaults` 没有错误态变体。请补上这个变体，而不是再加一份拷贝。
 - `SummaryItem` 在 `InstallationSummaryScreen.kt` 中以三个私有重载存在。在第二个界面需要它
   之前，先把它提升到 `ui/component/`。
 - `PrimaryActionBottomBar` 上的 `labelFontSize` 只有一个调用方 `RootCheckScreen`，它把行动号召文字推到 16sp。要么字体比例覆盖它，要么删掉这个参数。不要增加第二个调用方。

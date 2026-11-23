@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 int check_volatile_mode(struct ds_config *cfg) {
   if (!cfg->volatile_mode)
@@ -32,9 +32,9 @@ int check_volatile_mode(struct ds_config *cfg) {
 }
 
 int setup_volatile_overlay(struct ds_config *cfg) {
-  /* 1. Create temporary workspace in Droidspaces/Volatile/<name> */
+  /* 1. Create temporary workspace in ChDroid/Volatile/<name> */
   char base[PATH_MAX];
-  snprintf(base, sizeof(base), "%s/" DS_VOLATILE_SUBDIR "/%s",
+  snprintf(base, sizeof(base), "%s/" CHDROID_VOLATILE_SUBDIR "/%s",
            get_workspace_dir(), cfg->container_name);
   if (mkdir_p(base, 0755) < 0) {
     ds_error("Failed to create volatile workspace: %s", base);
@@ -62,7 +62,7 @@ int setup_volatile_overlay(struct ds_config *cfg) {
   if (is_android()) {
     n = snprintf(opts, sizeof(opts),
                  "lowerdir=%s,upperdir=%s/upper,workdir=%s/work,context=\"%s\"",
-                 cfg->rootfs_path, base, base, DS_ANDROID_TMPFS_CONTEXT);
+                 cfg->rootfs_path, base, base, CHDROID_ANDROID_TMPFS_CONTEXT);
   } else {
     n = snprintf(opts, sizeof(opts),
                  "lowerdir=%s,upperdir=%s/upper,workdir=%s/work",
@@ -167,7 +167,7 @@ int cleanup_volatile_overlay(struct ds_config *cfg) {
 
 done:
   /* settle time for kernel to release backing store info */
-  usleep(DS_RETRY_DELAY_US / 2);
+  usleep(CHDROID_RETRY_DELAY_US / 2);
   int r = remove_recursive(cfg->volatile_dir);
   cfg->volatile_dir[0] = '\0';
   return r;

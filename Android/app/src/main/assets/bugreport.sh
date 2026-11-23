@@ -1,18 +1,18 @@
 #!/system/bin/sh
 
-# Droidspaces Bug Report Generator
+# ChDroid Bug Report Generator
 # Collects dmesg, logcat, daemon logs, container logs and AVC denials
 # into a single tarball dropped on /sdcard for easy sharing.
 #
 # Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-DROIDSPACE_DIR=/data/local/Droidspaces
+DROIDSPACE_DIR=/data/local/ChDroid
 BUSYBOX="${DROIDSPACE_DIR}/bin/busybox"
 LOGS_DIR="${DROIDSPACE_DIR}/Logs"
 DATE_TIME="$("${BUSYBOX}" date +"%Y-%m-%d_%H-%M-%S")"
 BUGREPORT_DIR="${LOGS_DIR}/bugreport_${DATE_TIME}"
-TARBALL="Droidspaces-bugreport_${DATE_TIME}.tar.gz"
+TARBALL="ChDroid-bugreport_${DATE_TIME}.tar.gz"
 
 # Check if /sdcard is writable
 if [ -w /sdcard ]; then
@@ -31,7 +31,7 @@ fi
 # Make sure the logs directory actually exists before we try to work in it
 if [ ! -d "${LOGS_DIR}" ]; then
     echo "ERROR: Logs directory not found at ${LOGS_DIR}"
-    echo "       Has droidspacesd ever run on this device? Aborting."
+    echo "       Has chdroidd ever run on this device? Aborting."
     exit 1
 fi
 
@@ -82,7 +82,7 @@ fi
 
 # Copy the main daemon and boot module logs if they exist
 echo "Collecting daemon and boot logs..."
-for f in "${LOGS_DIR}/droidspacesd.log" "${LOGS_DIR}/boot-module.log"; do
+for f in "${LOGS_DIR}/chdroidd.log" "${LOGS_DIR}/boot-module.log"; do
     if [ -f "${f}" ]; then
         "${BUSYBOX}" cp "${f}" "${BUGREPORT_DIR}/" 2>/dev/null || \
             echo "WARNING: Could not copy $(basename ${f})"

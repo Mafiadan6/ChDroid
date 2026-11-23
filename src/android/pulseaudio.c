@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - PulseAudio Server and Socket Manager
+ * ChDroid v7 - PulseAudio Server and Socket Manager
  *
  * Manages the PulseAudio daemon lifecycle on Android (spawning, logging, and
  * stopping) and host-to-container socket bridging.
@@ -9,7 +9,7 @@
  */
 
 #define _GNU_SOURCE
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -99,7 +99,7 @@ static void pulse_child_wrapper(int ready_fd, void *user_data) {
   /* Ensure the tmp directory exists (root creates it before priv drop) */
   mkdir_p(TX11_PREFIX "/tmp", 0755);
 
-  /* Stay in droidspacesd (permissive) -- no domain transition needed.
+  /* Stay in chdroidd (permissive) -- no domain transition needed.
    * untrusted_app_27 blocks execv of Termux binaries under enforcing. */
   ds_selinux_enter_domain();
 
@@ -163,7 +163,7 @@ static void run_pactl_set_default(int uid) {
       close(devnull);
     }
 
-    /* Stay in droidspacesd (permissive) */
+    /* Stay in chdroidd (permissive) */
     ds_selinux_enter_domain();
     if (ds_drop_privileges(uid) < 0)
       _exit(1);
@@ -265,9 +265,9 @@ int ds_setup_pulse_socket(struct ds_config *cfg) {
   if (!is_android() || !cfg->pulseaudio)
     return 0;
 
-  /* Post-pivot_root: the host socket lives under DS_TERMUX_TMP_OLDROOT.  Bridge
+  /* Post-pivot_root: the host socket lives under CHDROID_TERMUX_TMP_OLDROOT.  Bridge
    * it in and export PULSE_SERVER for all container processes. */
-  return ds_bridge_termux_socket(".pulse-socket", DS_PULSE_SOCKET,
-                                 "PULSE_SERVER", "unix:" DS_PULSE_SOCKET,
+  return ds_bridge_termux_socket(".pulse-socket", CHDROID_PULSE_SOCKET,
+                                 "PULSE_SERVER", "unix:" CHDROID_PULSE_SOCKET,
                                  "PulseAudio");
 }

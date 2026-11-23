@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_CGROUP_INTERNAL_H
-#define DS_CGROUP_INTERNAL_H
+#ifndef CHDROID_CGROUP_INTERNAL_H
+#define CHDROID_CGROUP_INTERNAL_H
 
 enum { V1_CREATE, V1_JOIN, V1_REMOVE };
 
@@ -21,4 +21,4 @@ void mkdir_fresh(const char *dir);
 void v1_each(const char *container_name, int op);
 void v1_setup(struct ds_config *cfg);
 
-#endif /* DS_CGROUP_INTERNAL_H */
+#endif /* CHDROID_CGROUP_INTERNAL_H */

@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <grp.h>
 #include <pwd.h>
@@ -49,7 +49,7 @@ int recv_req(int fd, ds_req_t *r) {
     return -1;
   r->flags = ntohl(nf);
   uint32_t argc = ntohl(na);
-  if (!argc || argc > DS_MAX_ARGC)
+  if (!argc || argc > CHDROID_MAX_ARGC)
     return -1;
 
   for (uint32_t i = 0; i < argc; i++) {
@@ -57,7 +57,7 @@ int recv_req(int fd, ds_req_t *r) {
     if (ds_read_exact(fd, &nl, 4) < 0)
       return -1;
     uint32_t al = ntohl(nl);
-    if (al > DS_MAX_ARG)
+    if (al > CHDROID_MAX_ARG)
       return -1;
     r->argv[i] = (char *)malloc((size_t)al + 1);
     if (!r->argv[i])
@@ -83,7 +83,7 @@ int recv_req(int fd, ds_req_t *r) {
   return 0;
 }
 
-/* re-execute the droidspaces binary */
+/* re-execute the chdroid binary */
 
 void reexec(char **argv) {
   /*
@@ -101,7 +101,7 @@ char **make_exec_argv(ds_req_t *r) {
   char **av = (char **)malloc((size_t)(r->argc + 2) * sizeof(char *));
   if (!av)
     return NULL;
-  av[0] = (char *)"droidspaces";
+  av[0] = (char *)"chdroid";
   for (int i = 0; i < r->argc; i++)
     av[i + 1] = r->argv[i];
   av[r->argc + 1] = NULL;

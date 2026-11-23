@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_NET_DHCP_INTERNAL_H
-#define DS_NET_DHCP_INTERNAL_H
+#ifndef CHDROID_NET_DHCP_INTERNAL_H
+#define CHDROID_NET_DHCP_INTERNAL_H
 
 /* DHCP wire protocol constants  (RFC 2131 / RFC 2132) */
 
@@ -99,4 +99,4 @@ int ds_ra_is_solicit(const uint8_t *frame, size_t len);
 void ds_ra_build(uint8_t *out, const uint8_t mac[6],
                  const struct in6_addr *prefix);
 
-#endif /* DS_NET_DHCP_INTERNAL_H */
+#endif /* CHDROID_NET_DHCP_INTERNAL_H */

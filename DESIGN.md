@@ -1,7 +1,7 @@
 # DESIGN.md
 
-The visual language of the Droidspaces Android app. Every value here was read out of
-`Android/app/src/main/java/com/droidspaces/app/`, not invented for this document. Where the app
+The visual language of the ChDroid Android app. Every value here was read out of
+`Android/app/src/main/java/com/chdroid/app/`, not invented for this document. Where the app
 disagreed with itself, the value most of the app already uses won.
 
 The C backend has no UI, so none of this applies to `src/`.
@@ -247,12 +247,12 @@ group, the same red card as the privileged page, not a tinted note in another co
 | --- | --- |
 | On or off | `SwitchItem` |
 | One of a few options, each worth a line of explanation | `RadioRow` in a `selectableGroup()` group |
-| One of many options | `DsDropdown` inside a `GroupField` |
+| One of many options | `ChDroidDropdown` inside a `GroupField` |
 | Free text | `OutlinedTextField` inside a `GroupField` |
 | A list, a set of related fields, or more than fits in a row | `NavRow` to a page, showing the current value |
 
 **Pages, sheets and dialogs.** A page is a full screen (`ConfigPageScaffold`) for an option with
-its own structure: a list, several fields, a draft. A sheet (`DsBottomSheet`) is for adding one
+its own structure: a list, several fields, a draft. A sheet (`ChDroidBottomSheet`) is for adding one
 item to a list, so the list stays in view behind it. A dialog is for a decision that blocks:
 a confirmation, a typed phrase.
 
@@ -265,14 +265,14 @@ there never keeps the draft.
 
 ## Bottom sheets
 
-`DsBottomSheet` lays out like `DsDialog`: title, a body that scrolls, and a `footer` measured
+`ChDroidBottomSheet` lays out like `ChDroidDialog`: title, a body that scrolls, and a `footer` measured
 first, so the actions stay above the keyboard. It stops below the status bar, pads for the
 navigation bar and the keyboard itself, and skips the half-open state. The footer is a
 `DialogFooterRow`.
 
 ## Small screens
 
-Droidspaces runs on 240x320 flip phones and on phones in landscape with the keyboard up, so
+ChDroid runs on 240x320 flip phones and on phones in landscape with the keyboard up, so
 every screen is checked at both.
 
 - Below 320dp wide (`isCompactWidth()`): side margins halve (`screenGutter()`), two fields
@@ -285,7 +285,7 @@ every screen is checked at both.
 
 ## Dialogs
 
-Every dialog is `DsDialog`, and it owns the layout, not just the frame:
+Every dialog is `ChDroidDialog`, and it owns the layout, not just the frame:
 
 ```
 Surface(fillMaxWidth, padding 24, heightIn(max = screen - 48))   bounded by LocalConfiguration
@@ -380,7 +380,7 @@ for fades, `slowEffectsSpec()` for a result line fading in. Never hand-type a sp
 `DampingRatioMediumBouncy` on a result.
 
 A refresh button that reloads a list in place, in a card header or a sheet title, is
-`DsRefreshButton`. It spins a full turn on every tap and keeps turning while the reload runs,
+`ChDroidRefreshButton`. It spins a full turn on every tap and keeps turning while the reload runs,
 stopping only at the top of a turn. Most reloads finish in milliseconds, and without the spin the
 tap looks ignored. A top bar refresh that swaps the screen to its own loading state does not need
 it, the loading state is the feedback.
@@ -415,7 +415,7 @@ misses.
   take no elevation parameter and draw the Material shadow. A button floating over a scrolling
   list is the one place a shadow does structural work, and the extended FAB it replaced already
   shipped with its default elevation.
-- **`TerminalDialog` and `ProgressDialog` do not use `DsDialog`.** The first is three quarters
+- **`TerminalDialog` and `ProgressDialog` do not use `ChDroidDialog`.** The first is three quarters
   of the screen with its own header row, the second is not dismissible. If a third dialog ever
   wants either shape, that is the moment to widen the shared shell.
 - **The init system status hues** (`statusColorFor()` in `ui/screen/InitServiceScreen.kt`) stay

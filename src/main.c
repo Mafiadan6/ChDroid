@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Validation Helpers */
 
@@ -65,7 +65,7 @@ static int validate_configuration_cli(struct ds_config *cfg) {
     }
   }
 
-  if (cfg->net_mode == DS_NET_GATEWAY) {
+  if (cfg->net_mode == CHDROID_NET_GATEWAY) {
     if (!cfg->gateway_container[0]) {
       ds_error("--net=gateway requires --gateway=<container>.");
       errors++;
@@ -128,27 +128,27 @@ static int auto_resolve_container_name(struct ds_config *cfg) {
 /* Command Dispatch */
 
 static void enforce_nat_safety(struct ds_config *cfg) {
-  if (cfg->net_mode != DS_NET_HOST && !check_ns(CLONE_NEWNET, "net"))
+  if (cfg->net_mode != CHDROID_NET_HOST && !check_ns(CLONE_NEWNET, "net"))
     ds_die("Kernel does not support CLONE_NEWNET (network namespaces), so "
            "--net=nat, none, gateway and macvlan cannot work. Use --net=host "
            "for shared host networking.");
 
   /* --upstream and --port are only meaningful with --net=nat.  --upstream is an
    * optional override (auto-detection is the default) - never mandatory. */
-  if (cfg->upstream_iface_count > 0 && cfg->net_mode != DS_NET_NAT) {
+  if (cfg->upstream_iface_count > 0 && cfg->net_mode != CHDROID_NET_NAT) {
     ds_warn("--upstream is only valid with --net=nat - ignoring");
     cfg->upstream_iface_count = 0;
   }
-  if (cfg->port_forward_count > 0 && cfg->net_mode != DS_NET_NAT) {
+  if (cfg->port_forward_count > 0 && cfg->net_mode != CHDROID_NET_NAT) {
     ds_warn("--port is only valid with --net=nat - ignoring");
     cfg->port_forward_count = 0;
   }
 
-  if (cfg->net_mode != DS_NET_NAT && cfg->net_mode != DS_NET_GATEWAY)
+  if (cfg->net_mode != CHDROID_NET_NAT && cfg->net_mode != CHDROID_NET_GATEWAY)
     return;
 
   /* Gateway mode has no bridgeless fallback: the gateway is the bridge. */
-  int gateway = cfg->net_mode == DS_NET_GATEWAY;
+  int gateway = cfg->net_mode == CHDROID_NET_GATEWAY;
   const char *name = gateway ? "gateway" : "nat";
   char reason[512];
   int probe = ds_nl_probe_nat_capability(reason, sizeof(reason));
@@ -226,7 +226,7 @@ int main(int argc, char **argv) {
 
   /* 1. Discovery Pass: Capture identity and command without permuting argv.
    * Using '-' at the start of optstring returns non-options as '1'. */
-  while ((opt = getopt_long(argc, argv, "-" DS_OPTSTRING, long_options,
+  while ((opt = getopt_long(argc, argv, "-" CHDROID_OPTSTRING, long_options,
                             NULL)) != -1) {
     if (opt == '?') {
       /* opterr is 0, so this is the only word the user gets. optopt names a
@@ -298,7 +298,7 @@ int main(int argc, char **argv) {
                           strcmp(discovered_cmd, "mode") == 0 ||
                           strcmp(discovered_cmd, "check") == 0));
 
-  if (!is_daemon_cmd && !is_no_root_cmd && getenv("DS_NO_PROXY") == NULL) {
+  if (!is_daemon_cmd && !is_no_root_cmd && getenv("CHDROID_NO_PROXY") == NULL) {
     int proxy_ret =
         ds_client_run(argc - 1, argv + 1, discovered_cmd, run_stdin);
     if (proxy_ret != -2) {
@@ -425,7 +425,7 @@ int main(int argc, char **argv) {
     goto cleanup;
   }
   if (strcmp(cmd, "version") == 0) {
-    printf("v%s\n", DS_VERSION);
+    printf("v%s\n", CHDROID_VERSION);
     ret = 0;
     goto cleanup;
   }
@@ -458,7 +458,7 @@ int main(int argc, char **argv) {
   }
 
   /* Pinned like runc does, not the caller's: setup creates the container's /
-   * (volatile), /run/droidspaces, bind parents and host cgroup dirs with
+   * (volatile), /run/chdroid, bind parents and host cgroup dirs with
    * literal modes, and init hands this to every service. A 077 root shell
    * would lock every non-root user out. */
   if (strcmp(cmd, "start") == 0 || strcmp(cmd, "restart") == 0)

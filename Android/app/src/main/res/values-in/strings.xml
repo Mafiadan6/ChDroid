@@ -48,7 +48,7 @@
     <string name="symlink_integration">Integrasi ChDroid ke jalur sistem</string>
     <string name="symlink_integration_description">Buat symlink di /system/bin untuk mengakses perintah chdroid dalam shell root Android. PERINGATAN: MENGAKTIFKAN OPSI INI MENYEBABKAN BOOTLOOP JIKA SISTEM MOUNT ANDA MENGGUNAKAN MODUL META OVERLAYFS. Gunakan opsi ini hanya jika Anda menggunakan sistem mount berbasis Magic Mount atau sistem mount nomount berbasis kernel (perlu memulai ulang perangkat)</string>
     <string name="about_section">Tentang</string>
-    <string name="about_droidspaces">Tentang ChDroid</string>
+    <string name="about_chdroid">Tentang ChDroid</string>
     <string name="about_description">LXC-Style kontainer manajer untuk android</string>
     <string name="developers">Pengembang</string>
     <string name="developer_ravindu644_role">Pengelola</string>
@@ -177,7 +177,7 @@
     <string name="next_storage">Selanjutnya: Penyimpanan</string>
     <string name="installation_complete">Pemasangan Selesai</string>
     <string name="installation_failed">Pemasangan Gagal</string>
-    <string name="installing_droidspaces">Memasang ChDroid</string>
+    <string name="installing_chdroid">Memasang ChDroid</string>
     <string name="backend_installed_success">Backend chdroid berhasil di pasang</string>
     <string name="binary_installation_failed">Pemasangan binary gagal</string>
     <string name="no_containers_running">Tidak ada kontainer yang sedang berjalan</string>
@@ -247,7 +247,7 @@
     <string name="error_hostname_invalid">Nama host hanya boleh berisi huruf, angka, dan tanda hubung (-)</string>
     <string name="check_requirements">Periksa Persyaratan</string>
     <string name="requirements_check_title">Periksa Persyaratan</string>
-    <string name="requirements_for_droidspaces">Persyaratan untuk ChDroid</string>
+    <string name="requirements_for_chdroid">Persyaratan untuk ChDroid</string>
     <string name="requirements_check_completed_successfully">Pemeriksaan persyaratan selesai dan berhasil</string>
     <string name="requirements_check_completed_with_errors">Pemeriksaan persyaratan telah selesai, terdapat kesalahan</string>
     <string name="kernel_requirements_copied">Persyaratan kernel telah disalin ke papan klip</string>
@@ -340,7 +340,7 @@
     <string name="export_container">Ekspor container sebagai tarball</string>
     <string name="export_container_failed">Gagal mengekspor container %1$s</string>
     <string name="starting_export">Memulai ekspor...</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="network_mode_nat_short">NAT</string>
     <string name="network_mode_none_short">Tidak ada</string>
     <string name="custom_init_label">Biner Init Kustom</string>

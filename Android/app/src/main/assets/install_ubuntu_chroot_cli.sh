@@ -149,7 +149,7 @@ rm -f "$CACHE/$member"
 echo "$family" > "$DISTRO_FILE"
 
 # chroot.sh sets up namespaces, mounts and DNS itself. No container.config,
-# no Droidspaces init, no boot service: that is the whole point of this path.
+# no ChDroid init, no boot service: that is the whole point of this path.
 printf '%s\n' "$BASE" > "$POINTER"
 echo 1 > "$BASE/.ubuntu-chroot-cli"
 say "base=$BASE"

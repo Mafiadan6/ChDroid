@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <linux/audit.h>
 #include <linux/filter.h>
 #include <linux/if_alg.h>
@@ -25,9 +25,9 @@
  * container-escape primitive that installs full-root creds and disables
  * seccomp.  The ioctl below (only_root perm) sets TIF_KSU_DISABLE_ESCAPE_
  * WITH_ROOT on the calling thread so escape_with_root_profile() aborts. */
-#define DS_KSU_INSTALL_MAGIC1 0xDEADBEEFu
-#define DS_KSU_INSTALL_MAGIC2 0xCAFEBABEu
-#define DS_KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT _IO('K', 21)
+#define CHDROID_KSU_INSTALL_MAGIC1 0xDEADBEEFu
+#define CHDROID_KSU_INSTALL_MAGIC2 0xCAFEBABEu
+#define CHDROID_KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT _IO('K', 21)
 
 /* Android System Call Filtering (Seccomp) */
 
@@ -39,7 +39,7 @@
  */
 int ds_seccomp_apply_minimal(int privileged_mask, int sandboxing_allowed) {
   /* noseccomp: skip everything, 32-bit binaries must work */
-  if (privileged_mask & DS_PRIV_NOSEC)
+  if (privileged_mask & CHDROID_PRIV_NOSEC)
     return 0;
 
   static struct sock_filter filter[74];
@@ -179,11 +179,11 @@ int ds_seccomp_apply_minimal(int privileged_mask, int sandboxing_allowed) {
   filter[curr++] = (struct sock_filter)BPF_STMT(
       BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, args[0]));
   filter[curr++] = (struct sock_filter)BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K,
-                                                DS_KSU_INSTALL_MAGIC1, 0, 3);
+                                                CHDROID_KSU_INSTALL_MAGIC1, 0, 3);
   filter[curr++] = (struct sock_filter)BPF_STMT(
       BPF_LD | BPF_W | BPF_ABS, offsetof(struct seccomp_data, args[1]));
   filter[curr++] = (struct sock_filter)BPF_JUMP(BPF_JMP | BPF_JEQ | BPF_K,
-                                                DS_KSU_INSTALL_MAGIC2, 0, 1);
+                                                CHDROID_KSU_INSTALL_MAGIC2, 0, 1);
   filter[curr++] = (struct sock_filter)BPF_STMT(
       BPF_RET | BPF_K, SECCOMP_RET_ERRNO | (EPERM & SECCOMP_RET_DATA));
   /* Reload nr for any rules that follow this block. */
@@ -194,7 +194,7 @@ int ds_seccomp_apply_minimal(int privileged_mask, int sandboxing_allowed) {
    *
    * CAP_SYS_TIME dropped from the bounding set is insufficient: the kernel
    * checks the capability against the *initial* user namespace, and
-   * Droidspaces containers run as real root without a user namespace, so
+   * ChDroid containers run as real root without a user namespace, so
    * the check passes even after the bounding-set drop.  Seccomp is the
    * only reliable barrier.
    *
@@ -255,7 +255,7 @@ void ds_ksu_neutralize_root_escape(void) {
   /* KSU kprobes reboot(); with the magic pair it returns -EINVAL but a
    * task_work callback installs the [ksu_driver] fd.  On non-KSU kernels
    * this is just an -EINVAL reboot() and fd stays -1. */
-  long ret = syscall(__NR_reboot, DS_KSU_INSTALL_MAGIC1, DS_KSU_INSTALL_MAGIC2,
+  long ret = syscall(__NR_reboot, CHDROID_KSU_INSTALL_MAGIC1, CHDROID_KSU_INSTALL_MAGIC2,
                      0, &fd);
   (void)ret;
   if (fd < 0)
@@ -263,7 +263,7 @@ void ds_ksu_neutralize_root_escape(void) {
 
   /* Mark this thread so escape_with_root_profile() aborts for it
    * (KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT, perm: only_root). */
-  if (ioctl(fd, DS_KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT, 0) == 0)
+  if (ioctl(fd, CHDROID_KSU_IOCTL_DISABLE_ESCAPE_TO_ROOT, 0) == 0)
     ds_log("[SEC] escape_with_root disabled for pid %d", (int)getpid());
   /* fd is O_CLOEXEC, but drop it explicitly before any exec so it can
    * never be reused by a descendant for GRANT_ROOT. */

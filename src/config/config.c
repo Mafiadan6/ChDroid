@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 void ds_config_free(struct ds_config *cfg) {
   free_config_binds(cfg);

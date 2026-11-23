@@ -80,7 +80,7 @@
     <string name="symlink_integration">ChDroid를 시스템 경로에 통합</string>
     <string name="symlink_integration_description">Android 루트 셸에서 chdroid 명령에 접근할 수 있도록 /system/bin에 심볼릭 링크를 생성합니다. 경고: 마운트 시스템이 OverlayFS meta 모듈인 경우 이 옵션을 활성화하면 부트루프가 발생합니다. Magic Mount 기반 마운트 시스템을 사용하는 경우에만 사용하세요(재부팅 필요)</string>
     <string name="about_section">정보</string>
-    <string name="about_droidspaces">ChDroid 정보</string>
+    <string name="about_chdroid">ChDroid 정보</string>
     <string name="about_description">Android용 LXC 스타일 컨테이너 관리자</string>
     <string name="developers">개발자</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -290,7 +290,7 @@
     <string name="installation_complete">설치 완료</string>
     <string name="installation_failed">설치 실패</string>
     <string name="done">완료</string>
-    <string name="installing_droidspaces">ChDroid 설치 중</string>
+    <string name="installing_chdroid">ChDroid 설치 중</string>
     <string name="backend_installed_success">ChDroid 백엔드가 성공적으로 설치되었습니다</string>
     <string name="binary_installation_failed">바이너리 설치 실패</string>
     <!-- File Picker Screen -->
@@ -436,7 +436,7 @@
     <!-- Requirements -->
     <string name="check_requirements">요구 사항 확인</string>
     <string name="requirements_check_title">요구 사항 확인</string>
-    <string name="requirements_for_droidspaces">ChDroid 요구 사항</string>
+    <string name="requirements_for_chdroid">ChDroid 요구 사항</string>
     <string name="requirements_check_completed_successfully">요구 사항 확인이 성공적으로 완료되었습니다</string>
     <string name="requirements_check_completed_with_errors">요구 사항 확인이 오류와 함께 완료되었습니다</string>
     <string name="kernel_requirements_copied">커널 요구 사항이 클립보드에 복사되었습니다</string>
@@ -472,7 +472,7 @@
     <string name="starting_resizing">크기 조정 작업 시작 중...</string>
     <string name="help_card_title">ChDroid가 처음이신가요?</string>
     <string name="help_card_message">첫 번째 리눅스 컨테이너를 설정하는 방법을 알아보려면 여기를 누르세요!</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">특권 모드</string>
     <string name="privileged_nomask_desc">jail 마스크를 비활성화하여 /proc 및 /sys에 쓰기 액세스를 허용합니다. 참고: 하드웨어 액세스도 활성화되지 않는 한 /sys는 읽기 전용으로 유지됩니다.</string>
     <string name="privileged_nocaps_desc">어떠한 리눅스 권한(capability)도 제거하지 않습니다(완전한 루트 권한).</string>
@@ -489,7 +489,7 @@
     <string name="repo_fab_label">저장소</string>
     <string name="repo_refresh">새로고침</string>
     <string name="repo_banner_text">\"ChDroid developers\" 하위의 rootfs tarball은 오픈 소스이며 투명합니다. 이 카드를 눌러 저희의 변경 사항을 직접 다운로드하거나 확인할 수 있습니다.</string>
-    <string name="repo_banner_url" translatable="false">https://github.com/Droidspaces/Droidspaces-rootfs-builder</string>
+    <string name="repo_banner_url" translatable="false">https://github.com/Mafiadan6/ChDroid-rootfs</string>
     <string name="repo_failed_to_load">저장소를 불러오지 못했습니다</string>
     <string name="repo_download">다운로드</string>
     <string name="repo_cancel">취소</string>

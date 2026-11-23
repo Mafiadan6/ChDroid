@@ -11,15 +11,15 @@
 #
 # Commands: binaries | install <zip> | daemon | start | shell | stop | status | all <zip>
 
-DS_DIR=/data/local/Droidspaces
-BIN_DIR=$DS_DIR/bin
-CONTAINERS_DIR=$DS_DIR/Containers
-LOGS_DIR=$DS_DIR/Logs
-DS_BIN=$BIN_DIR/droidspaces
+CHDROID_DIR=/data/local/ChDroid
+BIN_DIR=$CHDROID_DIR/bin
+CONTAINERS_DIR=$CHDROID_DIR/Containers
+LOGS_DIR=$CHDROID_DIR/Logs
+CHDROID_BIN=$BIN_DIR/chdroid
 BB=$BIN_DIR/busybox
-MARKER=$DS_DIR/.ubuntu-chroot-cli
+MARKER=$CHDROID_DIR/.ubuntu-chroot-cli
 PKG_FORK=com.chdroid.app
-PKG_STOCK=com.droidspaces.app
+PKG_STOCK=com.chdroid.app
 UC_POINTER=/data/local/chdroid-active-rootfs
 UC_BASE=$(cat "$UC_POINTER" 2>/dev/null)
 case "$UC_BASE" in /data/local/*-chroot) ;; *) UC_BASE=/data/local/ubuntu-chroot ;; esac
@@ -71,21 +71,21 @@ cmd_binaries() {
         chmod 755 "$BB"
     fi
 
-    log "installing droidspaces-$suffix"
-    asset "droidspaces-$suffix" "$DS_BIN"
-    echo 1 > "$DS_DIR/.daemon_mode"
-    echo "ubuntu-chroot CLI session: no boot module, no reboot" > "$DS_DIR/BOOT_MODE"
+    log "installing chdroid-$suffix"
+    asset "chdroid-$suffix" "$CHDROID_BIN"
+    echo 1 > "$CHDROID_DIR/.daemon_mode"
+    echo "ubuntu-chroot CLI session: no boot module, no reboot" > "$CHDROID_DIR/BOOT_MODE"
     log "binaries ready"
 }
 
 cmd_daemon() {
-    [ -x "$DS_BIN" ] || die "backend missing - run 'binaries' first"
-    mode=$("$DS_BIN" mode 2>/dev/null)
+    [ -x "$CHDROID_BIN" ] || die "backend missing - run 'binaries' first"
+    mode=$("$CHDROID_BIN" mode 2>/dev/null)
     [ "$mode" = "daemon" ] && { log "daemon already running"; return 0; }
     log "starting daemon"
-    "$DS_BIN" daemon >> "$LOGS_DIR/ubuntu-chroot-daemon.log" 2>&1 &
+    "$CHDROID_BIN" daemon >> "$LOGS_DIR/ubuntu-chroot-daemon.log" 2>&1 &
     sleep 1
-    mode=$("$DS_BIN" mode 2>/dev/null)
+    mode=$("$CHDROID_BIN" mode 2>/dev/null)
     [ "$mode" = "daemon" ] || die "daemon failed - see $LOGS_DIR/ubuntu-chroot-daemon.log"
     log "daemon running"
 }
@@ -100,7 +100,7 @@ cmd_install() {
     asset install_ubuntu_chroot_cli.sh "$installer"
 
     log "installing Ubuntu-Chroot CLI from $zip"
-    "$installer" "$zip" "$BB" "$DS_DIR/.zip-cache" >> "$LOGS_DIR/ubuntu-chroot-install.log" 2>&1 || \
+    "$installer" "$zip" "$BB" "$CHDROID_DIR/.zip-cache" >> "$LOGS_DIR/ubuntu-chroot-install.log" 2>&1 || \
         die "CLI install failed - see $LOGS_DIR/ubuntu-chroot-install.log"
     [ -x "$UC_SH" ] || die "chroot.sh missing after install"
     log "Ubuntu-Chroot CLI ready at $UC_SH"
@@ -124,7 +124,7 @@ cmd_stop() {
 
 cmd_status() {
     echo "root: $(id -u)"
-    [ -x "$DS_BIN" ] && echo "mode: $($DS_BIN mode 2>/dev/null)" || echo "mode: backend missing"
+    [ -x "$CHDROID_BIN" ] && echo "mode: $($CHDROID_BIN mode 2>/dev/null)" || echo "mode: backend missing"
     echo "marker: $([ -f "$MARKER" ] && echo yes || echo no)"
     if [ -x "$UC_SH" ]; then
         sh "$UC_SH" status

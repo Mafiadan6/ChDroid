@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 int setup_devpts(int hw_access) {
   const char *pts_path = "/dev/pts";
@@ -19,7 +19,7 @@ int setup_devpts(int hw_access) {
   /* Try mounting devpts with newinstance flag (CRITICAL for private PTYs) */
   char optbuf[256];
   snprintf(optbuf, sizeof(optbuf), "gid=%d,newinstance,ptmxmode=0666,mode=0620",
-           DS_DEFAULT_TTY_GID);
+           CHDROID_DEFAULT_TTY_GID);
 
   /* The gid-less retry is LXC's, for a kernel that refuses the option. */
   const char *opts[] = {optbuf, "newinstance,ptmxmode=0666,mode=0620", NULL};

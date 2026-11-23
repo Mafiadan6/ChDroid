@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -13,9 +13,9 @@ int is_pid_file(const char *name) {
   if (!name)
     return 0;
   size_t len = strlen(name);
-  if (len < strlen(DS_EXT_PID))
+  if (len < strlen(CHDROID_EXT_PID))
     return 0;
-  return (strcmp(name + len - strlen(DS_EXT_PID), DS_EXT_PID) == 0);
+  return (strcmp(name + len - strlen(CHDROID_EXT_PID), CHDROID_EXT_PID) == 0);
 }
 
 /* PID File Resolution */
@@ -365,7 +365,7 @@ int read_and_validate_pid(const char *pidfile, pid_t *pid_out) {
 
   /*
    * Crucial Fix: Distinguish between "process is gone" (-1) and
-   * "process exists but is not a Droidspaces container" (-2).
+   * "process exists but is not a ChDroid container" (-2).
    * Pruning logic must ONLY nuke files when the process is truly gone.
    */
   if (!is_valid_container_pid((pid_t)val)) {
@@ -379,7 +379,7 @@ int read_and_validate_pid(const char *pidfile, pid_t *pid_out) {
   return 0;
 }
 
-/* 1 if p is a Droidspaces monitor: named [ds-monitor], root, and in our pid
+/* 1 if p is a ChDroid monitor: named [ds-monitor], root, and in our pid
  * namespace. A guest can name its processes anything, but none of them is in
  * ours. The intermediate between a monitor and its init inherits the name. */
 int is_ds_monitor(pid_t p) {
@@ -392,7 +392,7 @@ int is_ds_monitor(pid_t p) {
 }
 
 int is_valid_container_pid(pid_t pid) {
-  /* A Droidspaces container init is PID 1 of its namespace whose parent is
+  /* A ChDroid container init is PID 1 of its namespace whose parent is
    * its intermediate: monitor, intermediate, init. The intermediate carries
    * the monitor's name and waits on init for as long as it lives, even if
    * the monitor is killed, so a container stays running (its image mounted,

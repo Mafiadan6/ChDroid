@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Surgical iptables and ip6tables rule management via the raw IP_TABLES and
  * IP6_TABLES socket APIs. One engine serves both families.
@@ -22,7 +22,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter/nf_nat.h>
@@ -61,19 +61,19 @@ const struct xt_family *xt_family_of(int family) {
 /* The engine relies on the two APIs sharing these layouts and numbers. If a
  * kernel header ever breaks one of them the build stops here, rather than a
  * table replace corrupting someone's firewall. */
-#define DS_XT_SAME(name, cond) typedef char ds_xt_same_##name[(cond) ? 1 : -1]
-DS_XT_SAME(getinfo, sizeof(struct ipt_getinfo) == sizeof(struct ip6t_getinfo));
-DS_XT_SAME(getinfo_size, offsetof(struct ipt_getinfo, size) ==
+#define CHDROID_XT_SAME(name, cond) typedef char ds_xt_same_##name[(cond) ? 1 : -1]
+CHDROID_XT_SAME(getinfo, sizeof(struct ipt_getinfo) == sizeof(struct ip6t_getinfo));
+CHDROID_XT_SAME(getinfo_size, offsetof(struct ipt_getinfo, size) ==
                              offsetof(struct ip6t_getinfo, size));
-DS_XT_SAME(replace, sizeof(struct ipt_replace) == sizeof(struct ip6t_replace));
-DS_XT_SAME(replace_counters, offsetof(struct ipt_replace, counters) ==
+CHDROID_XT_SAME(replace, sizeof(struct ipt_replace) == sizeof(struct ip6t_replace));
+CHDROID_XT_SAME(replace_counters, offsetof(struct ipt_replace, counters) ==
                                  offsetof(struct ip6t_replace, counters));
-DS_XT_SAME(entrytable, offsetof(struct ipt_get_entries, entrytable) ==
+CHDROID_XT_SAME(entrytable, offsetof(struct ipt_get_entries, entrytable) ==
                            offsetof(struct ip6t_get_entries, entrytable));
-DS_XT_SAME(sockopts, IPT_SO_GET_INFO == IP6T_SO_GET_INFO &&
+CHDROID_XT_SAME(sockopts, IPT_SO_GET_INFO == IP6T_SO_GET_INFO &&
                          IPT_SO_GET_ENTRIES == IP6T_SO_GET_ENTRIES &&
                          IPT_SO_SET_REPLACE == IP6T_SO_SET_REPLACE);
-DS_XT_SAME(inv_dstip, IPT_INV_DSTIP == IP6T_INV_DSTIP);
+CHDROID_XT_SAME(inv_dstip, IPT_INV_DSTIP == IP6T_INV_DSTIP);
 
 static unsigned int ent_u16(const void *e, size_t off) {
   uint16_t v;

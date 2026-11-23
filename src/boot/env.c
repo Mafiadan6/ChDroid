@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Internal Helpers */
 
@@ -14,7 +14,7 @@ static void set_container_defaults(const char *term) {
          1);
   setenv("TERM", term ? term : "xterm-256color", 1);
   setenv("HOME", "/root", 1);
-  setenv("container", "droidspaces", 1);
+  setenv("container", "chdroid", 1);
 }
 
 void load_etc_environment(void) {
@@ -77,14 +77,14 @@ void ds_env_boot_setup(struct ds_config *cfg) {
     setenv(cfg->env_vars[i].key, cfg->env_vars[i].value, 1);
   }
 
-  /* Inject DISPLAY for Termux-X11 containers (written to /run/droidspaces.env
-   * and sourced by /etc/profile.d/droidspaces_env.sh) */
+  /* Inject DISPLAY for Termux-X11 containers (written to /run/chdroid.env
+   * and sourced by /etc/profile.d/chdroid_env.sh) */
   if (is_android() && cfg->x11)
     setenv("DISPLAY", TX11_DISPLAY_STR, 1);
   if (is_android() && cfg->virgl)
     setenv("GALLIUM_DRIVER", "virpipe", 1);
   if (is_android() && cfg->pulseaudio)
-    setenv("PULSE_SERVER", "unix:" DS_PULSE_SOCKET, 1);
+    setenv("PULSE_SERVER", "unix:" CHDROID_PULSE_SOCKET, 1);
 }
 
 void ds_env_save(const char *path, struct ds_config *cfg) {
@@ -119,7 +119,7 @@ void ds_env_save(const char *path, struct ds_config *cfg) {
   if (is_android() && cfg->virgl)
     fprintf(f, "export GALLIUM_DRIVER='virpipe'\n");
   if (is_android() && cfg->pulseaudio)
-    fprintf(f, "export PULSE_SERVER='unix:" DS_PULSE_SOCKET "'\n");
+    fprintf(f, "export PULSE_SERVER='unix:" CHDROID_PULSE_SOCKET "'\n");
   if (ds_mount_api_shim_wanted(cfg))
     fprintf(f, "export LIBMOUNT_FORCE_MOUNT2='always'\n");
 

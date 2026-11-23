@@ -1,16 +1,16 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* A key written here must also be parsed by ds_config_load() in config/load.c.
  * Otherwise it is read back as an unknown line and saved twice. */
 static void ds_config_serialize_known(FILE *f, struct ds_config *cfg) {
-  fprintf(f, "# Droidspaces Container Configuration\n");
+  fprintf(f, "# ChDroid Container Configuration\n");
   fprintf(f, "# Generated automatically - Changes may be overwritten\n\n");
 
   /* Write managed keys */
@@ -65,7 +65,7 @@ static void ds_config_serialize_known(FILE *f, struct ds_config *cfg) {
 
   fprintf(f, "net_mode=%s\n", ds_net_mode_name(cfg->net_mode));
 
-  if (cfg->net_mode == DS_NET_GATEWAY) {
+  if (cfg->net_mode == CHDROID_NET_GATEWAY) {
     if (cfg->gateway_container[0])
       fprintf(f, "gateway_container=%s\n", cfg->gateway_container);
     if (cfg->gateway_net[0])
@@ -76,14 +76,14 @@ static void ds_config_serialize_known(FILE *f, struct ds_config *cfg) {
       fprintf(f, "gateway_lan_ifname=%s\n", cfg->gateway_lan_ifname);
   }
 
-  if (cfg->net_mode == DS_NET_MACVLAN) {
+  if (cfg->net_mode == CHDROID_NET_MACVLAN) {
     if (cfg->macvlan_parent[0])
       fprintf(f, "macvlan_parent=%s\n", cfg->macvlan_parent);
     if (cfg->macvlan_mode && cfg->macvlan_mode != MACVLAN_MODE_BRIDGE)
       fprintf(f, "macvlan_mode=%s\n", ds_macvlan_mode_name(cfg->macvlan_mode));
   }
 
-  if (cfg->net_mode == DS_NET_NAT && cfg->upstream_iface_count > 0) {
+  if (cfg->net_mode == CHDROID_NET_NAT && cfg->upstream_iface_count > 0) {
     fprintf(f, "upstream_interfaces=");
     for (int i = 0; i < cfg->upstream_iface_count; i++)
       fprintf(f, "%s%s", cfg->upstream_ifaces[i],
@@ -91,7 +91,7 @@ static void ds_config_serialize_known(FILE *f, struct ds_config *cfg) {
     fprintf(f, "\n");
   }
 
-  if (cfg->net_mode == DS_NET_NAT && cfg->port_forward_count > 0) {
+  if (cfg->net_mode == CHDROID_NET_NAT && cfg->port_forward_count > 0) {
     fprintf(f, "port_forwards=");
     for (int i = 0; i < cfg->port_forward_count; i++) {
       const struct ds_port_forward *pf = &cfg->port_forwards[i];
@@ -107,7 +107,7 @@ static void ds_config_serialize_known(FILE *f, struct ds_config *cfg) {
     fprintf(f, "\n");
   }
 
-  if (cfg->net_mode == DS_NET_NAT && cfg->static_nat_ip[0])
+  if (cfg->net_mode == CHDROID_NET_NAT && cfg->static_nat_ip[0])
     fprintf(f, "static_nat_ip=%s\n", cfg->static_nat_ip);
 
   if (cfg->env_file[0])

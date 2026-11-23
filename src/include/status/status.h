@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_STATUS_STATUS_H
-#define DS_STATUS_STATUS_H
+#ifndef CHDROID_STATUS_STATUS_H
+#define CHDROID_STATUS_STATUS_H
 
 /* collect.c */
 struct ds_status {
@@ -37,4 +37,4 @@ void ds_json_status(const struct ds_status *st, int *first);
 /* show.c */
 int show_containers(struct ds_config *cfg);
 
-#endif /* DS_STATUS_STATUS_H */
+#endif /* CHDROID_STATUS_STATUS_H */

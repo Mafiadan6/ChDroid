@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -26,7 +26,7 @@
  * container - see install_netfilter_rules(). */
 int g_host_bridgeless = 0;
 char g_host_veth[IFNAMSIZ];
-struct ds_port_forward g_host_port_forwards[DS_MAX_PORT_FORWARDS];
+struct ds_port_forward g_host_port_forwards[CHDROID_MAX_PORT_FORWARDS];
 int g_host_port_forward_count = 0;
 char g_host_container_ip[INET_ADDRSTRLEN];
 int g_host_nat6 = 0; /* NAT66 is set up, replay its rules too */
@@ -68,7 +68,7 @@ int setup_veth_host_side(struct ds_config *cfg, pid_t child_pid) {
    * before the fork, and is exactly what nat_container_ip is set to below. */
   g_host_bridgeless = cfg->net_bridgeless;
   g_host_init_pid = child_pid;
-  g_host_dns_managed = cfg->net_mode == DS_NET_NAT && !cfg->dns_servers[0];
+  g_host_dns_managed = cfg->net_mode == CHDROID_NET_NAT && !cfg->dns_servers[0];
   safe_strncpy(g_host_veth, veth_host, sizeof(g_host_veth));
   g_host_port_forward_count = cfg->port_forward_count;
   memcpy(g_host_port_forwards, cfg->port_forwards,
@@ -103,36 +103,36 @@ int setup_veth_host_side(struct ds_config *cfg, pid_t child_pid) {
 
   /* 1. Ensure bridge exists (SKIP for bridgeless fallback) */
   if (!cfg->net_bridgeless) {
-    if (!ds_nl_link_exists(ctx, DS_NAT_BRIDGE)) {
-      ds_log("[DEBUG] Creating bridge %s...", DS_NAT_BRIDGE);
-      if (ds_nl_create_bridge(ctx, DS_NAT_BRIDGE) < 0)
-        ds_warn("[DEBUG] Failed to create bridge %s", DS_NAT_BRIDGE);
+    if (!ds_nl_link_exists(ctx, CHDROID_NAT_BRIDGE)) {
+      ds_log("[DEBUG] Creating bridge %s...", CHDROID_NAT_BRIDGE);
+      if (ds_nl_create_bridge(ctx, CHDROID_NAT_BRIDGE) < 0)
+        ds_warn("[DEBUG] Failed to create bridge %s", CHDROID_NAT_BRIDGE);
     }
 
     /* Always assert bridge MAC/IP/UP/Hardening even if it already exists.
      * This ensures everything is correct after host-side networking changes or
      * crashes. */
-    pin_bridge_mac(ctx, DS_NAT_BRIDGE);
-    int err = ds_nl_add_addr4(ctx, DS_NAT_BRIDGE, inet_addr(DS_NAT_GW_IP),
-                              DS_NAT_PREFIX);
+    pin_bridge_mac(ctx, CHDROID_NAT_BRIDGE);
+    int err = ds_nl_add_addr4(ctx, CHDROID_NAT_BRIDGE, inet_addr(CHDROID_NAT_GW_IP),
+                              CHDROID_NAT_PREFIX);
     if (err < 0 && err != -EEXIST && err != -ENETDOWN) {
-      ds_warn("[DEBUG] Failed to add IP to %s: %d", DS_NAT_BRIDGE, err);
+      ds_warn("[DEBUG] Failed to add IP to %s: %d", CHDROID_NAT_BRIDGE, err);
     }
 
-    if (ds_nl_link_up(ctx, DS_NAT_BRIDGE) < 0)
-      ds_warn("[DEBUG] Failed to bring up %s", DS_NAT_BRIDGE);
+    if (ds_nl_link_up(ctx, CHDROID_NAT_BRIDGE) < 0)
+      ds_warn("[DEBUG] Failed to bring up %s", CHDROID_NAT_BRIDGE);
 
     /* Disable ICMP redirects on the bridge. */
-    write_file("/proc/sys/net/ipv4/conf/" DS_NAT_BRIDGE "/accept_redirects",
+    write_file("/proc/sys/net/ipv4/conf/" CHDROID_NAT_BRIDGE "/accept_redirects",
                "0");
-    write_file("/proc/sys/net/ipv4/conf/" DS_NAT_BRIDGE "/send_redirects", "0");
-    write_file("/proc/sys/net/ipv4/conf/" DS_NAT_BRIDGE "/rp_filter", "0");
+    write_file("/proc/sys/net/ipv4/conf/" CHDROID_NAT_BRIDGE "/send_redirects", "0");
+    write_file("/proc/sys/net/ipv4/conf/" CHDROID_NAT_BRIDGE "/rp_filter", "0");
   } else {
     ds_log("[NET] Bridgeless Fallback: skipping bridge creation.");
   }
 
   /* Late-stage hardening: sysctl for bridge */
-  if (cfg->net_mode == DS_NET_NAT) {
+  if (cfg->net_mode == CHDROID_NET_NAT) {
     ds_log("[DEBUG] Applying late-stage hardening for Android NAT...");
     if (!cfg->net_bridgeless) {
       if (access("/proc/sys/net/bridge", F_OK) == 0) {
@@ -177,11 +177,11 @@ int setup_veth_host_side(struct ds_config *cfg, pid_t child_pid) {
 
   /* 5. Set master or assign IP directly for PTP */
   if (!cfg->net_bridgeless) {
-    if (ds_nl_set_master(ctx, veth_host, DS_NAT_BRIDGE) < 0)
-      ds_warn("[NET] Failed to attach %s to %s", veth_host, DS_NAT_BRIDGE);
+    if (ds_nl_set_master(ctx, veth_host, CHDROID_NAT_BRIDGE) < 0)
+      ds_warn("[NET] Failed to attach %s to %s", veth_host, CHDROID_NAT_BRIDGE);
   } else {
     /* Bridgeless Fallback: Assign GW IP to veth_host directly */
-    if (ds_nl_add_addr4(ctx, veth_host, inet_addr(DS_NAT_GW_IP), 32) < 0)
+    if (ds_nl_add_addr4(ctx, veth_host, inet_addr(CHDROID_NAT_GW_IP), 32) < 0)
       ds_warn("[NET] Bridgeless: Failed to add IP to %s", veth_host);
 
     /* Interface must be UP before routes can be added on some kernels */
@@ -232,7 +232,7 @@ int setup_veth_host_side(struct ds_config *cfg, pid_t child_pid) {
    * routing setup and the route monitor read.  Empty list = auto-detect.  This
    * runs before ds_net_setup_android_routing() and
    * ds_net_start_route_monitor(), which both consult g_upstream_*.  The count
-   * is already capped at DS_MAX_UPSTREAM_IFACES by the parsers. */
+   * is already capped at CHDROID_MAX_UPSTREAM_IFACES by the parsers. */
   g_upstream_count = cfg->upstream_iface_count;
   for (int _i = 0; _i < g_upstream_count; _i++)
     safe_strncpy(g_upstream_ifaces[_i], cfg->upstream_ifaces[_i], IFNAMSIZ);
@@ -268,7 +268,7 @@ int setup_veth_host_side(struct ds_config *cfg, pid_t child_pid) {
      * out of this port. The DHCP loop drops those by ingress ifindex and
      * packet type, see net/dhcp/server.c. */
     const char *dhcp_iface = veth_host;
-    ds_dhcp_server_start(cfg, dhcp_iface, offer_ip, inet_addr(DS_NAT_GW_IP),
+    ds_dhcp_server_start(cfg, dhcp_iface, offer_ip, inet_addr(CHDROID_NAT_GW_IP),
                          nat6 ? &ra_prefix : NULL);
 
     /* Store the container IP string (plain dotted-decimal) for port-forward

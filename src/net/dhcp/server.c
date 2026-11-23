@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Embedded single-lease DHCP server for NAT containers.
  *
@@ -24,7 +24,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include <arpa/inet.h>
 #include <linux/if_packet.h>
@@ -41,7 +41,7 @@
 
 /* Module-level state - one context per monitor process
  *
- * Droidspaces runs a separate monitor process per container, so a single
+ * ChDroid runs a separate monitor process per container, so a single
  * global context is sufficient and avoids any cross-container state sharing. */
 
 static ds_dhcp_ctx_t g_dhcp;
@@ -51,7 +51,7 @@ static pthread_mutex_t g_dhcp_lock = PTHREAD_MUTEX_INITIALIZER;
  * It goes to the all-nodes group, but the frame leaves through this
  * container's own bridge port, so no sibling ever sees it. */
 static void send_ra(int sock, int ifindex, const ds_dhcp_ctx_t *ctx) {
-  uint8_t frame[DS_RA_FRAME_LEN];
+  uint8_t frame[CHDROID_RA_FRAME_LEN];
   ds_ra_build(frame, ctx->server_mac, &ctx->ra_prefix);
 
   struct sockaddr_ll dst;
@@ -141,7 +141,7 @@ static void *dhcp_server_loop(void *arg) {
 
   while (!ctx->stop) {
     /* Multiplex */
-    int poll_ret = poll(fds, 2, ctx->ra_on ? DS_RA_INTERVAL_SEC * 1000 : -1);
+    int poll_ret = poll(fds, 2, ctx->ra_on ? CHDROID_RA_INTERVAL_SEC * 1000 : -1);
     if (poll_ret < 0) {
       if (errno == EINTR || errno == EAGAIN)
         continue;
@@ -157,7 +157,7 @@ static void *dhcp_server_loop(void *arg) {
     clock_gettime(CLOCK_MONOTONIC, &now);
     if (ctx->ra_on && now.tv_sec >= next_ra) {
       send_ra(packet_sock, sll.sll_ifindex, ctx);
-      next_ra = now.tv_sec + DS_RA_INTERVAL_SEC;
+      next_ra = now.tv_sec + CHDROID_RA_INTERVAL_SEC;
     }
 
     if (!(fds[0].revents & POLLIN))
@@ -353,8 +353,8 @@ void ds_dhcp_server_start(struct ds_config *cfg, const char *veth_host,
   /* DNS to advertise in the lease: the first two IPv4 entries of --dns, or
    * the compiled-in defaults. Option 6 can only carry IPv4, so an IPv6 entry
    * is skipped rather than allowed to cost the user one of their servers. */
-  g_dhcp.dns1_be = inet_addr(DS_DNS_DEFAULT_1);
-  g_dhcp.dns2_be = inet_addr(DS_DNS_DEFAULT_2);
+  g_dhcp.dns1_be = inet_addr(CHDROID_DNS_DEFAULT_1);
+  g_dhcp.dns2_be = inet_addr(CHDROID_DNS_DEFAULT_2);
   if (cfg && cfg->dns_servers[0]) {
     char tmp[sizeof(cfg->dns_servers)];
     safe_strncpy(tmp, cfg->dns_servers, sizeof(tmp));

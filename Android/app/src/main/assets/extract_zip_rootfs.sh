@@ -6,7 +6,7 @@
 # usage: extract_zip_rootfs.sh <module.zip> <busybox> <output-dir>
 
 ZIP="$1"
-BB="${2:-/data/local/Droidspaces/bin/busybox}"
+BB="${2:-/data/local/ChDroid/bin/busybox}"
 OUT="$3"
 
 log() { "$BB" echo "$@" >&2; }

@@ -1,0 +1,19 @@
+# sudo cp /path/to/compiled/chdroid /usr/bin/chdroid
+# sudo chmod +x /usr/bin/chdroid
+# sudo groupadd chdroid
+# sudo usermod -aG chdroid $USER
+# sudo cp init/systemd-service/chdroid.service /etc/systemd/system/
+# sudo systemctl daemon-reload
+# sudo systemctl enable --now chdroid
+
+[Unit]
+Description=ChDroid Daemon
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/chdroid daemon --foreground
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

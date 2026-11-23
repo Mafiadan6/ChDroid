@@ -42,7 +42,7 @@
     <string name="uninstall_container_menu">解除安裝容器</string>
     <string name="no_local_users_found">未找到本地用戶</string>
     <string name="container_path_placeholder">例如：/mnt/sdcard</string>
-    <string name="installing_droidspaces">正在安裝ChDroid</string>
+    <string name="installing_chdroid">正在安裝ChDroid</string>
     <string name="saved">已儲存</string>
     <string name="bug_report_title">錯誤報告</string>
     <string name="no_containers_installed">未安裝容器</string>
@@ -217,7 +217,7 @@
     <string name="hostname_hint">若留空，將使用容器名稱作為主機名</string>
     <string name="not_configured">未配置</string>
     <string name="failed_to_update_config">更新配置失敗</string>
-    <string name="about_droidspaces">關於 ChDroid</string>
+    <string name="about_chdroid">關於 ChDroid</string>
     <string name="error_octet_range">範圍：1-254</string>
     <string name="continue_button">繼續</string>
     <string name="android_storage_description">掛載 Android 存儲空間</string>
@@ -279,7 +279,7 @@
     <string name="error_hostname_invalid">主機名稱只能包含字母、數字和連字號（-）</string>
     <string name="check_requirements">檢查需求</string>
     <string name="requirements_check_title">需求檢測</string>
-    <string name="requirements_for_droidspaces">ChDroid 運行需求</string>
+    <string name="requirements_for_chdroid">ChDroid 運行需求</string>
     <string name="requirements_check_completed_successfully">成功完成運行需求檢查</string>
     <string name="requirements_check_completed_with_errors">運行需求檢查已完成，存在錯誤</string>
     <string name="kernel_requirements_copied">核心所需配置已複製到剪貼簿</string>
@@ -305,7 +305,7 @@
     <string name="starting_resizing">開始執行容量調整...</string>
     <string name="help_card_title">首次使用ChDroid？</string>
     <string name="help_card_message">點擊此處，了解如何設定Linux 容器吧！</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">特權模式</string>
     <string name="privileged_nomask_desc">停用隔離遮罩以允許對/proc 和/sys 的寫入存取。注意：除非同時啟用了“硬體存取”，否則/sys 將保持唯讀狀態。</string>
     <string name="privileged_nocaps_desc">保留所有 Linux 功能（完整 root 權限）。</string>

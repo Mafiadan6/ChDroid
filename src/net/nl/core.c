@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Pure-C RTNETLINK client: link, address, route, and policy-rule management.
  * Replaces all `ip link/addr/route/rule` shell invocations.
@@ -11,7 +11,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <linux/if_link.h>
 #include <linux/rtnetlink.h>

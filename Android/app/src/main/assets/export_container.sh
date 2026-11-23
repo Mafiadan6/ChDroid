@@ -1,5 +1,5 @@
 #!/system/bin/sh
-# export_container.sh - Export a Droidspaces container as a .tar.gz archive
+# export_container.sh - Export a ChDroid container as a .tar.gz archive
 # Copyright (c) 2026 ravindu644
 #
 # Usage: export_container.sh <container_name> <output_path> [--with-env]
@@ -13,9 +13,9 @@
 
 set -e
 
-DS_PATH="/data/local/Droidspaces"
-CONTAINERS_BASE_PATH="${DS_PATH}/Containers"
-BUSYBOX_PATH="${DS_PATH}/bin/busybox"
+CHDROID_PATH="/data/local/ChDroid"
+CONTAINERS_BASE_PATH="${CHDROID_PATH}/Containers"
+BUSYBOX_PATH="${CHDROID_PATH}/bin/busybox"
 
 # --- Logging ---
 log()   { echo "[INFO] $1"; }

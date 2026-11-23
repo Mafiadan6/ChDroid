@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -25,10 +25,10 @@
  * so same length: sync_resolv_order() swaps one for the other in place. */
 
 #define DNS_LINE(ip) "nameserver " ip "\n"
-static const char k_dns_v4_first[] = DNS_LINE(DS_DNS_DEFAULT_1)
-    DNS_LINE(DS_DNS_DEFAULT_2) DNS_LINE(DS_DNS_DEFAULT_6);
-static const char k_dns_v6_first[] = DNS_LINE(DS_DNS_DEFAULT_6)
-    DNS_LINE(DS_DNS_DEFAULT_1) DNS_LINE(DS_DNS_DEFAULT_2);
+static const char k_dns_v4_first[] = DNS_LINE(CHDROID_DNS_DEFAULT_1)
+    DNS_LINE(CHDROID_DNS_DEFAULT_2) DNS_LINE(CHDROID_DNS_DEFAULT_6);
+static const char k_dns_v6_first[] = DNS_LINE(CHDROID_DNS_DEFAULT_6)
+    DNS_LINE(CHDROID_DNS_DEFAULT_1) DNS_LINE(CHDROID_DNS_DEFAULT_2);
 
 int ds_get_dns_servers(const char *custom_dns, char *out, size_t size) {
   out[0] = '\0';
@@ -66,7 +66,7 @@ int fix_networking_host(struct ds_config *cfg) {
   write_file("/proc/sys/net/ipv4/ip_forward", "1");
 
   /* Re-enable IPv6 globally only in host mode if not disabled */
-  if (cfg->net_mode == DS_NET_HOST && !cfg->disable_ipv6) {
+  if (cfg->net_mode == CHDROID_NET_HOST && !cfg->disable_ipv6) {
     write_file("/proc/sys/net/ipv6/conf/all/disable_ipv6", "0");
     write_file("/proc/sys/net/ipv6/conf/default/disable_ipv6", "0");
   }
@@ -100,7 +100,7 @@ void sync_resolv_order(int v6_first) {
   size_t len = sizeof(k_dns_v4_first) - 1;
 
   int fd =
-      ds_open_in_root(g_host_init_pid, DS_RESOLV_CONF, O_RDWR | O_NONBLOCK);
+      ds_open_in_root(g_host_init_pid, CHDROID_RESOLV_CONF, O_RDWR | O_NONBLOCK);
   if (fd < 0)
     return;
 

@@ -63,13 +63,13 @@
 
         environment.variables.NIXOS_ROOTFS = let
           system = pkgs.stdenv.hostPlatform.system;
-          tarballPath = "${self.legacyPackages.${system}.nixosDroidspacesTarballs.${system}.minimal}";
+          tarballPath = "${self.legacyPackages.${system}.nixosChDroidTarballs.${system}.minimal}";
           file = builtins.elemAt (lib.filesystem.listFilesRecursive "${tarballPath}/tarball") 0;
         in
           file;
         environment.interactiveShellInit = ''
           echo '------'
-          echo 'NixOS Droidspaces Minimal Rootfs is available at $NIXOS_ROOTFS'
+          echo 'NixOS ChDroid Minimal Rootfs is available at $NIXOS_ROOTFS'
           echo '------'
         '';
       };
@@ -79,14 +79,14 @@
 
         environment.variables.FINIX_ROOTFS = let
           system = pkgs.stdenv.hostPlatform.system;
-          tarballPath = "${self.legacyPackages.${system}.finixDroidspacesTarballs.${system}.experimental}";
+          tarballPath = "${self.legacyPackages.${system}.finixChDroidTarballs.${system}.experimental}";
           file = builtins.elemAt (lib.filesystem.listFilesRecursive "${tarballPath}/tarball") 0;
         in
           file;
 
         environment.interactiveShellInit = ''
           echo '------'
-          echo 'Finix Droidspaces Minimal Rootfs is available at $FINIX_ROOTFS'
+          echo 'Finix ChDroid Minimal Rootfs is available at $FINIX_ROOTFS'
           echo '------'
         '';
       };
@@ -129,11 +129,11 @@
         };
 
         environment.interactiveShellInit = ''
-          alias ds='droidspaces'
+          alias ds='chdroid'
 
           echo '------'
-          echo "Manual Test System for droidspaces"
-          echo "droidspaces is aliased to ds for ease"
+          echo "Manual Test System for chdroid"
+          echo "chdroid is aliased to ds for ease"
           echo '------'
         '';
       };

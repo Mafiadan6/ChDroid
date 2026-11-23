@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -24,7 +24,7 @@
  * automatic detection is disabled - an explicit manual override.  Copied from
  * cfg in setup_veth_host_side(), before routing setup and the monitor read it.
  */
-char g_upstream_ifaces[DS_MAX_UPSTREAM_IFACES][IFNAMSIZ];
+char g_upstream_ifaces[CHDROID_MAX_UPSTREAM_IFACES][IFNAMSIZ];
 int g_upstream_count = 0;
 
 /* Returns 1 if ifname exists and is both UP and RUNNING.
@@ -56,7 +56,7 @@ static int iface_is_running(const char *ifname) {
  * its connectivity downstream (hotspot / USB tethering - Android acts as
  * the router, these face clients, not the internet).  tun/ppp are VPN
  * tunnels which container traffic intentionally bypasses (see the
- * DS_RULE_PRIO_* rationale in net/net.h).  The rest are loopback,
+ * CHDROID_RULE_PRIO_* rationale in net/net.h).  The rest are loopback,
  * placeholders, and our own bridge/veth devices. */
 
 static const char *const k_uplink_patterns[] = {

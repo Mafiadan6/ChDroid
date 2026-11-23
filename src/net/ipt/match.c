@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter/nf_nat.h>
@@ -157,13 +157,13 @@ struct xt_standard_target *entry_standard_target(const struct xt_family *f,
 }
 
 /* Build "-p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu" in
- * buf, which must hold DS_XT_RULE_MAX bytes. Returns the rule's size. The
+ * buf, which must hold CHDROID_XT_RULE_MAX bytes. Returns the rule's size. The
  * kernel accepts a clamp only on a rule that matches TCP SYNs, which is what
  * the tcp match says. */
 unsigned int clamp_rule(const struct xt_family *f, unsigned char *buf) {
   size_t hdr = XT_ALIGN(f->entry_sz);
-  uint16_t toff = (uint16_t)(hdr + DS_XT_CLAMP_MATCH_SZ);
-  uint16_t next = (uint16_t)(toff + DS_XT_CLAMP_TARGET_SZ);
+  uint16_t toff = (uint16_t)(hdr + CHDROID_XT_CLAMP_MATCH_SZ);
+  uint16_t next = (uint16_t)(toff + CHDROID_XT_CLAMP_TARGET_SZ);
 
   memset(buf, 0, next);
   memcpy(buf + f->off_target, &toff, sizeof(toff));
@@ -176,7 +176,7 @@ unsigned int clamp_rule(const struct xt_family *f, unsigned char *buf) {
     *v.flags |= IP6T_F_PROTO; /* ip6t only looks at proto when told to */
 
   struct xt_entry_match *m = (struct xt_entry_match *)(buf + hdr);
-  m->u.match_size = DS_XT_CLAMP_MATCH_SZ;
+  m->u.match_size = CHDROID_XT_CLAMP_MATCH_SZ;
   safe_strncpy(m->u.user.name, "tcp", sizeof(m->u.user.name));
   struct xt_tcp *tcp = (struct xt_tcp *)m->data;
   tcp->spts[1] = tcp->dpts[1] = 0xffff; /* any port */
@@ -184,7 +184,7 @@ unsigned int clamp_rule(const struct xt_family *f, unsigned char *buf) {
   tcp->flg_cmp = 0x02;                  /* SYN */
 
   struct xt_entry_target *t = (struct xt_entry_target *)(buf + toff);
-  t->u.target_size = DS_XT_CLAMP_TARGET_SZ;
+  t->u.target_size = CHDROID_XT_CLAMP_TARGET_SZ;
   safe_strncpy(t->u.user.name, "TCPMSS", sizeof(t->u.user.name));
   ((struct xt_tcpmss_info *)t->data)->mss = XT_TCPMSS_CLAMP_PMTU;
   return next;
@@ -195,7 +195,7 @@ unsigned int clamp_rule(const struct xt_family *f, unsigned char *buf) {
  * TCPMSS rule that happens to share the chain. */
 int is_our_clamp(const struct xt_family *f, const unsigned char *e) {
   unsigned int toff = ent_target_off(f, e);
-  if (toff != XT_ALIGN(f->entry_sz) + DS_XT_CLAMP_MATCH_SZ)
+  if (toff != XT_ALIGN(f->entry_sz) + CHDROID_XT_CLAMP_MATCH_SZ)
     return 0;
   struct xt_ent_view v;
   entry_view_ro(f, e, &v);
@@ -206,13 +206,13 @@ int is_our_clamp(const struct xt_family *f, const unsigned char *e) {
   const struct xt_entry_match *m =
       (const struct xt_entry_match *)(e + XT_ALIGN(f->entry_sz));
   const struct xt_tcp *tcp = (const struct xt_tcp *)m->data;
-  if (m->u.match_size != DS_XT_CLAMP_MATCH_SZ ||
+  if (m->u.match_size != CHDROID_XT_CLAMP_MATCH_SZ ||
       strcmp(m->u.user.name, "tcp") != 0 || tcp->flg_mask != (0x02 | 0x04) ||
       tcp->flg_cmp != 0x02 || tcp->invflags != 0)
     return 0;
 
   const struct xt_entry_target *t = (const struct xt_entry_target *)(e + toff);
-  return t->u.target_size == DS_XT_CLAMP_TARGET_SZ &&
+  return t->u.target_size == CHDROID_XT_CLAMP_TARGET_SZ &&
          strcmp(t->u.user.name, "TCPMSS") == 0 &&
          ((const struct xt_tcpmss_info *)t->data)->mss == XT_TCPMSS_CLAMP_PMTU;
 }

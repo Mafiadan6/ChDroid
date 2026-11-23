@@ -5,7 +5,7 @@
 
 import unittest
 
-from dstest import CAPS_DROPPED_NO_HW, Container, DsTest, cap_mask, ds, require_daemon
+from dstest import CAPS_DROPPED_NO_HW, Container, ChDroidTest, cap_mask, ds, require_daemon
 
 
 def setUpModule():
@@ -21,7 +21,7 @@ def caps(c):
     return dict(line.replace(":", "").split() for line in out.splitlines())
 
 
-class DefaultPosture(DsTest):
+class DefaultPosture(ChDroidTest):
     @classmethod
     def setUpClass(cls):
         cls.c = cls.shared_container("sec")
@@ -58,7 +58,7 @@ class DefaultPosture(DsTest):
         self.assertNotIn("shared:", self.c.mountinfo())
 
     def test_no_pristine_proc_without_sandboxing(self):
-        names = set(self.c.sh("ls /run/droidspaces").split())
+        names = set(self.c.sh("ls /run/chdroid").split())
         self.assertIn("container.config", names)
         self.assertNotIn("proc", names)
         self.assertNotIn("sys", names)
@@ -70,7 +70,7 @@ class DefaultPosture(DsTest):
         self.assertLess(float(self.c.sh("cut -d' ' -f1 /proc/uptime")), 3600, "uptime inside is the container's, not the host's")
 
 
-class Privileged(DsTest):
+class Privileged(ChDroidTest):
     def test_nomask(self):
         c = self.container("nomask", "--privileged=nomask")
         mounts = c.mountinfo()
@@ -163,12 +163,12 @@ class Privileged(DsTest):
         self.assertIn(" /proc/sysrq-trigger ", c.mountinfo())
 
 
-class Sandboxing(DsTest):
+class Sandboxing(ChDroidTest):
     def test_allow_sandboxing(self):
         c = self.container("sandbox", "--allow-sandboxing")
         mounts = c.mountinfo()
-        self.assertIn(" /run/droidspaces/proc ", mounts)
-        self.assertIn(" /run/droidspaces/sys ", mounts)
+        self.assertIn(" /run/chdroid/proc ", mounts)
+        self.assertIn(" /run/chdroid/sys ", mounts)
         self.assertEqual(c.run("unshare", "-Ur", "true", check=False).returncode, 0)
         dropped = tuple(n for n in CAPS_DROPPED_NO_HW if n != 19)
         self.assertEqual(caps(c)["CapBnd"], cap_mask(dropped), "CAP_SYS_PTRACE must stay for sandboxes")

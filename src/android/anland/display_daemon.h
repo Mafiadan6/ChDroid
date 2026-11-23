@@ -2,7 +2,7 @@
  * Anland 5.x display broker.
  *
  * Vendored from https://github.com/superturtlee/anland, branch legacy,
- * libdisplay_daemon/, and adapted for Droidspaces: see display_daemon.c.
+ * libdisplay_daemon/, and adapted for ChDroid: see display_daemon.c.
  *
  * The broker stashes the consumer's screen info and deposited fds and hands
  * them to the producer. All state lives in an opaque daemon_ctx. The library

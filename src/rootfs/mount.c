@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Helpers */
 
@@ -95,7 +95,7 @@ int bind_mount(const char *src, const char *tgt) {
    * rejects a symlink at the final component here.  (A symlink in an
    * intermediate component is still resolved at open() time; fully closing
    * that needs openat2(RESOLVE_NO_SYMLINKS), which is unavailable on the older
-   * kernels Droidspaces supports.  Custom binds get an additional is_subpath()
+   * kernels ChDroid supports.  Custom binds get an additional is_subpath()
    * post-check in setup_custom_binds().) */
   int tgt_fd = open(tgt, O_PATH | O_NOFOLLOW | O_CLOEXEC);
   if (tgt_fd < 0) {

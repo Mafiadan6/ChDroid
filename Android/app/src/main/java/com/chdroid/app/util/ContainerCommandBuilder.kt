@@ -1,0 +1,55 @@
+package com.chdroid.app.util
+
+/**
+ * Builds chdroid commands dynamically based on container configuration.
+ * Constructs start/stop/restart commands with all necessary flags.
+ * All values are properly quoted to handle spaces and special characters.
+ */
+object ContainerCommandBuilder {
+    private const val CHDROID_BINARY_PATH = Constants.CHDROID_BINARY_PATH
+
+    /**
+     * Quote a value for use in shell commands.
+     * Escapes single quotes and wraps in single quotes for safety.
+     */
+    fun quote(value: String): String {
+        // Replace single quotes with '\'' (end quote, escaped quote, start quote)
+        return "'${value.replace("'", "'\\''")}'"
+    }
+
+    /**
+     * Get the absolute path to the container's configuration file.
+     */
+    fun getConfigPath(container: ContainerInfo): String {
+        val sanitizedName = ContainerManager.sanitizeContainerName(container.name)
+        return "${Constants.CONTAINERS_BASE_PATH}/$sanitizedName/${Constants.CONTAINER_CONFIG_FILE}"
+    }
+
+    /**
+     * Build start command for a container based on its configuration.
+     * Uses the central config file instead of passing all flags individually.
+     */
+    fun buildStartCommand(container: ContainerInfo): String =
+        "$CHDROID_BINARY_PATH --config=${quote(getConfigPath(container))} start"
+
+    /**
+     * Build stop command for a container.
+     */
+    fun buildStopCommand(container: ContainerInfo): String {
+        return "$CHDROID_BINARY_PATH --name=${quote(container.name)} stop"
+    }
+
+    /**
+     * Build restart command for a container.
+     */
+    fun buildRestartCommand(container: ContainerInfo): String {
+        return "$CHDROID_BINARY_PATH --config=${quote(getConfigPath(container))} restart"
+    }
+
+    /** JSON status of every running container: OS, hostname, IP, uptime, CPU, RAM. */
+    fun buildShowCommand(): String = "$CHDROID_BINARY_PATH --json show"
+
+    /** JSON of every kernel capability probe, one 0/1 per key. */
+    fun buildCheckCommand(): String = "$CHDROID_BINARY_PATH --json check"
+}
+

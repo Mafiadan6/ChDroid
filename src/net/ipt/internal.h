@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_NET_IPT_INTERNAL_H
-#define DS_NET_IPT_INTERNAL_H
+#ifndef CHDROID_NET_IPT_INTERNAL_H
+#define CHDROID_NET_IPT_INTERNAL_H
 
 /* Address family descriptor
  *
@@ -40,25 +40,25 @@ struct xt_ent_view {
 #define ENTRIES_BLOB(base)                                                     \
   ((unsigned char *)((struct ipt_get_entries *)(base))->entrytable)
 
-#define DS_IPT_MATCH_IN 0x01u
-#define DS_IPT_MATCH_OUT 0x02u
-#define DS_IPT_MATCH_CLAMP 0x04u /* our MSS clamp, see clamp_rule() */
+#define CHDROID_IPT_MATCH_IN 0x01u
+#define CHDROID_IPT_MATCH_OUT 0x02u
+#define CHDROID_IPT_MATCH_CLAMP 0x04u /* our MSS clamp, see clamp_rule() */
 
 /* The MSS clamp is [entry][tcp match][TCPMSS target]: the one rule we build
  * with a match extension. */
-#define DS_XT_CLAMP_MATCH_SZ                                                   \
+#define CHDROID_XT_CLAMP_MATCH_SZ                                                   \
   XT_ALIGN(sizeof(struct xt_entry_match) + sizeof(struct xt_tcp))
-#define DS_XT_CLAMP_TARGET_SZ                                                  \
+#define CHDROID_XT_CLAMP_TARGET_SZ                                                  \
   XT_ALIGN(sizeof(struct xt_entry_target) + sizeof(struct xt_tcpmss_info))
-#define DS_XT_NAT_TARGET_SZ                                                    \
+#define CHDROID_XT_NAT_TARGET_SZ                                                    \
   XT_ALIGN(sizeof(struct xt_entry_target) + sizeof(struct nf_nat_range))
 
 /* Big enough for any rule we build, in either family. */
-#define DS_XT_RULE_MAX                                                         \
+#define CHDROID_XT_RULE_MAX                                                         \
   (XT_ALIGN(sizeof(struct ip6t_entry)) +                                       \
-   (DS_XT_CLAMP_MATCH_SZ + DS_XT_CLAMP_TARGET_SZ > DS_XT_NAT_TARGET_SZ         \
-        ? DS_XT_CLAMP_MATCH_SZ + DS_XT_CLAMP_TARGET_SZ                         \
-        : DS_XT_NAT_TARGET_SZ))
+   (CHDROID_XT_CLAMP_MATCH_SZ + CHDROID_XT_CLAMP_TARGET_SZ > CHDROID_XT_NAT_TARGET_SZ         \
+        ? CHDROID_XT_CLAMP_MATCH_SZ + CHDROID_XT_CLAMP_TARGET_SZ                         \
+        : CHDROID_XT_NAT_TARGET_SZ))
 
 extern int modules_probed;
 
@@ -110,4 +110,4 @@ int remove_matching_rules(const struct xt_family *f, int fd,
                           const void *match_src, const void *match_mask,
                           const char *match_iface, unsigned int iface_flags);
 
-#endif /* DS_NET_IPT_INTERNAL_H */
+#endif /* CHDROID_NET_IPT_INTERNAL_H */

@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -44,7 +44,7 @@ int ds_bridge_termux_socket(const char *leaf, const char *dst,
                             const char *env_key, const char *env_val,
                             const char *label) {
   char src[PATH_MAX];
-  snprintf(src, sizeof(src), "%s/%s", DS_TERMUX_TMP_OLDROOT, leaf);
+  snprintf(src, sizeof(src), "%s/%s", CHDROID_TERMUX_TMP_OLDROOT, leaf);
 
   struct stat st;
   if (stat(src, &st) != 0) {

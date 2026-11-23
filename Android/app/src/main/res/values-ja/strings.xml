@@ -47,7 +47,7 @@
     <string name="daemon_mode">デーモンモード</string>
     <string name="daemon_mode_description">Magisk/APatch、 GrapheneOSなどによるseccompブロックを回避する為に、ドロイドスペースを恒久的なシステムレベルのデーモンとして実行します。これによってユーザ空間からコマンドを実行し、特権操作が可能になります。（再起動が必要です）</string>
     <string name="symlink_integration">ドロイドスペースをシステムのパスに統合する</string>
-    <string name="about_droidspaces">ドロイドスペースについて</string>
+    <string name="about_chdroid">ドロイドスペースについて</string>
     <string name="bug_report_title">バグ報告</string>
     <string name="ok">確定</string>
     <string name="no_containers_installed">コンテナがインストールされていません</string>
@@ -140,7 +140,7 @@
     <string name="configuration_title">構成</string>
     <string name="installation_complete">インストール完了</string>
     <string name="installation_failed">インストール失敗</string>
-    <string name="installing_droidspaces">ドロイドスペースのインストール中</string>
+    <string name="installing_chdroid">ドロイドスペースのインストール中</string>
     <string name="backend_installed_success">ドロイドスペースのバックエンドが正常にインストールされました</string>
     <string name="binary_installation_failed">実行可能ファイルのインストールが失敗しました</string>
     <string name="no_containers_running">実行中のコンテナはありません</string>
@@ -198,7 +198,7 @@
     <string name="error_hostname_invalid">ホスト名に含められるのは、英数字とハイフン(-)だけです</string>
     <string name="check_requirements">要件を確認してください</string>
     <string name="requirements_check_title">要件確認</string>
-    <string name="requirements_for_droidspaces">ドロイドスペースの要件</string>
+    <string name="requirements_for_chdroid">ドロイドスペースの要件</string>
     <string name="requirements_check_completed_successfully">要件の確認は正常に完了しました</string>
     <string name="requirements_check_completed_with_errors">要件の確認は完了しましたが、エラーがあります</string>
     <string name="kernel_requirements_copied">カーネル要件がクリップボードにコピーされました</string>
@@ -265,7 +265,7 @@
     <string name="starting_resizing">容量変更作業を開始しています…</string>
     <string name="help_card_title">ドロイドスペースは初めてですか？</string>
     <string name="help_card_message">初めてのLinuxコンテナをセットアップする方法を学ぶには、こちらをタップしてくだされ！</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="volatile_mode">⚠️危ないモード</string>
     <string name="masked_legend">隠匿中</string>
     <string name="unmask">見せる</string>

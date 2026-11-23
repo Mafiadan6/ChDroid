@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_CONTAINER_INTERNAL_H
-#define DS_CONTAINER_INTERNAL_H
+#ifndef CHDROID_CONTAINER_INTERNAL_H
+#define CHDROID_CONTAINER_INTERNAL_H
 
 int is_pid_file(const char *name);
 void get_container_name_from_pidfile(const char *pidfile, char *name,
@@ -21,4 +21,4 @@ int stop_rootfs_locked(struct ds_config *caller_cfg, int skip_unmount,
 int is_ds_monitor(pid_t p);
 int is_unmanaged_init(pid_t pid);
 
-#endif /* DS_CONTAINER_INTERNAL_H */
+#endif /* CHDROID_CONTAINER_INTERNAL_H */

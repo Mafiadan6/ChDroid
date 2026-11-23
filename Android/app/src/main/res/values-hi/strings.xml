@@ -21,7 +21,7 @@
     <!-- Main Tab Screen -->
     <string name="container_singular">कंटेनर</string>
     <string name="running">चल रहा है</string>
-    <!-- Droidspaces Status Card -->
+    <!-- ChDroid Status Card -->
     <string name="backend_checking">Backend: जांच हो रही है...</string>
     <string name="backend_installed">Backend: स्थापित</string>
     <string name="backend_update_available">Backend: अपडेट उपलब्ध है</string>
@@ -50,7 +50,7 @@
     <string name="dynamic_color">सिस्टम का डिफ़ॉल्ट रंग पैलेट लागू करें</string>
     <string name="dynamic_color_description">Android 12+ Monet थीमिंग (Material You) का उपयोग करें</string>
     <string name="about_section">परिचय</string>
-    <string name="about_droidspaces">ChDroid के बारे में</string>
+    <string name="about_chdroid">ChDroid के बारे में</string>
     <string name="about_description">Android के लिए LXC-शैली का कंटेनर मैनेजर</string>
     <string name="developers">डेवलपर</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -135,7 +135,7 @@
     <!-- Installation Screen -->
     <string name="installation_complete">इंस्टॉलेशन पूर्ण</string>
     <string name="installation_failed">इंस्टॉलेशन विफल</string>
-    <string name="installing_droidspaces">ChDroid इंस्टॉल किया जा रहा है</string>
+    <string name="installing_chdroid">ChDroid इंस्टॉल किया जा रहा है</string>
     <string name="backend_installed_success">Backend सफलतापूर्वक स्थापित हो गया</string>
     <string name="binary_installation_failed">बाइनरी इंस्टॉलेशन विफल</string>
     <!-- Control Panel Screen -->
@@ -226,7 +226,7 @@
     <!-- Requirements -->
     <string name="check_requirements">आवश्यकताएँ जांचें</string>
     <string name="requirements_check_title">आवश्यकता जांच</string>
-    <string name="requirements_for_droidspaces">ChDroid के लिए आवश्यकताएँ</string>
+    <string name="requirements_for_chdroid">ChDroid के लिए आवश्यकताएँ</string>
     <string name="requirements_check_completed_successfully">आवश्यकता जांच सफलतापूर्वक पूर्ण हुई</string>
     <string name="requirements_check_completed_with_errors">आवश्यकता जांच त्रुटियों के साथ पूर्ण हुई</string>
     <string name="kernel_requirements_copied">कर्नेल आवश्यकताएँ क्लिपबोर्ड में कॉपी की गईं</string>

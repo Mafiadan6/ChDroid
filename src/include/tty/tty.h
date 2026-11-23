@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_TTY_TTY_H
-#define DS_TTY_TTY_H
+#ifndef CHDROID_TTY_TTY_H
+#define CHDROID_TTY_TTY_H
 
 /* console.c */
 int ds_console_send(int sock, int master, int slave);
@@ -24,4 +24,4 @@ int ds_terminal_set_stdfds(int fd);
 int ds_terminal_make_controlling(int fd);
 int ds_setup_tios(int fd, struct termios *old);
 
-#endif /* DS_TTY_TTY_H */
+#endif /* CHDROID_TTY_TTY_H */

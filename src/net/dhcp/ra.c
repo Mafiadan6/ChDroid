@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * IPv6 Router Advertisements for NAT containers (RFC 4861).
  *
@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -39,7 +39,7 @@ int ds_ra_is_solicit(const uint8_t *frame, size_t len) {
 }
 
 /* Build an all-nodes Router Advertisement from fe80::1 announcing `prefix`/64
- * for SLAAC. `out` must hold DS_RA_FRAME_LEN bytes.
+ * for SLAAC. `out` must hold CHDROID_RA_FRAME_LEN bytes.
  *
  * `mac` is only the ethernet source. The RA deliberately carries no source
  * link-layer option: udev re-assigns a fresh veth's MAC shortly after it is
@@ -52,7 +52,7 @@ void ds_ra_build(uint8_t *out, const uint8_t mac[6],
   static const uint8_t all_nodes_mac[6] = {0x33, 0x33, 0, 0, 0, 1};
   uint8_t *ip = out + ETH_LEN, *ra = ip + IP6_HLEN;
 
-  memset(out, 0, DS_RA_FRAME_LEN);
+  memset(out, 0, CHDROID_RA_FRAME_LEN);
   memcpy(out, all_nodes_mac, 6);
   memcpy(out + 6, mac, 6);
   out[12] = 0x86;
@@ -71,8 +71,8 @@ void ds_ra_build(uint8_t *out, const uint8_t mac[6],
 
   ra[0] = 134;
   ra[4] = 64; /* hop limit the container should use */
-  ra[6] = DS_RA_ROUTER_LIFETIME >> 8;
-  ra[7] = DS_RA_ROUTER_LIFETIME & 0xff;
+  ra[6] = CHDROID_RA_ROUTER_LIFETIME >> 8;
+  ra[7] = CHDROID_RA_ROUTER_LIFETIME & 0xff;
 
   uint8_t *opt = ra + 16; /* prefix information */
   opt[0] = 3;

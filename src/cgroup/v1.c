@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -21,11 +21,11 @@ static void v1_seed_cpuset(const char *mnt) {
     snprintf(path, sizeof(path), "%s/%s", mnt, files[i]);
     if (read_file(path, buf, sizeof(buf)) <= 0)
       continue;
-    snprintf(path, sizeof(path), "%s/droidspaces/%s", mnt, files[i]);
+    snprintf(path, sizeof(path), "%s/chdroid/%s", mnt, files[i]);
     if (write_file(path, buf) < 0) {
     }
   }
-  snprintf(path, sizeof(path), "%s/droidspaces/cgroup.clone_children", mnt);
+  snprintf(path, sizeof(path), "%s/chdroid/cgroup.clone_children", mnt);
   if (write_file(path, "1") < 0) {
   }
 }
@@ -64,13 +64,13 @@ void v1_each(const char *container_name, int op) {
       continue;
 
     char dir[PATH_MAX + 512], path[PATH_MAX + 640];
-    snprintf(dir, sizeof(dir), "%s/droidspaces", mnt);
+    snprintf(dir, sizeof(dir), "%s/chdroid", mnt);
     if (op == V1_CREATE) {
       /* Not fatal: schedtune on 4.14 has a hard cap on group count */
       if (mkdir(dir, 0755) == 0)
         v1_seed_cpuset(mnt);
     }
-    snprintf(dir, sizeof(dir), "%s/droidspaces/%s", mnt, safe_name);
+    snprintf(dir, sizeof(dir), "%s/chdroid/%s", mnt, safe_name);
     if (op == V1_CREATE) {
       mkdir_fresh(dir);
       /* Kernels before 5.x account memory flat by default, and then a limit

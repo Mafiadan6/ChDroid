@@ -6,14 +6,14 @@
         "lastModified": 1778836831,
         "narHash": "sha256-Dou/ceLNa47497dVDKTpn7Qvdn24MT41Qlqkfo9FEoU=",
         "owner": "loystonpais",
-        "repo": "Droidspaces-OSS",
+        "repo": "ChDroid-OSS",
         "rev": "e8b17887059b31f9862a1b693a5b68b03487cf4c",
         "type": "github"
       },
       "original": {
         "owner": "loystonpais",
         "ref": "artifacts",
-        "repo": "Droidspaces-OSS",
+        "repo": "ChDroid-OSS",
         "type": "github"
       }
     },

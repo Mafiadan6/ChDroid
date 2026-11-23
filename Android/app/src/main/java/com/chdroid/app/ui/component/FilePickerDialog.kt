@@ -1,0 +1,365 @@
+package com.chdroid.app.ui.component
+
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import com.chdroid.app.ui.component.ChDroidDialog
+import com.chdroid.app.util.ContainerCommandBuilder
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import com.chdroid.app.ui.util.FullScreenLoading
+import com.chdroid.app.ui.util.LoadingSize
+import com.chdroid.app.ui.theme.JetBrainsMono
+import com.chdroid.app.R
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import com.chdroid.app.ui.util.FocusUtils
+import com.chdroid.app.ui.util.rememberClearFocus
+import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import java.io.File
+
+/**
+ * Draws a vertical scrollbar indicator for LazyColumn on the right edge.
+ */
+private fun Modifier.lazyListVerticalScrollbar(
+    listState: LazyListState,
+    color: Color,
+    thickness: Dp = 4.dp
+): Modifier = drawWithContent {
+    drawContent()
+
+    val totalItems = listState.layoutInfo.totalItemsCount
+    if (totalItems == 0) return@drawWithContent
+
+    val visibleItems = listState.layoutInfo.visibleItemsInfo
+    if (visibleItems.isEmpty() || visibleItems.size >= totalItems) return@drawWithContent
+
+    val viewportHeight = size.height
+    val thumbHeight = (visibleItems.size.toFloat() / totalItems * viewportHeight)
+        .coerceAtLeast(24.dp.toPx())
+    val scrollRange = viewportHeight - thumbHeight
+
+    val firstVisibleIndex = listState.firstVisibleItemIndex
+    val scrollFraction = firstVisibleIndex.toFloat() / (totalItems - visibleItems.size).coerceAtLeast(1)
+    val thumbOffset = scrollFraction * scrollRange
+    val barWidth = thickness.toPx()
+
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(size.width - barWidth - 2.dp.toPx(), thumbOffset),
+        size = Size(barWidth, thumbHeight),
+        cornerRadius = CornerRadius(barWidth / 2f)
+    )
+}
+
+/**
+ * A root-aware file and directory picker dialog that allows browsing from the root (/).
+ * Uses libsu (Shell) to bypass Android's scoped storage restrictions for administrative tasks.
+ */
+@Composable
+fun FilePickerDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    title: String = "Select Host Path",
+    showFiles: Boolean = true,
+    allowRoot: Boolean = true
+) {
+    var currentPath by remember { mutableStateOf("/") }
+    var items by remember { mutableStateOf<List<FileItem>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var searchQuery by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+
+    LaunchedEffect(currentPath) {
+        isLoading = true
+        items = fetchItems(currentPath, showFiles)
+        isLoading = false
+    }
+
+    // Smart filtering
+    val filteredItems = remember(items, searchQuery) {
+        if (searchQuery.isEmpty()) {
+            items
+        } else if (searchQuery.startsWith("/")) {
+            val lastSegment = searchQuery.substringAfterLast("/")
+            if (lastSegment.isEmpty()) items else items.filter { it.name.contains(lastSegment, ignoreCase = true) }
+        } else {
+            items.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        }
+    }
+
+    // Typing a path in the search box jumps to that directory. Only set currentPath here
+    // and let the effect above do the listing: fetching here as well raced it, and whichever
+    // of the two finished last decided what you saw. The delay debounces the root shell
+    // probe, since LaunchedEffect cancels the previous run on every keystroke.
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.startsWith("/") && searchQuery.length > 1) {
+            val targetDir = if (searchQuery.endsWith("/")) {
+                searchQuery.trimEnd('/')
+            } else {
+                File(searchQuery).parent ?: "/"
+            }
+            if (targetDir != currentPath && targetDir.isNotEmpty()) {
+                delay(300)
+                val exists = withContext(Dispatchers.IO) {
+                    val result = Shell.cmd("[ -d ${ContainerCommandBuilder.quote(targetDir)} ] && echo yes").exec()
+                    result.isSuccess && result.out.firstOrNull() == "yes"
+                }
+                if (exists) currentPath = targetDir
+            }
+        }
+    }
+
+    val clearFocus = rememberClearFocus()
+
+    ChDroidDialog(
+        onDismiss = onDismiss,
+        modifier = Modifier.fillMaxHeight(0.75f),
+        scrollableContent = false,
+        footer = {
+            DialogFooterRow(
+                dismissLabel = context.getString(R.string.cancel),
+                confirmLabel = context.getString(R.string.select_folder),
+                onDismiss = onDismiss,
+                onConfirm = { clearFocus(); onConfirm(currentPath) },
+                confirmEnabled = allowRoot || currentPath != "/"
+            )
+        }
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                val pathScrollState = rememberScrollState()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                        .horizontalScroll(pathScrollState),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = currentPath,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontFamily = JetBrainsMono,
+                            fontSize = 12.sp
+                        ),
+                        color = MaterialTheme.colorScheme.secondary,
+                        maxLines = 1,
+                        softWrap = false
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = {
+                        Text(
+                            context.getString(R.string.filter_absolute_path_hint),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = FocusUtils.searchKeyboardOptions,
+                    keyboardActions = FocusUtils.clearFocusKeyboardActions(),
+                    textStyle = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = JetBrainsMono
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ChDroidTextFieldDefaults.surfaceColors()
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                val listState = rememberLazyListState()
+                val scrollbarColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .lazyListVerticalScrollbar(listState, scrollbarColor)
+                ) {
+                    if (isLoading) {
+                        FullScreenLoading(size = LoadingSize.Medium)
+                    } else {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            if (currentPath != "/") {
+                                item {
+                                    FileItemRow(
+                                        name = "..",
+                                        isDirectory = true,
+                                        icon = {
+                                            Icon(
+                                                Icons.Default.ArrowUpward,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp),
+                                                tint = MaterialTheme.colorScheme.tertiary
+                                            )
+                                        }
+                                    ) {
+                                        clearFocus()
+                                        searchQuery = ""
+                                        val parent = File(currentPath).parent ?: "/"
+                                        currentPath = parent
+                                    }
+                                }
+                            }
+
+                            items(filteredItems) { item ->
+                                FileItemRow(name = item.name, isDirectory = item.isDirectory) {
+                                    clearFocus()
+                                    searchQuery = ""
+                                    if (item.isDirectory) {
+                                        currentPath = if (currentPath == "/") "/${item.name}" else "$currentPath/${item.name}"
+                                    } else {
+                                        onConfirm(if (currentPath == "/") "/${item.name}" else "$currentPath/${item.name}")
+                                    }
+                                }
+                            }
+
+                            if (filteredItems.isEmpty() && !isLoading) {
+                                item {
+                                    Text(
+                                        text = if (searchQuery.isNotEmpty()) context.getString(R.string.no_matches) else context.getString(R.string.empty_directory),
+                                        modifier = Modifier.padding(16.dp),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.outline
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+    }
+
+
+data class FileItem(val name: String, val isDirectory: Boolean)
+
+@Composable
+private fun FileItemRow(
+    name: String,
+    isDirectory: Boolean,
+    icon: @Composable (() -> Unit)? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (icon != null) {
+            icon()
+        } else {
+            Icon(
+                imageVector = if (isDirectory) Icons.Default.Folder else Icons.Default.Description,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                tint = if (isDirectory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+            )
+        }
+        Spacer(modifier = Modifier.width(16.dp))
+        val nameScrollState = rememberScrollState()
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .horizontalScroll(nameScrollState)
+        ) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
+    }
+}
+
+private suspend fun fetchItems(path: String, showFiles: Boolean): List<FileItem> = withContext(Dispatchers.IO) {
+    // `ls -F` cannot answer "is this a directory". It marks a symlink with @ even when the
+    // symlink points at one, so /sdcard was unreachable, and it strips a real trailing
+    // *@=|> from a filename. Ask the shell instead: [ -d ] follows symlinks, so a link to
+    // a directory is reported as one, and the d/ f/ prefix survives any character in the
+    // name. Still one root round-trip. Names containing a newline cannot be represented
+    // line-by-line and are dropped rather than splitting into bogus entries.
+    val script = """
+        cd ${ContainerCommandBuilder.quote(path)} 2>/dev/null || exit 1
+        for f in * .*; do
+            [ "${'$'}f" = "." ] || [ "${'$'}f" = ".." ] && continue
+            [ -e "${'$'}f" ] || [ -L "${'$'}f" ] || continue
+            if [ -d "${'$'}f" ]; then echo "d/${'$'}f"; else echo "f/${'$'}f"; fi
+        done
+    """.trimIndent()
+
+    val result = Shell.cmd(script).exec()
+    if (!result.isSuccess) return@withContext emptyList()
+
+    result.out.mapNotNull { line ->
+        val isDirectory = when {
+            line.startsWith("d/") -> true
+            line.startsWith("f/") -> false
+            else -> return@mapNotNull null
+        }
+        val name = line.substring(2)
+        if (name.isEmpty()) return@mapNotNull null
+        if (!showFiles && !isDirectory) return@mapNotNull null
+        FileItem(name, isDirectory)
+    }.sortedWith(compareBy({ !it.isDirectory }, { it.name.lowercase() }))
+}

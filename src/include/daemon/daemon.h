@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_DAEMON_DAEMON_H
-#define DS_DAEMON_DAEMON_H
+#ifndef CHDROID_DAEMON_DAEMON_H
+#define CHDROID_DAEMON_DAEMON_H
 
 /* client.c */
 /* cmd is the sub-command main() discovered, so a payload word like "run"
@@ -19,4 +19,4 @@ int ds_client_run(int argc, char **argv, const char *cmd, int want_stdin);
 int ds_daemon_run(int foreground, char **argv);
 int ds_daemon_probe(void);
 
-#endif /* DS_DAEMON_DAEMON_H */
+#endif /* CHDROID_DAEMON_DAEMON_H */

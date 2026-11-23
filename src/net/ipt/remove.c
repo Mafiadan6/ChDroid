@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter/nf_nat.h>
@@ -162,16 +162,16 @@ int remove_matching_rules(const struct xt_family *f, int fd,
         is_ours = 1;
 
       /* Our MSS clamp, and only ours: a foreign TCPMSS rule stays. */
-      if (!is_ours && (iface_flags & DS_IPT_MATCH_CLAMP) && is_our_clamp(f, e))
+      if (!is_ours && (iface_flags & CHDROID_IPT_MATCH_CLAMP) && is_our_clamp(f, e))
         is_ours = 1;
 
       /* ACCEPT on the exact interface/direction we inserted. */
       if (!is_ours && match_iface && match_iface[0] && target_is_accept(t)) {
-        if ((iface_flags & DS_IPT_MATCH_IN) &&
+        if ((iface_flags & CHDROID_IPT_MATCH_IN) &&
             iface_exact_match(v.iniface, v.in_mask, match_iface) &&
             iface_empty(v.outiface, v.out_mask))
           is_ours = 1;
-        if ((iface_flags & DS_IPT_MATCH_OUT) &&
+        if ((iface_flags & CHDROID_IPT_MATCH_OUT) &&
             iface_exact_match(v.outiface, v.out_mask, match_iface) &&
             iface_empty(v.iniface, v.in_mask))
           is_ours = 1;

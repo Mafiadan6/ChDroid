@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <linux/seccomp.h>
 #include <stdarg.h>
 #include <sys/prctl.h>
@@ -86,9 +86,9 @@ static int check_kernel_version_supported(void) {
   int major = 0, minor = 0;
   if (get_kernel_version(&major, &minor) < 0)
     return 0;
-  if (major < DS_MIN_KERNEL_MAJOR)
+  if (major < CHDROID_MIN_KERNEL_MAJOR)
     return 0;
-  if (major == DS_MIN_KERNEL_MAJOR && minor < DS_MIN_KERNEL_MINOR)
+  if (major == CHDROID_MIN_KERNEL_MAJOR && minor < CHDROID_MIN_KERNEL_MINOR)
     return 0;
   return 1;
 }
@@ -133,22 +133,22 @@ int check_requirements_hw(int hw_access) {
 
   if (!check_pivot_root()) {
     ds_error("pivot_root syscall is not supported on the current filesystem");
-    ds_log("Droidspaces requires a rootfs that supports pivot_root (not "
+    ds_log("ChDroid requires a rootfs that supports pivot_root (not "
            "ramfs).");
     missing++;
   }
 
   if (!check_kernel_version_supported()) {
     ds_error("Kernel version is too old");
-    ds_log("Droidspaces requires at least Linux %d.%d.0.", DS_MIN_KERNEL_MAJOR,
-           DS_MIN_KERNEL_MINOR);
+    ds_log("ChDroid requires at least Linux %d.%d.0.", CHDROID_MIN_KERNEL_MAJOR,
+           CHDROID_MIN_KERNEL_MINOR);
     missing++;
   }
 
   if (missing > 0) {
     printf("\n");
     ds_error("Missing %d required feature(s) - cannot proceed", missing);
-    ds_log("Please run " C_BOLD "./droidspaces check" C_RESET
+    ds_log("Please run " C_BOLD "./chdroid check" C_RESET
            " for a full diagnostic report.");
     return -1;
   }
@@ -198,16 +198,16 @@ int check_requirements_detailed(int json_output) {
   check_root();
 
   check_append("\n" C_BOLD
-               "Droidspaces v%s - Checking system requirements..." C_RESET
+               "ChDroid v%s - Checking system requirements..." C_RESET
                "\n\n",
-               DS_VERSION);
+               CHDROID_VERSION);
 
   int missing_must = 0;
 
   /* MUST HAVE */
   check_append(C_BOLD
                "[MUST HAVE]" C_RESET
-               "\nThese features are required for Droidspaces to work:\n\n");
+               "\nThese features are required for ChDroid to work:\n\n");
 
   if (!is_root)
     missing_must++;
@@ -217,8 +217,8 @@ int check_requirements_detailed(int json_output) {
 
   char kver_desc[128];
   snprintf(kver_desc, sizeof(kver_desc),
-           "Linux kernel version %d.%d.0 or later", DS_MIN_KERNEL_MAJOR,
-           DS_MIN_KERNEL_MINOR);
+           "Linux kernel version %d.%d.0 or later", CHDROID_MIN_KERNEL_MAJOR,
+           CHDROID_MIN_KERNEL_MINOR);
   int kver_ok = check_kernel_version_supported();
   if (!kver_ok)
     missing_must++;
@@ -407,7 +407,7 @@ int check_requirements_detailed(int json_output) {
   if (missing_must > 0)
     check_append(
         "  [" C_RED "✗" C_RESET
-        "] %d required feature(s) missing - Droidspaces will not work\n",
+        "] %d required feature(s) missing - ChDroid will not work\n",
         missing_must);
   else
     check_append("  [" C_GREEN "✓" C_RESET "] All required features found!\n");
@@ -419,7 +419,7 @@ int check_requirements_detailed(int json_output) {
   check_append("\n");
 
   if (json_mode) {
-    ds_json_str("version", DS_VERSION, &json_first);
+    ds_json_str("version", CHDROID_VERSION, &json_first);
     ds_json_int("requirements_met", missing_must == 0, &json_first);
     printf("}\n");
     return 0;

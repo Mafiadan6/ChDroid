@@ -1,6 +1,6 @@
-# Droidspaces System Integration (init.rc)
+# ChDroid System Integration (init.rc)
 
-Integrating Droidspaces natively into Android's `init.rc` allows for **Daemon Mode** at the deepest level. This enables containers to start independently of the userspace app, facilitates auto-start on boot, and ensures your containers remain persistent (unkillable by Android's OOM killer - auto-spawn if killed).
+Integrating ChDroid natively into Android's `init.rc` allows for **Daemon Mode** at the deepest level. This enables containers to start independently of the userspace app, facilitates auto-start on boot, and ensures your containers remain persistent (unkillable by Android's OOM killer - auto-spawn if killed).
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ Integrating Droidspaces natively into Android's `init.rc` allows for **Daemon Mo
 Choose **one** of the following methods based on your preference for flexibility vs. self-containment.
 
 ### Method A: Symlink Integration (Recommended)
-This method creates a symlink at `/vendor/bin/droidspaces` pointing to `/data/local/Droidspaces/bin/droidspaces`. This is highly recommended as it allows you to update the `droidspaces` binary via the app without re-flashing your `vendor.img`.
+This method creates a symlink at `/vendor/bin/chdroid` pointing to `/data/local/ChDroid/bin/chdroid`. This is highly recommended as it allows you to update the `chdroid` binary via the app without re-flashing your `vendor.img`.
 
 1. **Unpack `vendor.img`** using the image tools.
 2. **Configure Symlink**:
@@ -24,21 +24,21 @@ This method creates a symlink at `/vendor/bin/droidspaces` pointing to `/data/lo
     - Append the contents of [symlink-configuration/fs-config.txt](./android-service/symlink-configuration/fs-config.txt) to the existing `fs-config.txt`.
     - Append the contents of [symlink-configuration/file_contexts.txt](./android-service/symlink-configuration/file_contexts.txt) to the existing `file_contexts.txt`.
 3. **Apply SELinux Policy**:
-    - Append the contents of [symlink-configuration/droidspaces_symlink.cil](./android-service/symlink-configuration/droidspaces_symlink.cil) to your `<Unpacked folder>/etc/selinux/vendor_sepolicy.cil`.
+    - Append the contents of [symlink-configuration/chdroid_symlink.cil](./android-service/symlink-configuration/chdroid_symlink.cil) to your `<Unpacked folder>/etc/selinux/vendor_sepolicy.cil`.
 
 ---
 
 ### Method B: Binary Integration (Standalone)
-This method places the raw `droidspaces` binary directly into the `/vendor` partition. It is more self-contained but requires a re-flash for binary updates.
+This method places the raw `chdroid` binary directly into the `/vendor` partition. It is more self-contained but requires a re-flash for binary updates.
 
 1. **Unpack `vendor.img`**.
-2. **Move Binary**: Copy the `droidspaces` binary (arm64 static) to `<Unpacked folder>/vendor/bin/droidspaces`.
+2. **Move Binary**: Copy the `chdroid` binary (arm64 static) to `<Unpacked folder>/vendor/bin/chdroid`.
 3. **Configure Permissions**:
     - Navigate to the `.repack_info` hidden folder.
     - Append the contents of [binary-configuration/fs-config.txt](./android-service/binary-configuration/fs-config.txt) to `fs-config.txt`.
     - Append the contents of [binary-configuration/file_contexts.txt](./android-service/binary-configuration/file_contexts.txt) to `file_contexts.txt`.
 4. **Apply SELinux Policy**:
-    - Append the contents of [binary-configuration/droidspaces_binary.cil](./android-service/binary-configuration/droidspaces_binary.cil) to your `<Unpacked folder>/etc/selinux/vendor_sepolicy.cil`.
+    - Append the contents of [binary-configuration/chdroid_binary.cil](./android-service/binary-configuration/chdroid_binary.cil) to your `<Unpacked folder>/etc/selinux/vendor_sepolicy.cil`.
 
 ---
 
@@ -47,9 +47,9 @@ This method places the raw `droidspaces` binary directly into the `/vendor` part
 Regardless of the method chosen above, you must perform these steps to register the service:
 
 1. **Register Init Script**:
-   Copy [init.droidspaces.rc](./android-service/vendor/etc/init/init.droidspaces.rc) to `<Unpacked folder>/etc/init/`.
+   Copy [init.chdroid.rc](./android-service/vendor/etc/init/init.chdroid.rc) to `<Unpacked folder>/etc/init/`.
 2. **Add Autoboot Script**:
-   Copy [droidspaces_autoboot.sh](./android-service/vendor/bin/droidspaces_autoboot.sh) to `<Unpacked folder>/vendor/bin/`.
+   Copy [chdroid_autoboot.sh](./android-service/vendor/bin/chdroid_autoboot.sh) to `<Unpacked folder>/vendor/bin/`.
 3. **Repack & Flash**:
    Repack the `vendor.img` using the image tool and flash it via fastboot:
    ```bash
@@ -65,12 +65,12 @@ Regardless of the method chosen above, you must perform these steps to register 
 
 - **Silencing SELinux Spam (Highly Recommended)**:
     While not strictly necessary for functionality, we strongly recommend applying the rules in [selinux-testing/ds_log_spam_fix.cil](./android-service/selinux-testing/ds_log_spam_fix.cil).
-    - **Benefit**: This reduces approximately **90% of AVC denials** caused by Droidspaces in your `dmesg`, keeping your system logs clean.
+    - **Benefit**: This reduces approximately **90% of AVC denials** caused by ChDroid in your `dmesg`, keeping your system logs clean.
     - **Risk**: As detailed below, applying this file is the most common cause of bootloops if your host SELinux policy lacks certain domains.
 
-- **Verification**: Once booted, verify that the Droidspaces service is active:
+- **Verification**: Once booted, verify that the ChDroid service is active:
     ```bash
-    getprop init.svc.droidspacesd
+    getprop init.svc.chdroidd
     ```
 
 - **Bootloops**: If the device bootloops after modification, there is a **90% probability** it is caused by the `ds_log_spam_fix.cil` file. This occurs when a domain defined in our CIL is not found in your host's SELinux policy, triggering a kernel panic during boot.

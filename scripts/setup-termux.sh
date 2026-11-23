@@ -25,7 +25,7 @@ detail() {
     echo -e "  ${CYAN}->${RESET} $*"
 }
 
-log "Setting up Droidspaces dependencies..."
+log "Setting up ChDroid dependencies..."
 
 log "Updating repos and upgrading Termux..."
 DEBIAN_FRONTEND=noninteractive pkg update -y -o Dpkg::Options::="--force-confold"
@@ -84,4 +84,4 @@ else
     fi
 fi
 
-log "All done. Droidspaces audio/display dependencies are ready."
+log "All done. ChDroid audio/display dependencies are ready."

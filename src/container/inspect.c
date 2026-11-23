@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <pwd.h>
 
 /* The symlink target of <rootfs>/sbin/init, or the start of the file when it
@@ -53,20 +53,20 @@ ds_init_type_t detect_container_init(const char *path) {
     const char *bin;
     ds_init_type_t type;
   } inits[] = {
-      {"/sbin/procd", DS_INIT_PROCD},
-      {"/usr/sbin/procd", DS_INIT_PROCD},
-      {"/sbin/openrc-init", DS_INIT_OPENRC},
-      {"/usr/bin/openrc-init", DS_INIT_OPENRC},
-      {"/sbin/openrc", DS_INIT_OPENRC},
-      {"/sbin/runit", DS_INIT_RUNIT},
-      {"/usr/bin/runit", DS_INIT_RUNIT},
-      {"/bin/s6-svscan", DS_INIT_S6},
-      {"/usr/bin/s6-svscan", DS_INIT_S6},
+      {"/sbin/procd", CHDROID_INIT_PROCD},
+      {"/usr/sbin/procd", CHDROID_INIT_PROCD},
+      {"/sbin/openrc-init", CHDROID_INIT_OPENRC},
+      {"/usr/bin/openrc-init", CHDROID_INIT_OPENRC},
+      {"/sbin/openrc", CHDROID_INIT_OPENRC},
+      {"/sbin/runit", CHDROID_INIT_RUNIT},
+      {"/usr/bin/runit", CHDROID_INIT_RUNIT},
+      {"/bin/s6-svscan", CHDROID_INIT_S6},
+      {"/usr/bin/s6-svscan", CHDROID_INIT_S6},
   };
   if (!path || path[0] == '\0')
-    return DS_INIT_UNKNOWN;
+    return CHDROID_INIT_UNKNOWN;
   if (is_systemd_rootfs(path))
-    return DS_INIT_SYSTEMD;
+    return CHDROID_INIT_SYSTEMD;
 
   char buf[4096];
   struct stat st;
@@ -81,16 +81,16 @@ ds_init_type_t detect_container_init(const char *path) {
   /* The rest are told apart by /sbin/init itself. */
   int kind = read_sbin_init(path, buf, sizeof(buf));
   if (kind < 0)
-    return DS_INIT_UNKNOWN;
+    return CHDROID_INIT_UNKNOWN;
   if (strstr(buf, "busybox"))
-    return DS_INIT_BUSYBOX;
+    return CHDROID_INIT_BUSYBOX;
   if (kind == 1)
     return strstr(buf, "sysvinit") || strstr(buf, "init.sysv")
-               ? DS_INIT_SYSVINIT
-               : DS_INIT_UNKNOWN;
+               ? CHDROID_INIT_SYSVINIT
+               : CHDROID_INIT_UNKNOWN;
   /* A real file: a Nix wrapper for some other init stays unknown so the
    * caller can cope, anything else is sysvinit's own binary. */
-  return strstr(buf, "/nix/store") ? DS_INIT_UNKNOWN : DS_INIT_SYSVINIT;
+  return strstr(buf, "/nix/store") ? CHDROID_INIT_UNKNOWN : CHDROID_INIT_SYSVINIT;
 }
 
 int get_user_shell(const char *user, char *shell_buf, size_t size) {

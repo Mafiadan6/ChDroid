@@ -2,8 +2,8 @@
 title: Android 应用指南
 section: Guides
 order: 1
-desc: Droidspaces Android 应用的每个界面：主页、容器和面板标签页，容器菜单，rootfs 仓库，终端，服务管理和设置。
-keywords: droidspaces, android, app, guide, containers, panel, terminal, systemd, services, repository, settings, daemon, mode
+desc: ChDroid Android 应用的每个界面：主页、容器和面板标签页，容器菜单，rootfs 仓库，终端，服务管理和设置。
+keywords: chdroid, android, app, guide, containers, panel, terminal, systemd, services, repository, settings, daemon, mode
 -->
 
 # Android 应用指南
@@ -47,7 +47,7 @@ keywords: droidspaces, android, app, guide, containers, panel, terminal, systemd
   <img src="../resources/gallery/05-repository.png" width="30%">
 </p>
 
-这里列出了为 Droidspaces 构建的发行版，并按你设备的架构过滤。可以按名称搜索。**下载** 会把 tarball 下载到你的下载文件夹，并在卡片上显示进度；完成后会有通知，按钮会变成 **安装**。下载失败会出现 **重试** 按钮；之前下载过的 tarball 会在下次打开该面板时被识别。
+这里列出了为 ChDroid 构建的发行版，并按你设备的架构过滤。可以按名称搜索。**下载** 会把 tarball 下载到你的下载文件夹，并在卡片上显示进度；完成后会有通知，按钮会变成 **安装**。下载失败会出现 **重试** 按钮；之前下载过的 tarball 会在下次打开该面板时被识别。
 
 面板顶部的 **管理仓库** 让你订阅其他发布 `rootfs.json` 的源。值得添加的是 Linux Containers 镜像，它提供官方仓库没有构建的发行版和版本：
 
@@ -57,7 +57,7 @@ https://raw.githubusercontent.com/Droidspaces/linuxcontainers-mirror/refs/heads/
 
 ### 从文件安装
 
-从手机存储中选择一个 `.tar.xz` 或 `.tar.gz` 的 rootfs 归档。从 Droidspaces 导出的容器会带上其设置，并自动填入向导，之前会有一个警告页供你检查。其他任何 rootfs tarball 也可以，只要它带有 init 系统。
+从手机存储中选择一个 `.tar.xz` 或 `.tar.gz` 的 rootfs 归档。从 ChDroid 导出的容器会带上其设置，并自动填入向导，之前会有一个警告页供你检查。其他任何 rootfs tarball 也可以，只要它带有 init 系统。
 
 ### 设置向导
 
@@ -87,7 +87,7 @@ https://raw.githubusercontent.com/Droidspaces/linuxcontainers-mirror/refs/heads/
 
 - **容器信息**：发行版、主机名、运行时间、IP 地址、CPU 和内存。
 - **终端**：点 **打开** 获取 shell。已有会话在运行时，卡片会提示，点它即可回到这些会话。
-- **可用用户**：rootfs 中的用户账号。选择一个并点 **复制登录命令**，即可把该用户的 `droidspaces enter` 命令复制到剪贴板，供 Termux 或其他 root shell 使用。
+- **可用用户**：rootfs 中的用户账号。选择一个并点 **复制登录命令**，即可把该用户的 `chdroid enter` 命令复制到剪贴板，供 Termux 或其他 root shell 使用。
 - **磁盘占用**：已用空间和总空间。
 - **Init 系统**：点 **管理** 控制服务。具体内容取决于 init 系统。
 
@@ -123,9 +123,9 @@ https://raw.githubusercontent.com/Droidspaces/linuxcontainers-mirror/refs/heads/
 
 - **重新安装后端**：重新写入二进制和启动模块。如果主页报告后端已损坏，就用它。
 - **守护进程模式**：默认开启。后端作为系统守护进程在开机时启动，位于 root shell 之外，从而绕过 Magisk 和 APatch 加在 root shell 上的 seccomp 过滤器。保持开启；修改后需要重启。
-- **将 Droidspaces 集成到系统路径中**：通过启动模块把 `droidspaces` 放到每个 root shell 的 `PATH` 中，这样你可以直接输入 `droidspaces`，而不必输入 `/data/local/Droidspaces/bin/droidspaces`。请阅读开关上的警告：在基于 OverlayFS 的模块系统上会导致无限重启。
+- **将 ChDroid 集成到系统路径中**：通过启动模块把 `chdroid` 放到每个 root shell 的 `PATH` 中，这样你可以直接输入 `chdroid`，而不必输入 `/data/local/ChDroid/bin/chdroid`。请阅读开关上的警告：在基于 OverlayFS 的模块系统上会导致无限重启。
 - **自启动优先级**：设置了开机自启动的容器的启动顺序。拖动即可调整。网关容器要排在使用它做路由的容器之上。
-- **要求**：列出 Droidspaces 所需的内核选项，并提供一个供内核构建者使用的复制按钮；**检查要求** 会针对当前运行的内核执行全部探测。
+- **要求**：列出 ChDroid 所需的内核选项，并提供一个供内核构建者使用的复制按钮；**检查要求** 会针对当前运行的内核执行全部探测。
 
 **外观**：语言、浅色和深色主题、AMOLED 黑色、Android 12 及以上的系统调色板、强调色，以及上面的终端设置。
 
@@ -139,7 +139,7 @@ https://raw.githubusercontent.com/Droidspaces/linuxcontainers-mirror/refs/heads/
 
 ## 数据在哪里
 
-后端创建的所有内容都在 `/data/local/Droidspaces` 下：二进制在 `bin/`，每个容器的 rootfs 或镜像及其 `container.config` 在 `Containers/<name>/`，日志在 `Logs/`。应用只读写这里；卸载应用不会影响它，守护进程会继续运行。
+后端创建的所有内容都在 `/data/local/ChDroid` 下：二进制在 `bin/`，每个容器的 rootfs 或镜像及其 `container.config` 在 `Containers/<name>/`，日志在 `Logs/`。应用只读写这里；卸载应用不会影响它，守护进程会继续运行。
 
 ---
 

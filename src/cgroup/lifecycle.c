@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -34,7 +34,7 @@ void ds_cgroup_setup(struct ds_config *cfg) {
   if (access("/sys/fs/cgroup/cgroup.procs", F_OK) == 0) {
     /* A controller only appears in a child cgroup once the parent's
      * subtree_control enables it, so walk the two levels above ours:
-     * /sys/fs/cgroup -> /sys/fs/cgroup/droidspaces */
+     * /sys/fs/cgroup -> /sys/fs/cgroup/chdroid */
     char enable[64] = "", buf[256], dir[PATH_MAX], safe_name[256];
     if (read_file("/sys/fs/cgroup/cgroup.controllers", buf, sizeof(buf)) > 0)
       snprintf(enable, sizeof(enable), "%s%s%s",
@@ -43,17 +43,17 @@ void ds_cgroup_setup(struct ds_config *cfg) {
                cfg->cpu_quota && ctrl_in_list(buf, "cpu") ? "+cpu " : "",
                cfg->pids_limit && ctrl_in_list(buf, "pids") ? "+pids" : "");
 
-    mkdir("/sys/fs/cgroup/droidspaces", 0755);
+    mkdir("/sys/fs/cgroup/chdroid", 0755);
     if (enable[0]) {
       if (write_file("/sys/fs/cgroup/cgroup.subtree_control", enable) < 0)
         ds_warn("[CGROUP] subtree_control (root): %s", strerror(errno));
-      if (write_file("/sys/fs/cgroup/droidspaces/cgroup.subtree_control",
+      if (write_file("/sys/fs/cgroup/chdroid/cgroup.subtree_control",
                      enable) < 0)
-        ds_warn("[CGROUP] subtree_control (droidspaces): %s", strerror(errno));
+        ds_warn("[CGROUP] subtree_control (chdroid): %s", strerror(errno));
     }
 
     sanitize_container_name(cfg->container_name, safe_name, sizeof(safe_name));
-    snprintf(dir, sizeof(dir), "/sys/fs/cgroup/droidspaces/%s", safe_name);
+    snprintf(dir, sizeof(dir), "/sys/fs/cgroup/chdroid/%s", safe_name);
     mkdir_fresh(dir);
   }
 
@@ -68,7 +68,7 @@ static int cgroup_join(const char *container_name, const char *leaf) {
 
   char safe_name[256], path[PATH_MAX], pid_s[32];
   sanitize_container_name(container_name, safe_name, sizeof(safe_name));
-  snprintf(path, sizeof(path), "/sys/fs/cgroup/droidspaces/%s", safe_name);
+  snprintf(path, sizeof(path), "/sys/fs/cgroup/chdroid/%s", safe_name);
   if (access(path, F_OK) != 0)
     return 0;
 
@@ -187,7 +187,7 @@ void rmdir_cgroup_tree(const char *path) {
 
 /* ds_cgroup_cleanup_container
  *
- * Removes the entire /sys/fs/cgroup/droidspaces/<container_name>/ subtree
+ * Removes the entire /sys/fs/cgroup/chdroid/<container_name>/ subtree
  * that was created at container start for cgroup namespace isolation.
  *
  * The kernel requires a bottom-up rmdir walk - a cgroup directory can only
@@ -206,7 +206,7 @@ void ds_cgroup_cleanup_container(const char *container_name) {
   char dir[PATH_MAX];
   char safe_name[256];
   sanitize_container_name(container_name, safe_name, sizeof(safe_name));
-  snprintf(dir, sizeof(dir), "/sys/fs/cgroup/droidspaces/%s", safe_name);
+  snprintf(dir, sizeof(dir), "/sys/fs/cgroup/chdroid/%s", safe_name);
   if (access(dir, F_OK) == 0)
     rmdir_cgroup_tree(dir);
 }

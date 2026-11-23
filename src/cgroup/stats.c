@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -58,7 +58,7 @@ int ds_cgroup_count_tasks(const char *container_name, int *running,
                           int *total) {
   char safe_name[256], dir[PATH_MAX];
   sanitize_container_name(container_name, safe_name, sizeof(safe_name));
-  snprintf(dir, sizeof(dir), "/sys/fs/cgroup/droidspaces/%s", safe_name);
+  snprintf(dir, sizeof(dir), "/sys/fs/cgroup/chdroid/%s", safe_name);
   if (access(dir, F_OK) != 0)
     return -1;
   *running = *total = 0;
@@ -75,7 +75,7 @@ int ds_cgroup_cpu_times(const char *container_name, long long *user_us,
   char dir[PATH_MAX], path[PATH_MAX + 64], buf[512], safe_name[256];
 
   sanitize_container_name(container_name, safe_name, sizeof(safe_name));
-  snprintf(path, sizeof(path), "/sys/fs/cgroup/droidspaces/%s/cpu.stat",
+  snprintf(path, sizeof(path), "/sys/fs/cgroup/chdroid/%s/cpu.stat",
            safe_name);
   if (read_file(path, buf, sizeof(buf)) > 0) {
     char *u = strstr(buf, "user_usec "), *s = strstr(buf, "system_usec ");
@@ -150,7 +150,7 @@ int ds_cgroup_get_usage(const char *container_name, long long *mem,
      * container is always in our cgroup2 dir when there is one. */
     char safe_name[256];
     sanitize_container_name(container_name, safe_name, sizeof(safe_name));
-    snprintf(path, sizeof(path), "/sys/fs/cgroup/droidspaces/%s/cpu.stat",
+    snprintf(path, sizeof(path), "/sys/fs/cgroup/chdroid/%s/cpu.stat",
              safe_name);
     if (read_file(path, buf, sizeof(buf)) > 0) {
       char *p = strstr(buf, "usage_usec ");

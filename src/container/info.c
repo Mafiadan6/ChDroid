@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 static const char *get_architecture(void) {
   static struct utsname uts;
@@ -96,7 +96,7 @@ int show_info(struct ds_config *cfg, int trust_cfg_pid) {
 
   /* The acronym stays upper case in the output, the config file has nat. */
   const char *net =
-      cfg->net_mode == DS_NET_NAT ? "NAT" : ds_net_mode_name(cfg->net_mode);
+      cfg->net_mode == CHDROID_NET_NAT ? "NAT" : ds_net_mode_name(cfg->net_mode);
 
   /* Success - print Host and detailed Container info */
   if (cfg->json_output) {
@@ -120,7 +120,7 @@ int show_info(struct ds_config *cfg, int trust_cfg_pid) {
 
     char buf[1024];
     size_t pos;
-    if (cfg->net_mode == DS_NET_NAT) {
+    if (cfg->net_mode == CHDROID_NET_NAT) {
       const char *ip =
           cfg->static_nat_ip[0] ? cfg->static_nat_ip : cfg->nat_container_ip;
       if (ip[0])
@@ -133,7 +133,7 @@ int show_info(struct ds_config *cfg, int trust_cfg_pid) {
                                   i ? "," : "", cfg->upstream_ifaces[i]);
         ds_json_str("upstream_interfaces", buf, &first);
       }
-    } else if (cfg->net_mode == DS_NET_GATEWAY) {
+    } else if (cfg->net_mode == CHDROID_NET_GATEWAY) {
       ds_json_str("gateway_container", cfg->gateway_container, &first);
       ds_json_str("gateway_net", cfg->gateway_net[0] ? cfg->gateway_net : "lan",
                   &first);
@@ -142,7 +142,7 @@ int show_info(struct ds_config *cfg, int trust_cfg_pid) {
       ds_json_str("gateway_iface",
                   cfg->gateway_lan_ifname[0] ? cfg->gateway_lan_ifname : "eth1",
                   &first);
-    } else if (cfg->net_mode == DS_NET_MACVLAN) {
+    } else if (cfg->net_mode == CHDROID_NET_MACVLAN) {
       ds_json_str("macvlan_parent", cfg->macvlan_parent, &first);
       ds_json_str("macvlan_mode", ds_macvlan_mode_name(cfg->macvlan_mode),
                   &first);
@@ -247,19 +247,19 @@ int show_info(struct ds_config *cfg, int trust_cfg_pid) {
     feat_count++;
 
     /* 2. NAT/Gateway Configuration */
-    if (cfg->net_mode == DS_NET_GATEWAY) {
+    if (cfg->net_mode == CHDROID_NET_GATEWAY) {
       printf("  Gateway: %s (%s)\n", cfg->gateway_container,
              cfg->gateway_net[0] ? cfg->gateway_net : "lan");
       feat_count++;
     }
 
-    if (cfg->net_mode == DS_NET_MACVLAN) {
+    if (cfg->net_mode == CHDROID_NET_MACVLAN) {
       printf("  Macvlan: %s (%s)\n", cfg->macvlan_parent,
              ds_macvlan_mode_name(cfg->macvlan_mode));
       feat_count++;
     }
 
-    if (cfg->net_mode == DS_NET_NAT) {
+    if (cfg->net_mode == CHDROID_NET_NAT) {
       const char *ip =
           cfg->static_nat_ip[0] ? cfg->static_nat_ip : cfg->nat_container_ip;
       if (ip[0]) {

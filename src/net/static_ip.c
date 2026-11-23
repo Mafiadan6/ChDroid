@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -51,7 +51,7 @@ int ds_net_validate_static_ip(const char *ip_str, char *errbuf,
   /* Must be inside 172.28.0.0/16 */
   if (o1 != 172 || o2 != 28) {
     snprintf(errbuf, errsize,
-             "must be inside the NAT subnet " DS_DEFAULT_SUBNET " (got %s)",
+             "must be inside the NAT subnet " CHDROID_DEFAULT_SUBNET " (got %s)",
              ip_str);
     return -1;
   }

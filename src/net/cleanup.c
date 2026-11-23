@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -28,7 +28,7 @@ void ds_net_cleanup(struct ds_config *cfg, pid_t container_pid) {
    * to us, so it is safe to run for every stopping container. */
   ds_net_gateway_teardown(cfg->container_name);
 
-  if (cfg->net_mode == DS_NET_GATEWAY) {
+  if (cfg->net_mode == CHDROID_NET_GATEWAY) {
     ds_nl_ctx_t *ctx = ds_nl_open();
     if (!ctx)
       return;
@@ -84,7 +84,7 @@ void ds_net_cleanup(struct ds_config *cfg, pid_t container_pid) {
     return;
   }
 
-  if (cfg->net_mode != DS_NET_NAT)
+  if (cfg->net_mode != CHDROID_NET_NAT)
     return;
 
   ds_net_stop_route_monitor();
@@ -97,7 +97,7 @@ void ds_net_cleanup(struct ds_config *cfg, pid_t container_pid) {
    * deleted once it exists, so ask the kernel instead of trusting a flag that
    * only start and restart ever probe for. A plain stop never set it, and
    * left the per-veth rules of a bridgeless container behind. */
-  int bridgeless = !ds_nl_link_exists(ctx, DS_NAT_BRIDGE);
+  int bridgeless = !ds_nl_link_exists(ctx, CHDROID_NAT_BRIDGE);
 
   /* 1. Delete host-side veth - peer in dead netns is already gone */
   char veth_host[IFNAMSIZ] = {0};
@@ -134,31 +134,31 @@ void ds_net_cleanup(struct ds_config *cfg, pid_t container_pid) {
   /* 2. Remove Android policy rules (last container - safe to clean up) */
   if (is_android()) {
     uint32_t subnet, mask;
-    parse_cidr(DS_DEFAULT_SUBNET, &subnet, &mask);
+    parse_cidr(CHDROID_DEFAULT_SUBNET, &subnet, &mask);
 
     /* Remove DS policy rules at both current and legacy priority values so
      * an upgrade from an older build that used hardcoded 90/100/200/201 still
      * cleans up completely.  del_rule4 is idempotent (ENOENT → 0). */
     int prios[] = {
-        DS_RULE_PRIO_TO_SUBNET,   /* 6090 - current */
-        DS_RULE_PRIO_TETHER,      /* 6095 - current */
-        DS_RULE_PRIO_FROM_SUBNET, /* 6100 - current */
+        CHDROID_RULE_PRIO_TO_SUBNET,   /* 6090 - current */
+        CHDROID_RULE_PRIO_TETHER,      /* 6095 - current */
+        CHDROID_RULE_PRIO_FROM_SUBNET, /* 6100 - current */
         90,
         100,
         200,
         201 /* legacy - pre-VPN-fix builds */
     };
     for (size_t i = 0; i < sizeof(prios) / sizeof(prios[0]); i++) {
-      ds_nl_del_rule4(ctx, 0, 0, subnet, DS_NAT_PREFIX, 0, prios[i]);
-      ds_nl_del_rule4(ctx, subnet, DS_NAT_PREFIX, 0, 0, 0, prios[i]);
+      ds_nl_del_rule4(ctx, 0, 0, subnet, CHDROID_NAT_PREFIX, 0, prios[i]);
+      ds_nl_del_rule4(ctx, subnet, CHDROID_NAT_PREFIX, 0, 0, 0, prios[i]);
     }
 
     struct in6_addr net6;
-    inet_pton(AF_INET6, DS_NAT6_PREFIX, &net6);
-    ds_nl_rule6(ctx, 0, &net6, DS_NAT6_PREFIX_LEN, 0, 0,
-                DS_RULE_PRIO_TO_SUBNET);
-    ds_nl_rule6(ctx, 0, &net6, DS_NAT6_PREFIX_LEN, 1, 0,
-                DS_RULE_PRIO_FROM_SUBNET);
+    inet_pton(AF_INET6, CHDROID_NAT6_PREFIX, &net6);
+    ds_nl_rule6(ctx, 0, &net6, CHDROID_NAT6_PREFIX_LEN, 0, 0,
+                CHDROID_RULE_PRIO_TO_SUBNET);
+    ds_nl_rule6(ctx, 0, &net6, CHDROID_NAT6_PREFIX_LEN, 1, 0,
+                CHDROID_RULE_PRIO_FROM_SUBNET);
   }
 
   ds_nl_close(ctx);

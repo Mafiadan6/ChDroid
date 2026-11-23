@@ -2,8 +2,8 @@
 title: Android app guide
 section: Guides
 order: 1
-desc: Every screen in the Droidspaces Android app: the Home, Containers and Panel tabs, the container menu, the rootfs repository, the terminal, service management and Settings.
-keywords: droidspaces, android, app, guide, containers, panel, terminal, systemd, services, repository, settings, daemon, mode
+desc: Every screen in the ChDroid Android app: the Home, Containers and Panel tabs, the container menu, the rootfs repository, the terminal, service management and Settings.
+keywords: chdroid, android, app, guide, containers, panel, terminal, systemd, services, repository, settings, daemon, mode
 -->
 
 # Android app guide
@@ -47,7 +47,7 @@ The **+** button adds a container, from the **Repository** or **Install from fil
   <img src="resources/gallery/05-repository.png" width="30%">
 </p>
 
-A list of distributions built for Droidspaces, filtered to your device's architecture. Search by name. **Download** fetches the tarball into your Downloads folder and shows progress on the card; a notification tells you when it is done, and the button turns into **Install**. A download that fails gets a **Retry** button, and a tarball downloaded earlier is recognised the next time you open the sheet.
+A list of distributions built for ChDroid, filtered to your device's architecture. Search by name. **Download** fetches the tarball into your Downloads folder and shows progress on the card; a notification tells you when it is done, and the button turns into **Install**. A download that fails gets a **Retry** button, and a tarball downloaded earlier is recognised the next time you open the sheet.
 
 **Manage Repositories** in the sheet's header lets you subscribe to other feeds that publish a `rootfs.json`. The Linux Containers mirror is the one worth adding, for distributions and versions the official repository does not build:
 
@@ -57,7 +57,7 @@ https://raw.githubusercontent.com/Droidspaces/linuxcontainers-mirror/refs/heads/
 
 ### Install from file
 
-Picks a `.tar.xz` or `.tar.gz` rootfs archive from the phone's storage. A container exported from Droidspaces carries its settings and they are filled into the wizard, with a warning page first so you can review them. Any other rootfs tarball works too, as long as it has an init system.
+Picks a `.tar.xz` or `.tar.gz` rootfs archive from the phone's storage. A container exported from ChDroid carries its settings and they are filled into the wizard, with a warning page first so you can review them. Any other rootfs tarball works too, as long as it has an init system.
 
 ### The setup wizard
 
@@ -87,7 +87,7 @@ Only running containers appear here, each with its uptime, IP address, CPU and R
 
 - **Container Info**: distribution, hostname, uptime, IP address, CPU and RAM.
 - **Terminal**: tap **Open** for a shell. When sessions are already running, the card says so and tapping it brings them back.
-- **Available Users**: the user accounts in the rootfs. Pick one and tap **Copy login** to get a `droidspaces enter` command for that user on the clipboard, for use in Termux or any other root shell.
+- **Available Users**: the user accounts in the rootfs. Pick one and tap **Copy login** to get a `chdroid enter` command for that user on the clipboard, for use in Termux or any other root shell.
 - **Disk Usage**: space used and total.
 - **Init System**: tap **Manage** to control services. What you get depends on the init system.
 
@@ -123,9 +123,9 @@ Pinch to zoom changes the text size. Tapping the terminal opens the keyboard. Th
 
 - **Reinstall Backend**: writes the binaries and the boot module again. Use it if the Home tab reports the backend as corrupted.
 - **Daemon Mode**: on by default. The backend runs as a system daemon started at boot, outside the root shell, which gets past the seccomp filter Magisk and APatch put on root shells. Leave it on; changing it needs a reboot.
-- **Integrate Droidspaces to the system path**: puts `droidspaces` on the `PATH` of every root shell through the boot module, so you can type `droidspaces` instead of `/data/local/Droidspaces/bin/droidspaces`. Read the warning on the toggle: on OverlayFS-based module systems it causes a boot loop.
+- **Integrate ChDroid to the system path**: puts `chdroid` on the `PATH` of every root shell through the boot module, so you can type `chdroid` instead of `/data/local/ChDroid/bin/chdroid`. Read the warning on the toggle: on OverlayFS-based module systems it causes a boot loop.
 - **Auto Boot Priority**: the order in which containers with Run at Boot start. Drag to reorder. A gateway container goes above the containers that route through it.
-- **Requirements**: lists the kernel options Droidspaces needs, with a copy button for kernel builders, and **Check Requirements** runs every probe against the running kernel.
+- **Requirements**: lists the kernel options ChDroid needs, with a copy button for kernel builders, and **Check Requirements** runs every probe against the running kernel.
 
 **Appearance**: language, light and dark theme, AMOLED black, the system colour palette on Android 12 and newer, accent colour, and the terminal settings above.
 
@@ -139,7 +139,7 @@ Pinch to zoom changes the text size. Tapping the terminal opens the keyboard. Th
 
 ## Where the data is
 
-Everything the backend creates is under `/data/local/Droidspaces`: the binaries in `bin/`, each container's rootfs or image and its `container.config` in `Containers/<name>/`, and logs in `Logs/`. The app only reads and writes there; uninstalling the app does not touch it, and the daemon keeps running.
+Everything the backend creates is under `/data/local/ChDroid`: the binaries in `bin/`, each container's rootfs or image and its `container.config` in `Containers/<name>/`, and logs in `Logs/`. The app only reads and writes there; uninstalling the app does not touch it, and the daemon keeps running.
 
 ---
 

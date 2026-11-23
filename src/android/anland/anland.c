@@ -1,5 +1,5 @@
 /*
- * Droidspaces - anland display daemon integration
+ * ChDroid - anland display daemon integration
  *
  * Embeds the anland broker daemon (libdisplay_daemon, vendored alongside this
  * file) into the container lifecycle. For a container with anland enabled we:
@@ -22,13 +22,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "display_daemon.h"
 
 /* Per-container record names in the Pids dir, keyed by the sanitized name
  * like every other file there. The extensions are deliberately not
- * DS_EXT_PID: every Pids scanner treats <x>.pid as a container named x, so a
+ * CHDROID_EXT_PID: every Pids scanner treats <x>.pid as a container named x, so a
  * daemon pid file named <name>.anland.pid showed up as a phantom container and
  * left a .lock behind when the daemon died. Siblings use .xpid and .vpid. */
 #define ANLAND_PID_EXT ".apid"
@@ -117,7 +117,7 @@ int ds_anland_daemon_start(struct ds_config *cfg) {
    * socket there could be swapped for a symlink before the chmod and the bind
    * mount below, both of which follow symlinks as root. The directory is 0755,
    * so the consumer can still reach the socket. */
-  char uuid[DS_UUID_LEN + 1];
+  char uuid[CHDROID_UUID_LEN + 1];
   if (generate_uuid(uuid, sizeof(uuid)) < 0) {
     ds_error("[Anland] failed to generate socket name");
     return -1;

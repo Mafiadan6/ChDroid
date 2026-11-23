@@ -21,7 +21,7 @@
     <!-- Main Tab Screen -->
     <string name="container_singular">Контейнер</string>
     <string name="running">Запущено</string>
-    <!-- Droidspaces Status Card -->
+    <!-- ChDroid Status Card -->
     <string name="backend_checking">Backend: Проверка...</string>
     <string name="backend_installed">Backend: Установлен</string>
     <string name="backend_update_available">Backend: Доступно обновление</string>
@@ -50,7 +50,7 @@
     <string name="dynamic_color">Использовать системную цветовую палитру</string>
     <string name="dynamic_color_description">Использовать оформление Monet (Material You) Android 12+</string>
     <string name="about_section">О приложении</string>
-    <string name="about_droidspaces">О ChDroid</string>
+    <string name="about_chdroid">О ChDroid</string>
     <string name="about_description">Менеджер контейнеров в стиле LXC для Android</string>
     <string name="developers">Разработчики</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -135,7 +135,7 @@
     <!-- Installation Screen -->
     <string name="installation_complete">Установка завершена</string>
     <string name="installation_failed">Установка не удалась</string>
-    <string name="installing_droidspaces">Установка ChDroid</string>
+    <string name="installing_chdroid">Установка ChDroid</string>
     <string name="backend_installed_success">Бэкенд успешно установлен</string>
     <string name="binary_installation_failed">Не удалось установить бинарные файлы</string>
     <!-- Control Panel Screen -->
@@ -226,7 +226,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Проверить требования</string>
     <string name="requirements_check_title">Проверка требований</string>
-    <string name="requirements_for_droidspaces">Требования для ChDroid</string>
+    <string name="requirements_for_chdroid">Требования для ChDroid</string>
     <string name="requirements_check_completed_successfully">Проверка требований успешно завершена</string>
     <string name="requirements_check_completed_with_errors">Проверка требований завершена с ошибками</string>
     <string name="kernel_requirements_copied">Требования к ядру скопированы в буфер обмена</string>

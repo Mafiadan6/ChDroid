@@ -19,9 +19,9 @@
 
   flake.overlays = {
     default = final: prev: {
-      droidspacesConfigIf = pattern:
+      chdroidConfigIf = pattern:
         prev.writeShellScript "config-if" ''
-          grep -q ${lib.escapeShellArg pattern} /run/droidspaces/container.config
+          grep -q ${lib.escapeShellArg pattern} /run/chdroid/container.config
         '';
     };
   };

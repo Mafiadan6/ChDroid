@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <time.h>
 
 int ds_log_silent = 0;
@@ -83,7 +83,7 @@ void ds_log_internal(const char *prefix, const char *color, int is_err,
                      const char *fmt, ...) {
   /* A peek (ds_config_peek) at a config file prints none of the file's
    * complaints; errors are the command's own, so they still go out. */
-  if (ds_log_silent == DS_LOG_PEEK && prefix[0] != '-')
+  if (ds_log_silent == CHDROID_LOG_PEEK && prefix[0] != '-')
     return;
 
   char raw_msg[8192];

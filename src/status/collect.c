@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
@@ -22,7 +22,7 @@
  * One walk pair serves every container at once, so the app's heartbeat costs
  * the same for ten containers as for one. */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <ifaddrs.h>
 #include <time.h>
 

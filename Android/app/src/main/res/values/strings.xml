@@ -135,7 +135,7 @@
     <string name="symlink_integration">Integrate ChDroid to the system path</string>
     <string name="symlink_integration_description">Create a symlink at /system/bin to access the chdroid command in Android root shell. WARNING: ENABLING THIS CAUSES BOOTLOOP IF YOUR MOUNT SYSTEM IS OVERLAYFS meta modules. Only use this option when using Magic Mount-based mount system or kernel based "nomount" mount system (Reboot required)</string>
     <string name="about_section">About</string>
-    <string name="about_droidspaces">About ChDroid</string>
+    <string name="about_chdroid">About ChDroid</string>
     <string name="about_description">LXC-Style container manager for Android</string>
     <string name="developers">Developer(s)</string>
     <string name="developer_ravindu644">ravindu644</string>
@@ -210,6 +210,7 @@
     <string name="container_info">Container Info</string>
     <string name="distribution">Distribution</string>
     <string name="version">Version</string>
+    <string name="developer_name">爪卂丂ㄒ乇尺爪工刀</string>
     <string name="hostname">Hostname</string>
     <string name="ip_address">IP Address</string>
     <string name="uptime">Uptime</string>
@@ -429,7 +430,7 @@
     <string name="installation_complete">Installation Complete</string>
     <string name="installation_failed">Installation Failed</string>
     <string name="done">Done</string>
-    <string name="installing_droidspaces">Installing ChDroid</string>
+    <string name="installing_chdroid">Installing ChDroid</string>
     <string name="installing_backend_message">Setting up the backend. This takes a moment.</string>
     <string name="backend_installed_success">ChDroid backend installed successfully</string>
     <string name="backend_installed_unsupported_kernel">ChDroid backend installed successfully, but this kernel has no ChDroid support.</string>
@@ -624,7 +625,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Check Requirements</string>
     <string name="requirements_check_title">Requirements Check</string>
-    <string name="requirements_for_droidspaces">Requirements for ChDroid</string>
+    <string name="requirements_for_chdroid">Requirements for ChDroid</string>
     <string name="requirements_check_completed_successfully">Requirements check completed successfully</string>
     <string name="requirements_check_completed_with_errors">Requirements check completed with errors</string>
     <string name="kernel_requirements_copied">Kernel requirements copied to clipboard</string>
@@ -675,7 +676,28 @@
     <string name="starting_resizing">Starting resizing operation...</string>
     <string name="help_card_title">New to ChDroid?</string>
     <string name="help_card_message">Tap here to learn how to setup your first Linux container!</string>
-    <string name="help_card_url">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
+
+    <!-- In-app getting started guide, opened by the Home help card -->
+    <string name="getting_started_title">Getting started</string>
+    <string name="getting_started_got_it">Got it</string>
+    <string name="getting_started_full_guide">Read the full guide</string>
+    <string name="getting_started_releases">Open the releases page</string>
+    <string name="getting_started_releases_url" translatable="false">https://github.com/Mafiadan6/ChDroid-rootfs/releases/tag/v4.4</string>
+    <string name="guide_intro_title">Welcome to ChDroid</string>
+    <string name="guide_intro_body">ChDroid runs a real Linux rootfs on your rooted phone. It is a terminal frontend: chroot.sh starts the rootfs and owns its namespaces, mounts, DNS and login shell. Nothing here is a virtual machine.</string>
+    <string name="guide_root_title">1. Root access</string>
+    <string name="guide_root_body">ChDroid uses the su binary already on your device. No boot module, no reboot and no special root method to set up. SELinux stays enforcing.</string>
+    <string name="guide_rootfs_title">2. Get a rootfs</string>
+    <string name="guide_rootfs_body">Download a ChDroid rootfs ZIP from the releases page. Ubuntu ships as a .tar.gz, Arch as a .tar.xz. Pick the one you want and keep the ZIP somewhere you can find it.</string>
+    <string name="guide_install_title">3. Install it</string>
+    <string name="guide_install_body">Share the ZIP with ChDroid from your file manager, or pick it from the install screen. The wizard asks for a name, a recommended or custom config, a sparse image size, then shows a summary before installing. The name you type becomes the folder, so Arch Linux becomes /data/local/arch-linux-chroot.</string>
+    <string name="guide_run_title">4. Start and stop</string>
+    <string name="guide_run_body">Open Containers and use the action pill on the rootfs card to start it. Start and stop output goes to the console. The Panel tab shows live CPU, memory, PIDs and IP. Stop is the only thing that tears the rootfs down.</string>
+    <string name="guide_terminal_title">5. The terminal</string>
+    <string name="guide_terminal_body">Only the Terminal pill opens a shell. Typing exit or pressing X closes the terminal tab and leaves the rootfs running. Reopen it from the same card any time. Use Stop when you actually want to shut it down.</string>
+    <string name="guide_know_title">Good to know</string>
+    <string name="guide_know_body">Arch uses pacman, Ubuntu uses apt. The prompt shows the hostname saved in the rootfs editor, change it from Containers, then Edit. Edit and uninstall live in the rootfs card action drawer, and uninstall asks you to type the name to confirm. If something breaks, the crash log is at /storage/emulated/0/Android/data/com.chdroid.app/files/chdroid-crash.txt.</string>
     <string name="privileged_mode">Privileged Mode</string>
     <string name="privileged_nomask_desc">Disable jail masks to allow write access to /proc and /sys. Note: /sys remains read-only unless Hardware Access is also enabled.</string>
     <string name="privileged_nocaps_desc">Do not drop any Linux capabilities (full root power).</string>
@@ -698,7 +720,7 @@
     <string name="close_menu">Close menu</string>
     <string name="repo_refresh">Refresh</string>
     <string name="repo_banner_text">Rootfs tarballs under \"ChDroid developers\" are open-source and transparent. You can manually download or inspect our changes by tapping this card.</string>
-    <string name="repo_banner_url">https://github.com/Droidspaces/Droidspaces-rootfs-builder</string>
+    <string name="repo_banner_url">https://github.com/Mafiadan6/ChDroid-rootfs</string>
     <string name="repo_failed_to_load">Failed to load repository</string>
     <string name="repo_download">Download</string>
     <string name="repo_cancel">Cancel</string>

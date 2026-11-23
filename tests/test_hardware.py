@@ -4,7 +4,7 @@ import glob
 import os
 import unittest
 
-from dstest import CAPS_DROPPED_ALWAYS, DsTest, cap_mask, require_daemon
+from dstest import CAPS_DROPPED_ALWAYS, ChDroidTest, cap_mask, require_daemon
 
 
 def setUpModule():
@@ -16,7 +16,7 @@ def dev_major(c, node):
     return int(c.sh(f"stat -L -c %t {node}"), 16)
 
 
-class HardwareAccess(DsTest):
+class HardwareAccess(ChDroidTest):
     def test_default_dev_is_an_isolated_tmpfs(self):
         c = self.container("notmpfs")
         self.assertEqual(c.fstype("/dev"), "tmpfs")
@@ -45,13 +45,13 @@ class HardwareAccess(DsTest):
         if not glob.glob("/dev/dri/renderD*"):
             self.skipTest("host has no /dev/dri/renderD* node")
         c = self.container("gpu", "--gpu")
-        # Features.md: only the render nodes are mirrored, owned by the droidspaces-gpu group
+        # Features.md: only the render nodes are mirrored, owned by the chdroid-gpu group
         render = c.sh("ls /dev/dri/ 2>/dev/null")
         self.assertIn("renderD", render)
         self.assertNotIn("card", render, "--gpu copies render nodes only")
         # Root opens the nodes as their owner; the group has no members, other users are added by hand
-        self.assertEqual(c.sh("stat -c '%U %G %a' /dev/dri/renderD* | head -1"), "root droidspaces-gpu 660")
-        self.assertEqual(c.sh("grep -c '^droidspaces-gpu:x:786:$' /etc/group"), "1")
+        self.assertEqual(c.sh("stat -c '%U %G %a' /dev/dri/renderD* | head -1"), "root chdroid-gpu 660")
+        self.assertEqual(c.sh("grep -c '^chdroid-gpu:x:786:$' /etc/group"), "1")
         self.assertEqual(c.info()["hw_access"], "GPU")
         self.assertEqual(c.saved_config()["enable_gpu_mode"], "1")
 
@@ -70,7 +70,7 @@ class HardwareAccess(DsTest):
         self.assertEqual(c.info()["x11"], 0)
 
 
-class AndroidOnlyFlags(DsTest):
+class AndroidOnlyFlags(ChDroidTest):
     def test_android_flags_warn_and_are_skipped_on_linux(self):
         c = self.container("android", start=False)
         p = c.start("--enable-android-storage", "--tx11-flags=-xstartup", "--virgl", "--virgl-flags=-v",
@@ -91,7 +91,7 @@ class AndroidOnlyFlags(DsTest):
         self.assertIn("only supported on Android hosts", p.stdout + p.stderr)
 
 
-class DeviceNodes(DsTest):
+class DeviceNodes(ChDroidTest):
     def test_dev_null_is_writable_by_everyone(self):
         # getty chmods its tty to 0620; when ttyN was a symlink that landed on /dev/null itself.
         c = self.container("devnull")

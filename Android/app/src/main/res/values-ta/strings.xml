@@ -52,7 +52,7 @@
     <string name="selinux_permissive_description">SELinux அனுமதியை அமைக்கவும்</string>
     <string name="get_started">தொடங்குங்கள்</string>
     <string name="open_terminal">முனையத்தைத் திறக்கவும்</string>
-    <string name="requirements_for_droidspaces">ChDroid க்கான தேவைகள்</string>
+    <string name="requirements_for_chdroid">ChDroid க்கான தேவைகள்</string>
     <string name="privileged_nomask_desc">/proc மற்றும் /sys க்கு எழுதும் அணுகலை அனுமதிக்க சிறை முகமூடிகளை முடக்கவும். குறிப்பு: வன்பொருள் அணுகலும் இயக்கப்பட்டாலன்றி, /sys படிக்க மட்டுமே இருக்கும்.</string>
     <string name="hw_option">HW</string>
     <string name="hw_access_disclaimer">ChDroid v6.1.0 இலிருந்து தொடங்கி, udevd ஆனது USB, block, input, TTY மற்றும் பிணைய துணை அமைப்புகளுக்கான உண்மையான அணுகலைக் கொண்டுள்ளது. உங்கள் கன்டெய்னர் ஆண்ட்ராய்டு தற்போது பயன்படுத்தும் வன்பொருளை சொந்தமாக வைத்திருக்க முடியும். \n\nஉங்கள் விசைப்பலகை, SD அட்டை அல்லது USB சாதனம் ஒரு கண்டெய்னரை அறிமுகப்படுத்திய பிறகு ஆண்ட்ராய்டு இல் வேலை செய்வதை நிறுத்தினால் - அது ஒரு பிழை அல்ல. கொள்கலன் அதை எடுத்தது. முழு வன்பொருள் அணுகலைக் கேட்டுள்ளீர்கள். \n\nஇந்த பயன்முறையைப் பயன்படுத்தும் போது வன்பொருள் முரண்பாடுகள் அல்லது கர்னல் பீதியால் ஏற்படும் சிக்கல்களைப் புகாரளிக்க வேண்டாம்.</string>
@@ -77,7 +77,7 @@
     <string name="uninstall_container_menu">கொள்கலனை நிறுவல் நீக்கவும்</string>
     <string name="no_local_users_found">உள்ளக பயனர்கள் இல்லை</string>
     <string name="container_path_placeholder">எ.கா. /mnt/sdcard</string>
-    <string name="installing_droidspaces">ChDroid ஐ நிறுவுதல்</string>
+    <string name="installing_chdroid">ChDroid ஐ நிறுவுதல்</string>
     <string name="saved">சேமிக்கப்பட்டது</string>
     <string name="bug_report_title">பிழை அறிக்கை</string>
     <string name="no_containers_installed">கொள்கலன்கள் நிறுவப்படவில்லை</string>
@@ -383,7 +383,7 @@
     <string name="hostname_hint">காலியாக இருந்தால், கொள்கலன் பெயரை ஓச்ட்பெயராகப் பயன்படுத்தும்</string>
     <string name="not_configured">கட்டமைக்கப்படவில்லை</string>
     <string name="failed_to_update_config">உள்ளமைவைப் புதுப்பிக்க முடியவில்லை</string>
-    <string name="about_droidspaces">ChDroid பற்றி</string>
+    <string name="about_chdroid">ChDroid பற்றி</string>
     <string name="disk_usage">வட்டு பயன்பாடு</string>
     <string name="installing_container">கொள்கலனை நிறுவுதல்</string>
     <string name="repo_add_custom">தனிப்பயன் களஞ்சியத்தைச் சேர்க்கவும்</string>

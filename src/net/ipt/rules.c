@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter/nf_nat.h>
@@ -124,7 +124,7 @@ int ds_ipt_host_rules_present(int family, const char *iface,
  * MASQUERADE target, which is a separate option on older kernels. The kernel
  * is asked for both, the same way ip6tables resolves a target, so the answer
  * holds whatever the config option is called on this version. Both the runtime
- * and `droidspaces check` come through here. */
+ * and `chdroid check` come through here. */
 
 int ds_ipt6_available(void) {
   const struct xt_family *f = xt_family_of(AF_INET6);
@@ -193,7 +193,7 @@ static int raw_ensure_masquerade(const struct xt_family *f, const uint8_t *net,
                        : sizeof(struct nf_nat_ipv4_multi_range_compat);
   size_t target_sz = XT_ALIGN(sizeof(struct xt_entry_target) + payload);
 
-  unsigned char rule_buf[DS_XT_RULE_MAX];
+  unsigned char rule_buf[CHDROID_XT_RULE_MAX];
   struct xt_entry_target *rt = rule_begin(f, rule_buf, target_sz);
   struct xt_ent_view v;
   entry_view(f, rule_buf, &v);
@@ -271,7 +271,7 @@ static int raw_ensure_iface_accept(const struct xt_family *f, int fd,
   }
 
   size_t target_sz = XT_ALIGN(sizeof(struct xt_standard_target));
-  unsigned char rule_buf[DS_XT_RULE_MAX];
+  unsigned char rule_buf[CHDROID_XT_RULE_MAX];
   struct xt_standard_target *st =
       (struct xt_standard_target *)rule_begin(f, rule_buf, target_sz);
   struct xt_ent_view v;
@@ -315,7 +315,7 @@ static int ensure_iface_accept(const struct xt_family *f, int fd,
  *   -t filter -I FORWARD -i <iface> -j ACCEPT
  *   -t filter -I FORWARD -o <iface> -j ACCEPT
  *
- * Called with DS_NAT_BRIDGE ("ds-br0"), or with the veth in bridgeless mode.
+ * Called with CHDROID_NAT_BRIDGE ("ds-br0"), or with the veth in bridgeless mode.
  * Routed traffic enters and leaves through the bridge device, so that is the
  * name FORWARD sees; bridge netfilter is off and never shows it the ports. */
 
@@ -374,7 +374,7 @@ int ds_ipt_ensure_mss_clamp(int family) {
                               "TCPMSS")) {
         ds_log("[IPT] %s TCPMSS clamp already present - skipping", f->bin);
       } else {
-        unsigned char rule_buf[DS_XT_RULE_MAX];
+        unsigned char rule_buf[CHDROID_XT_RULE_MAX];
         unsigned int sz = clamp_rule(f, rule_buf);
         ret = insert_rule_at_hook(f, fd, "mangle", &info, ENTRIES_BLOB(base),
                                   NF_INET_POST_ROUTING, rule_buf, sz);
@@ -417,7 +417,7 @@ static void remove_rule(const struct xt_family *f, int fd, const char *table,
   /* The clamp is the exception: when the raw path could read the table and
    * found none of ours, there is nothing the binary could find either, and
    * its spec would match a foreign clamp-to-pmtu rule that was never ours. */
-  if (removed < 0 || (removed == 0 && !(iface_flags & DS_IPT_MATCH_CLAMP)))
+  if (removed < 0 || (removed == 0 && !(iface_flags & CHDROID_IPT_MATCH_CLAMP)))
     bin_rule(f, "-D", table, chain, spec);
 }
 
@@ -428,11 +428,11 @@ static void remove_iface_accepts(const struct xt_family *f, int fd,
   const char *const out_spec[] = {"-o", iface, "-j", "ACCEPT", NULL};
 
   remove_rule(f, fd, "filter", NF_INET_FORWARD, "FORWARD", NULL, NULL, iface,
-              DS_IPT_MATCH_IN, in_spec);
+              CHDROID_IPT_MATCH_IN, in_spec);
   remove_rule(f, fd, "filter", NF_INET_FORWARD, "FORWARD", NULL, NULL, iface,
-              DS_IPT_MATCH_OUT, out_spec);
+              CHDROID_IPT_MATCH_OUT, out_spec);
   remove_rule(f, fd, "filter", NF_INET_LOCAL_IN, "INPUT", NULL, NULL, iface,
-              DS_IPT_MATCH_IN, in_spec);
+              CHDROID_IPT_MATCH_IN, in_spec);
 }
 
 int ds_ipt_remove_iface_rules(int family, const char *iface) {
@@ -451,14 +451,14 @@ int ds_ipt_remove_iface_rules(int family, const char *iface) {
 
 /* Public API: ds_ipt_remove_ds_rules
  *
- * Cleanly removes all rules Droidspaces inserted during NAT setup for one
+ * Cleanly removes all rules ChDroid inserted during NAT setup for one
  * family. Safe to call even if container died unexpectedly, and when that
  * family was never set up. */
 
 int ds_ipt_remove_ds_rules(int family) {
   const struct xt_family *f = xt_family_of(family);
   const char *subnet =
-      (family == AF_INET6) ? DS_NAT6_SUBNET : DS_DEFAULT_SUBNET;
+      (family == AF_INET6) ? CHDROID_NAT6_SUBNET : CHDROID_DEFAULT_SUBNET;
   ds_log("[IPT] remove_ds_rules: %s", f->bin);
 
   uint8_t net[16], mask[16];
@@ -471,9 +471,9 @@ int ds_ipt_remove_ds_rules(int family) {
                                    subnet, "-j",   "MASQUERADE", NULL};
   remove_rule(f, fd, "nat", NF_INET_POST_ROUTING, "POSTROUTING", net, mask,
               NULL, 0, masq_spec);
-  remove_iface_accepts(f, fd, DS_NAT_BRIDGE);
+  remove_iface_accepts(f, fd, CHDROID_NAT_BRIDGE);
   remove_rule(f, fd, "mangle", NF_INET_POST_ROUTING, "POSTROUTING", NULL, NULL,
-              NULL, DS_IPT_MATCH_CLAMP, k_mss_spec);
+              NULL, CHDROID_IPT_MATCH_CLAMP, k_mss_spec);
 
   if (fd >= 0)
     close(fd);

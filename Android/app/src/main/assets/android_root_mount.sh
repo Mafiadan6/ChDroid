@@ -14,8 +14,8 @@ PIDFILE=$BASE/holder.pid
 PID=$(cat "$PIDFILE" 2>/dev/null)
 [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null || exit 0
 
-BB=/data/local/Droidspaces/bin/busybox-release
-[ -x "$BB" ] || BB=/data/local/Droidspaces/bin/busybox
+BB=/data/local/ChDroid/bin/busybox-release
+[ -x "$BB" ] || BB=/data/local/ChDroid/bin/busybox
 [ -x "$BB" ] || exit 0
 
 TARGET=$BASE/rootfs/android-root

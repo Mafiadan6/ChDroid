@@ -1,0 +1,224 @@
+package com.chdroid.app.ui.screen
+
+import com.chdroid.app.ui.component.PrimaryActionBottomBar
+import androidx.compose.ui.graphics.Color
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.painterResource
+import com.chdroid.app.R
+import com.chdroid.app.ui.theme.ChDroidIcons
+import androidx.compose.ui.platform.LocalContext
+import com.chdroid.app.util.ContainerInfo
+import com.chdroid.app.util.ResourceLimits
+import com.chdroid.app.util.Constants
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import com.chdroid.app.ui.component.netModeLabel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InstallationSummaryScreen(
+    config: ContainerInfo,
+    tarballName: String,
+    onInstall: () -> Unit,
+    onBack: () -> Unit
+) {
+    Scaffold(
+        containerColor = Color.Transparent,
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.installation_setup_summary), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                    }
+                }
+            )
+        },
+        bottomBar = {
+            PrimaryActionBottomBar(
+                label = stringResource(R.string.install_container),
+                icon = Icons.Default.InstallMobile,
+                onClick = onInstall,
+                barColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.98f)
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp)
+                .padding(top = 8.dp, bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.review_configuration),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // Summary Card
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+                tonalElevation = 0.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    SummaryItem(stringResource(R.string.tarball_label), tarballName, Icons.Default.Archive)
+                    SummaryItem(stringResource(R.string.container_singular), config.name, ChDroidIcons.Logo)
+                    SummaryItem(stringResource(R.string.hostname), config.hostname, Icons.Default.Computer)
+                    SummaryItem(stringResource(R.string.network_mode), stringResource(netModeLabel(config.netMode)), Icons.Default.Public)
+                    if (config.netMode == "nat" && config.staticNatIp.isNotEmpty()) {
+                        SummaryItem(stringResource(R.string.static_ip_address), config.staticNatIp, Icons.Default.NetworkCheck)
+                    }
+                    if (config.useSparseImage && config.sparseImageSizeGB != null) {
+                        SummaryItem(stringResource(R.string.storage_configuration), "${stringResource(R.string.sparse_image_section)} (${config.sparseImageSizeGB}GB)", ChDroidIcons.Logo)
+                    } else {
+                        SummaryItem(stringResource(R.string.storage_configuration), stringResource(R.string.directory_label), Icons.Default.Folder)
+                    }
+                    // Derived from the resolved rootfs, not from the name, so a container
+                    // installed on another volume is not reported as living under /data.
+                    SummaryItem(stringResource(R.string.installation_path_label), config.rootfsPath.substringBeforeLast('/'), Icons.Default.Folder)
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                    )
+
+                    Text(
+                        text = stringResource(R.string.options),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    // Set by every Option that draws, so the "nothing enabled" line needs no
+                    // list of every flag.
+                    var anyOption = false
+                    @Composable
+                    fun Option(shown: Boolean, label: String, value: String, icon: Painter) {
+                        if (!shown) return
+                        anyOption = true
+                        SummaryItem(label, value, icon)
+                    }
+                    @Composable
+                    fun Option(shown: Boolean, label: String, value: String, icon: ImageVector) {
+                        // The painter is only built for a row that draws.
+                        if (!shown) return
+                        anyOption = true
+                        SummaryItem(label, value, icon)
+                    }
+
+                    Option(config.disableIPv6, stringResource(R.string.disable_ipv6), stringResource(R.string.enabled_legend), Icons.Default.NetworkCheck)
+                    Option(config.enableAndroidStorage, stringResource(R.string.android_storage), stringResource(R.string.enabled_legend), ChDroidIcons.Logo)
+                    Option(config.enableHwAccess, stringResource(R.string.hardware_access), stringResource(R.string.enabled_legend), Icons.Default.Devices)
+                    Option(!config.enableHwAccess && config.enableGpuMode, stringResource(R.string.gpu_access), stringResource(R.string.enabled_legend), Icons.Default.DeveloperBoard)
+                    Option(config.enableTermuxX11, stringResource(R.string.termux_x11), stringResource(R.string.enabled_legend), painterResource(id = R.drawable.ic_x11))
+                    Option(config.enableAnland, stringResource(R.string.enable_anland), stringResource(R.string.enabled_legend), Icons.Default.DesktopWindows)
+                    Option(config.enableVirgl, stringResource(R.string.enable_virgl), stringResource(R.string.enabled_legend), Icons.Default.Layers)
+                    Option(config.enablePulseaudio, stringResource(R.string.enable_pulseaudio), stringResource(R.string.enabled_legend), Icons.AutoMirrored.Filled.VolumeUp)
+                    Option(config.selinuxPermissive, stringResource(R.string.selinux_permissive), stringResource(R.string.enabled_legend), Icons.Default.Security)
+                    Option(config.allowSandboxing, stringResource(R.string.allow_userns), stringResource(R.string.enabled_legend), Icons.Default.Groups)
+                    Option(config.volatileMode, stringResource(R.string.volatile_mode), stringResource(R.string.enabled_legend), Icons.Default.AutoDelete)
+                    Option(config.runAtBoot, stringResource(R.string.run_at_boot), stringResource(R.string.enabled_legend), Icons.Default.PowerSettingsNew)
+                    Option(config.forceCgroupv1, stringResource(R.string.force_cgroupv1), stringResource(R.string.enabled_legend), Icons.Default.Layers)
+                    Option(config.privileged.isNotEmpty(), stringResource(R.string.privileged_mode), config.privileged, Icons.Default.GppMaybe)
+                    val context = LocalContext.current
+                    val memoryLabel = ResourceLimits.memoryLabel(context, config)
+                    val cpuLabel = ResourceLimits.cpuLabel(context, config)
+                    val pidsLabel = ResourceLimits.pidsLabel(context, config)
+                    Option(memoryLabel != null, stringResource(R.string.limit_memory), memoryLabel.orEmpty(), Icons.Default.Memory)
+                    Option(memoryLabel != null && config.allowSwap, stringResource(R.string.limit_swap), stringResource(R.string.enabled_legend), Icons.Default.SwapVert)
+                    Option(cpuLabel != null, stringResource(R.string.limit_cpu), cpuLabel.orEmpty(), Icons.Default.Speed)
+                    Option(pidsLabel != null, stringResource(R.string.limit_pids), pidsLabel.orEmpty(), Icons.Default.Tag)
+
+                    val envCount = com.chdroid.app.util.ValidationUtils.countEnvVars(config.envFileContent)
+                    Option(envCount > 0, stringResource(R.string.environment_variables), stringResource(R.string.environment_variables_configured, envCount), Icons.Default.Code)
+
+                    config.bindMounts.forEach { mount ->
+                        Option(true, stringResource(R.string.bind_mounts), "${mount.src} → ${mount.dest}", Icons.Default.Link)
+                    }
+
+                    Option(config.upstreamInterfaces.isNotEmpty(), stringResource(R.string.upstream_interface_title), config.upstreamInterfaces.joinToString(", "), Icons.Default.Public)
+
+                    config.portForwards.forEach { forward ->
+                        Option(true, stringResource(R.string.port_forwarding), "${forward.hostPort} → ${forward.containerPort ?: forward.hostPort} (${forward.proto})", Icons.AutoMirrored.Filled.ArrowForward)
+                    }
+
+                    if (!anyOption) {
+                        Text(
+                            text = stringResource(R.string.no_options_enabled),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun SummaryItem(label: String, value: String, icon: ImageVector) = SummaryItem(label, value, rememberVectorPainter(icon))
+
+@Composable
+private fun SummaryItem(label: String, value: String, icon: Painter) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}

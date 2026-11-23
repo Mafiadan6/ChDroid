@@ -1,0 +1,727 @@
+package com.chdroid.app.ui.screen
+
+import android.app.Activity
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.Handler
+import android.os.IBinder
+import android.os.Looper
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.KeyboardHide
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.chdroid.app.ui.component.ChDroidDialog
+import com.chdroid.app.service.TerminalSessionService
+import com.chdroid.app.ui.component.DialogFooterRow
+import com.chdroid.app.ui.terminal.TerminalBackEnd
+import com.chdroid.app.ui.terminal.TerminalScreenState
+import com.chdroid.app.ui.terminal.virtualkeys.VirtualKeysConstants
+import com.chdroid.app.ui.terminal.virtualkeys.VirtualKeysInfo
+import com.chdroid.app.ui.terminal.virtualkeys.VirtualKeysListener
+import com.chdroid.app.ui.terminal.virtualkeys.VirtualKeysView
+import android.graphics.Typeface
+import com.chdroid.app.util.AnimationUtils
+import com.chdroid.app.util.ContainerOSInfoManager
+import com.chdroid.app.util.ChDroidRootfsManager
+import com.chdroid.app.util.ContainerUsersManager
+import com.chdroid.app.util.FontInfo
+import com.chdroid.app.util.PreferencesManager
+import java.io.File
+import com.chdroid.app.ui.util.FullScreenLoading
+import com.chdroid.app.ui.util.LoadingSize
+import com.termux.terminal.TerminalSession
+import com.termux.view.TerminalView
+import java.lang.ref.WeakReference
+import java.util.UUID
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import androidx.compose.ui.platform.LocalDensity
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.content.res.ResourcesCompat
+import com.chdroid.app.R
+import com.chdroid.app.ui.component.ChDroidRadioRow
+
+private data class TerminalTab(
+    val id: String,
+    val user: String,
+    val label: String,
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ContainerTerminalScreen(
+    containerName: String,
+    onNavigateBack: () -> Unit,
+) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val terminalDarkTheme = remember { PreferencesManager.getInstance(context).terminalDarkTheme }
+    // Read once at entry like the theme above; re-enter to apply
+    val confirmTabClose = remember { PreferencesManager.getInstance(context).terminalConfirmClose }
+
+    // The TerminalView raises the IME itself, so Compose's keyboard controller has no
+    // session to hide and leaves it up over the screen we return to. Ask the window.
+    val hideKeyboard = {
+        activity?.window?.let {
+            WindowCompat.getInsetsController(it, it.decorView).hide(WindowInsetsCompat.Type.ime())
+        }
+    }
+    var binder by remember { mutableStateOf<TerminalSessionService.SessionBinder?>(null) }
+
+    DisposableEffect(Unit) {
+        val conn = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                com.chdroid.app.util.CrashLogger.log("terminal service connected: ${service != null}")
+                binder = service as? TerminalSessionService.SessionBinder
+            }
+            override fun onServiceDisconnected(name: ComponentName?) { binder = null }
+        }
+        context.bindService(Intent(context, TerminalSessionService::class.java), conn, Context.BIND_AUTO_CREATE)
+        onDispose {
+            // Detach the UI client from any backgrounded sessions before unbinding so
+            // the service doesn't retain this Activity/TerminalView. The
+            // screen re-attaches its own client on re-entry.
+            binder?.detachAllClients()
+            context.unbindService(conn)
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+    var availableUsers by remember { mutableStateOf(listOf("root")) }
+    var pickJob by remember { mutableStateOf<Job?>(null) }
+    // Read inside snapshotFlow only, so the IME animation does not recompose the screen
+    val ime = WindowInsets.ime
+    val density = LocalDensity.current
+
+    val tabs = remember { mutableStateListOf<TerminalTab>() }
+    var activeTabId by remember { mutableStateOf("") }
+    var showUserPicker by remember { mutableStateOf(false) }
+    // Tab whose X was tapped while Confirm Before Closing is on
+    var tabPendingClose by remember { mutableStateOf<TerminalTab?>(null) }
+
+    // Resolve hostname reactively; picker is shown only after binder+hostname are both ready
+    // A blank container name is the ChDroid CLI rootfs: chroot.sh owns the
+    // environment, and the hostname is read from the installed rootfs itself.
+    val isHostShell = containerName.isBlank()
+    var hostname by remember(containerName) {
+        mutableStateOf(
+            if (isHostShell) ""
+            else ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
+                ?: containerName.take(12)
+        )
+    }
+    // Tab creation must never wait on a shell call. For the CLI rootfs the
+    // hostname is a cosmetic label resolved in the background below; gating the
+    // tab on it left a blank terminal whenever that lookup stalled.
+    var hostnameReady by remember { mutableStateOf(true) }
+    LaunchedEffect(containerName) {
+        if (isHostShell) {
+            hostname = ChDroidRootfsManager.hostname()
+        } else {
+            val resolved = ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
+                ?: ContainerOSInfoManager.fetchAll(context)[containerName]?.hostname
+            if (resolved != null) hostname = resolved
+        }
+        hostnameReady = true
+        com.chdroid.app.util.CrashLogger.log("terminal hostname resolved: '$hostname' hostShell=$isHostShell")
+    }
+
+    // Sync UI tabs with background service reality.
+    // If sessions are killed externally (e.g. Notification Exit), remove them here.
+    LaunchedEffect(TerminalSessionService.globalSessionList.size) {
+        val currentGlobalIds = TerminalSessionService.globalSessionList.keys
+        val toRemove = tabs.filter { it.id !in currentGlobalIds }
+        if (toRemove.isNotEmpty()) {
+            val wasActiveRemoved = activeTabId in toRemove.map { it.id }
+            tabs.removeAll(toRemove)
+            if (tabs.isEmpty()) {
+                hideKeyboard()
+                onNavigateBack()
+            } else if (wasActiveRemoved) {
+                activeTabId = tabs.last().id
+            }
+        }
+    }
+
+    fun addTab(user: String) {
+        TerminalSessionService.start(context)
+        val id = "${containerName}_${UUID.randomUUID().toString().take(8)}"
+        val newTab = TerminalTab(id = id, user = user, label = "$user@$hostname")
+        val currentIndex = tabs.indexOfFirst { it.id == activeTabId }
+        if (currentIndex != -1) {
+            tabs.add(currentIndex + 1, newTab)
+        } else {
+            tabs.add(newTab)
+        }
+        activeTabId = id
+    }
+
+    // Users change from inside the container (adduser in another tab), so ask every time
+    // instead of trusting the cache. A picker with root as its only row is skipped.
+    // The fetch belongs to the screen, not the effect. A restarted LaunchedEffect cancels
+    // its coroutine, but Shell.exec runs to the end first, so the restart would find the
+    // fetch still busy and skip, and the cancelled one never opened anything.
+    fun pickUserOrOpenRoot() {
+        if (pickJob?.isActive == true) return
+        pickJob = scope.launch {
+            if (isHostShell) {
+                addTab("root")
+                return@launch
+            }
+            val users = ContainerUsersManager.getUsers(containerName, useCache = false)
+            availableUsers = listOf("root") + users
+            if (users.isEmpty()) {
+                addTab("root")
+                return@launch
+            }
+            // The picker is its own window. Opened over the terminal's keyboard it sizes itself
+            // above the IME, takes focus, the IME drops, and it jumps to full size on screen.
+            // Put the keyboard away first and open it once the inset has settled at zero.
+            if (ime.getBottom(density) > 0) {
+                hideKeyboard()
+                withTimeoutOrNull(1000) { snapshotFlow { ime.getBottom(density) }.first { it == 0 } }
+            }
+            showUserPicker = true
+        }
+    }
+
+    LaunchedEffect(binder, hostnameReady) {
+        binder ?: return@LaunchedEffect
+        if (!hostnameReady) return@LaunchedEffect
+        if (tabs.isNotEmpty()) return@LaunchedEffect
+        val existing = TerminalSessionService.globalSessionList
+            .filter { (_, info) -> info.containerName == containerName }
+        if (existing.isNotEmpty()) {
+            existing.forEach { (id, info) ->
+                tabs.add(TerminalTab(id = id, user = info.user, label = "${info.user}@$hostname"))
+            }
+            activeTabId = existing.keys.last()
+        } else {
+            pickUserOrOpenRoot()
+        }
+    }
+
+    // The X button, shell EOF (onSessionFinished) and the service-sync effect can
+    // all race to close the same tab. Remembering closed ids makes closeTab
+    // idempotent, and every mutation runs on the main looper even when the shell's
+    // EOF callback arrives on a binder thread - the double close/navigate was the
+    // X-button crash.
+    val closedTabIds = remember { mutableSetOf<String>() }
+    val mainHandler = remember { Handler(Looper.getMainLooper()) }
+
+    fun closeTab(tab: TerminalTab) {
+        mainHandler.post {
+            if (!closedTabIds.add(tab.id)) return@post
+            if (tab !in tabs) return@post
+            // terminateSession handles the immediate UI state update
+            // (globalSessionList.remove) and internal cleanup delays (EOF).
+            binder?.terminateSession(tab.id)
+
+            if (tabs.size == 1) hideKeyboard()
+            val idx = tabs.indexOf(tab)
+            tabs.remove(tab)
+            if (tabs.isEmpty()) {
+                // The namespace holder is independent of the login shell. Keeping
+                // it alive leaves the rootfs "running" on the Panel after the
+                // terminal closes; only the Stop button tears it down.
+                onNavigateBack()
+            } else activeTabId = tabs.getOrElse(idx.coerceAtMost(tabs.lastIndex)) { tabs.last() }.id
+        }
+    }
+
+    val exitScreen = {
+        hideKeyboard()
+        onNavigateBack()
+    }
+
+    // Physical back leaves sessions alive in the service.
+    BackHandler { exitScreen() }
+
+    tabPendingClose?.let { tab ->
+        ChDroidDialog(
+            onDismiss = { tabPendingClose = null },
+            footer = {
+                DialogFooterRow(
+                    dismissLabel = context.getString(R.string.cancel),
+                    confirmLabel = context.getString(R.string.ok),
+                    onDismiss = { tabPendingClose = null },
+                    onConfirm = {
+                        closeTab(tab)
+                        tabPendingClose = null
+                    },
+                )
+            }
+        ) {
+            Text(
+                text = context.getString(R.string.terminal_close_tab_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                text = context.getString(R.string.terminal_close_tab_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+
+    if (showUserPicker) {
+        UserPickerDialog(
+            users = availableUsers,
+            // A user deleted since it was last opened falls back to root
+            initialUser = PreferencesManager.getInstance(context).getLastTerminalUser(containerName)
+                ?.takeIf { it in availableUsers } ?: "root",
+            onConfirm = { user ->
+                showUserPicker = false
+                PreferencesManager.getInstance(context).setLastTerminalUser(containerName, user)
+                addTab(user)
+            },
+            onDismiss = {
+                showUserPicker = false
+                if (tabs.isEmpty()) exitScreen()
+            }
+        )
+    }
+
+    Scaffold(
+        topBar = {
+            Column {
+                TopAppBar(
+                    title = {
+                        Text(
+                            containerName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { exitScreen() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { pickUserOrOpenRoot() }) {
+                            Icon(Icons.Default.Add, contentDescription = "New tab")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                )
+
+                if (tabs.isNotEmpty()) {
+                    SecondaryScrollableTabRow(
+                        selectedTabIndex = tabs.indexOfFirst { it.id == activeTabId }.coerceAtLeast(0),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        edgePadding = 0.dp,
+                        divider = {},
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        tabs.forEach { tab ->
+                            val isSelected = tab.id == activeTabId
+                            Tab(
+                                selected = isSelected,
+                                onClick = { activeTabId = tab.id },
+                                modifier = Modifier.height(40.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                ) {
+                                    Text(
+                                        tab.label,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.widthIn(max = 120.dp)
+                                    )
+                                    Box(
+                                        Modifier.size(16.dp).clip(CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        IconButton(
+                                            // Only the X asks for confirmation; a shell that already
+                                            // exited closes through onSessionFinished unasked
+                                            onClick = { if (confirmTabClose) tabPendingClose = tab else closeTab(tab) },
+                                            modifier = Modifier.size(16.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Close tab",
+                                                modifier = Modifier.size(12.dp),
+                                                tint = if (isSelected) MaterialTheme.colorScheme.primary
+                                                       else MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
+                }
+            }
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = paddingValues.calculateTopPadding())
+                .background(if (terminalDarkTheme) Color.Black else MaterialTheme.colorScheme.surface)
+        ) {
+            if (binder == null || tabs.isEmpty()) {
+                FullScreenLoading(size = LoadingSize.Medium)
+            } else {
+                tabs.forEach { tab ->
+                    key(tab.id) {
+                        TerminalTabView(
+                            tab = tab,
+                            binder = binder!!,
+                            containerName = containerName,
+                            isVisible = tab.id == activeTabId,
+                            activity = activity,
+                            onSessionFinished = { closeTab(tab) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TerminalTabView(
+    tab: TerminalTab,
+    binder: TerminalSessionService.SessionBinder,
+    containerName: String,
+    isVisible: Boolean,
+    activity: Activity?,
+    onSessionFinished: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefsManager = remember { PreferencesManager.getInstance(context) }
+    val fontSizePx = TerminalSessionService.globalSessionList[tab.id]?.fontSizePx ?: prefsManager.terminalFontSizePx
+    // Read once at entry, re-enter to apply, same contract as terminalDarkTheme below.
+    // A missing or corrupt custom font falls back to bundled JetBrains Mono, and a
+    // null bundled font falls back to the system default.
+    val terminalTypeface = remember {
+        prefsManager.terminalFontFile
+            .takeIf { it.isNotEmpty() }
+            ?.let { File(FontInfo.fontsDir(context), it) }
+            ?.takeIf { it.isFile }
+            ?.let { runCatching { Typeface.createFromFile(it) }.getOrNull() }
+            ?: ResourcesCompat.getFont(context, R.font.jetbrains_mono)
+    }
+
+    // Terminal-only dark mode: renders the terminal page dark even when the rest
+    // of the app follows the light theme. Read once at entry; re-enter to apply.
+    val terminalDarkTheme = remember { prefsManager.terminalDarkTheme }
+    // When taps no longer raise the keyboard, the button on the terminal is the
+    // only way to get it back, so both are read together at entry.
+    val tapOpensKeyboard = remember { prefsManager.terminalTapKeyboard }
+    val keyboardButtonLeft = remember { prefsManager.terminalKeyboardLeft }
+    // Holds this tab's client so the button acts on the terminal it sits on,
+    // rather than on whichever view TerminalScreenState last saw.
+    var backEnd by remember { mutableStateOf<TerminalBackEnd?>(null) }
+    // Termux TerminalColors indices: 256 = default foreground, 257 = background,
+    // 258 = cursor. Dark mode uses the classic termux white-on-black scheme:
+    // pure white foreground on pure black background.
+    val terminalForeground = if (terminalDarkTheme) Color.White.toArgb() else MaterialTheme.colorScheme.onSurface.toArgb()
+    // Only dark mode explicitly overrides the full-screen background (View paint)
+    // and the default background color (index 257). In light mode we keep the
+    // pre-PR behavior: the Activity background shows through and the Termux
+    // default background color is left untouched.
+    val terminalBackground = if (terminalDarkTheme) Color.Black.toArgb() else 0
+    // Stays a literal: the keys sit against the terminal's own black, so they have to
+    // read dark even when the app itself is in the light theme.
+    val virtualKeysBackground = if (terminalDarkTheme) Color(0xFF1A1A1E) else MaterialTheme.colorScheme.surfaceContainerHighest
+
+    AnimatedVisibility(
+        visible = isVisible,
+        enter = fadeIn(animationSpec = AnimationUtils.fastSpec()),
+        exit = fadeOut(animationSpec = AnimationUtils.fastSpec()),
+        modifier = modifier
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+
+            // The button rides inside the terminal's own Box, which is what keeps
+            // it clear of the virtual keys row without hardcoding its height.
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                AndroidView(
+                    factory = { ctx ->
+                        runCatching {
+                        TerminalView(ctx, null).apply {
+                            TerminalScreenState.terminalView = WeakReference(this)
+                            setTextSize(fontSizePx)      // must run first, initializes mRenderer
+                            setTypeface(terminalTypeface) // JetBrains Mono; null = system default
+                            keepScreenOn = true
+                            isFocusableInTouchMode = true
+                            // The renderer only paints cell backgrounds; the full-screen
+                            // default background comes from the View itself.
+                            if (terminalDarkTheme) {
+                                setBackgroundColor(terminalBackground)
+                            }
+
+                            if (activity != null) {
+                                val client = TerminalBackEnd(
+                                    terminal = this,
+                                    activity = activity,
+                                    initialFontSizePx = fontSizePx,
+                                    onSessionFinished = onSessionFinished,
+                                    onFontSizeChanged = { newSize ->
+                                        TerminalSessionService.globalSessionList[tab.id]?.let { info ->
+                                            TerminalSessionService.globalSessionList[tab.id] = info.copy(fontSizePx = newSize)
+                                        }
+                                    },
+                                )
+                                com.chdroid.app.util.CrashLogger.log("terminal view: creating/attaching session ${tab.id}")
+                                val session: TerminalSession =
+                                    binder.getSession(tab.id) ?: binder.createSession(
+                                        containerName = containerName,
+                                        client = client,
+                                        containerUser = tab.user,
+                                        sessionId = tab.id,
+                                    )
+                                session.updateTerminalSessionClient(client)
+                                attachSession(session)
+                                setTerminalViewClient(client)
+                                backEnd = client
+                            }
+
+                            post {
+                                requestFocus()
+                                (mClient as? TerminalBackEnd)?.activate12KeyInputMethodIfNeeded()
+                                mEmulator?.mColors?.mCurrentColors?.apply {
+                                    set(256, terminalForeground)
+                                    set(258, terminalForeground)
+                                    if (terminalDarkTheme) {
+                                        set(257, terminalBackground)
+                                    }
+                                }
+                            }
+                        }
+                        }.getOrElse { err ->
+                            com.chdroid.app.util.CrashLogger.log(
+                                "TERMINAL VIEW FAILED: ${err.javaClass.name}: ${err.message}"
+                            )
+                            android.widget.TextView(ctx).apply {
+                                text = "Terminal failed to start\n\n${err.javaClass.simpleName}: ${err.message}"
+                                setTextColor(-1)
+                                setPadding(48, 48, 48, 48)
+                                setBackgroundColor(0xFF1A1A1E.toInt())
+                            }
+                        }
+                    },
+                    update = { tv ->
+                        if (tv is TerminalView && isVisible) {
+                            // Re-apply before setTextSize: termux renderer resets typeface on size changes
+                            tv.setTypeface(terminalTypeface)
+                            tv.setTextSize(fontSizePx)
+                            tv.onScreenUpdated()
+                            TerminalScreenState.terminalView = WeakReference(tv)
+                        }
+                    },
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                if (!tapOpensKeyboard) {
+                    KeyboardToggleButton(
+                        darkTheme = terminalDarkTheme,
+                        onToggle = { imeVisible ->
+                            if (imeVisible) backEnd?.hideSoftInput() else backEnd?.showSoftInput()
+                        },
+                        modifier = Modifier
+                            .align(if (keyboardButtonLeft) Alignment.BottomStart else Alignment.BottomEnd)
+                            .padding(16.dp)
+                    )
+                }
+            }
+
+            AndroidView(
+                factory = { ctx ->
+                    VirtualKeysView(ctx, null).apply {
+                        TerminalScreenState.virtualKeysView = WeakReference(this)
+                        binder.getSession(tab.id)?.let { virtualKeysViewClient = VirtualKeysListener(it) }
+                        buttonTextColor = terminalForeground
+                        try {
+                            reload(VirtualKeysInfo(VIRTUAL_KEYS_LAYOUT, VirtualKeysConstants.EXTRA_KEY_DISPLAY_MAPS.DEFAULT_CHAR_DISPLAY, VirtualKeysConstants.CONTROL_CHARS_ALIASES))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                },
+                update = { vkv ->
+                    if (isVisible) {
+                        TerminalScreenState.virtualKeysView = WeakReference(vkv)
+                        vkv.buttonTextColor = terminalForeground
+                        binder.getSession(tab.id)?.let { vkv.virtualKeysViewClient = VirtualKeysListener(it) }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(virtualKeysBackground)
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
+                    .height(64.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Manual keyboard control for when taps are handed to the terminal instead. It
+ * toggles, so the same button also puts the keyboard away.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun KeyboardToggleButton(
+    darkTheme: Boolean,
+    onToggle: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    val imeVisible = WindowInsets.isImeVisible
+    // Literals for the same reason virtualKeysBackground above uses them, and the
+    // same decided exception in DESIGN.md: this sits on the terminal's own black,
+    // so it has to read dark even when the app itself is in the light theme.
+    val fill = if (darkTheme) Color(0xFF1A1A1E) else MaterialTheme.colorScheme.surfaceContainerHighest
+    val accent = if (darkTheme) Color.White else MaterialTheme.colorScheme.onSurface
+    val edge = if (darkTheme) Color.White.copy(alpha = 0.15f)
+               else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+
+    Surface(
+        onClick = { onToggle(imeVisible) },
+        modifier = modifier.size(56.dp),
+        shape = RoundedCornerShape(16.dp),
+        // Slightly transparent so it never fully hides a line of output under it
+        color = fill.copy(alpha = 0.9f),
+        border = BorderStroke(1.dp, edge),
+        tonalElevation = 0.dp
+    ) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = if (imeVisible) Icons.Default.KeyboardHide else Icons.Default.Keyboard,
+                contentDescription = context.getString(R.string.terminal_toggle_keyboard),
+                tint = accent,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun UserPickerDialog(
+    users: List<String>,
+    initialUser: String,
+    onConfirm: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    var selected by remember { mutableStateOf(initialUser) }
+
+    ChDroidDialog(
+        onDismiss = onDismiss,
+        modifier = Modifier.heightIn(max = 460.dp),
+        footer = {
+            DialogFooterRow(
+                dismissLabel = context.getString(android.R.string.cancel),
+                confirmLabel = context.getString(R.string.open),
+                onDismiss = onDismiss,
+                onConfirm = { onConfirm(selected) }
+            )
+        }
+    ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = context.getString(R.string.open_terminal),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Text(
+                text = context.getString(R.string.select_user_to_enter),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+            )
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                users.forEach { user ->
+                    ChDroidRadioRow(label = user, selected = user == selected, onClick = { selected = user })
+                }
+            }
+    }
+    }
+
+
+private val VIRTUAL_KEYS_LAYOUT = """
+[
+  [
+    "ESC",
+    {"key": "/", "popup": "\\"},
+    {"key": "-", "popup": "|"},
+    "HOME",
+    "UP",
+    "END",
+    "PGUP"
+  ],
+  [
+    "TAB",
+    "CTRL",
+    "ALT",
+    "LEFT",
+    "DOWN",
+    "RIGHT",
+    "PGDN"
+  ]
+]
+""".trimIndent()

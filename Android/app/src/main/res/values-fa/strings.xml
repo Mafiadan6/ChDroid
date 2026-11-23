@@ -98,7 +98,7 @@
     <string name="dynamic_color_description">استفاده از تم‌بندی Monet در اندروید ۱۲ و بالاتر (Material You)</string>
     <string name="accent_color">رنگ تأکیدی</string>
     <string name="daemon_mode">حالت دایمون</string>
-    <string name="daemon_mode_description">اجرای DroidSpaces به‌عنوان یک سرویس پس‌زمینهٔ دائمی در سطح سیستم، برای دور زدن محدودیت‌های seccomp در Magisk، APatch، GrapheneOS و موارد مشابه. این قابلیت با دریافت و اجرای دستورها از فضای کاربری، امکان انجام عملیات با سطح دسترسی بالا را فراهم می‌کند (نیاز به راه‌اندازی مجدد دستگاه).</string>
+    <string name="daemon_mode_description">اجرای ChDroid به‌عنوان یک سرویس پس‌زمینهٔ دائمی در سطح سیستم، برای دور زدن محدودیت‌های seccomp در Magisk، APatch، GrapheneOS و موارد مشابه. این قابلیت با دریافت و اجرای دستورها از فضای کاربری، امکان انجام عملیات با سطح دسترسی بالا را فراهم می‌کند (نیاز به راه‌اندازی مجدد دستگاه).</string>
     <string name="about_description">مدیریت‌کننده کانتینر به سبک LXC برای اندروید</string>
     <string name="developer_ravindu644_role">مسئول نگهداری</string>
     <string name="view_logs">مشاهده لاگ‌ها</string>
@@ -134,7 +134,7 @@
     <string name="failure_in_operation">خطا در %1$s کردن کانتینر %2$s</string>
     <string name="status_running">درحال اجرا</string>
     <string name="failed_to_uninstall_container">حذف کانتینر %1$s با شکست مواجه شد</string>
-    <string name="symlink_integration">افزودن DroidSpaces به مسیر اجرایی سیستم</string>
+    <string name="symlink_integration">افزودن ChDroid به مسیر اجرایی سیستم</string>
     <string name="cancel">لغو</string>
     <string name="file_picker_error_unknown">لطفاً یک فایل .tar.xz یا .tar.gz انتخاب کنید. نوع فایل قابل تشخیص نبود.</string>
     <string name="container_uninstalled_success">کانتینر %1$s با موفقیت حذف شد</string>
@@ -145,7 +145,7 @@
     <string name="telegram_channel">کانال تلگرام</string>
     <string name="generate_bug_report">ایجاد یک گزارش خطا</string>
     <string name="stopping_container">درحال توقف کانتینر...</string>
-    <string name="about_droidspaces">درباره ChDroid</string>
+    <string name="about_chdroid">درباره ChDroid</string>
     <string name="developers">توسعه دهنده(گان)</string>
     <string name="symlink_integration_description">یک symlink در مسیر \"/system/bin\" ایجاد می‌کند تا بتوانید به دستور \"chdroid\" از طریق شل روت اندروید دسترسی داشته باشید. هشدار: فعال‌کردن این گزینه در صورت استفاده از سیستم مونت مبتنی بر متاماژول های OverlayFS باعث bootloop می‌شود. این گزینه را فقط در صورت استفاده از سیستم مونت مبتنی بر Magic Mount یا سیستم مونت nomount مبتنی بر کرنل فعال کنید (نیاز به راه‌اندازی مجدد دستگاه)</string>
     <string name="pulseaudio_option">PulseAudio</string>

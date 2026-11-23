@@ -1,19 +1,19 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_NET_NET_H
-#define DS_NET_NET_H
+#ifndef CHDROID_NET_NET_H
+#define CHDROID_NET_NET_H
 
 /* Default DNS servers */
-#define DS_DNS_DEFAULT_1 "1.1.1.1"
-#define DS_DNS_DEFAULT_2 "8.8.8.8"
+#define CHDROID_DNS_DEFAULT_1 "1.1.1.1"
+#define CHDROID_DNS_DEFAULT_2 "8.8.8.8"
 /* The only resolver a container can reach when the uplink has no IPv4. One
  * is all there is room for: glibc reads three nameserver lines. */
-#define DS_DNS_DEFAULT_6 "2606:4700:4700::1111"
+#define CHDROID_DNS_DEFAULT_6 "2606:4700:4700::1111"
 
 /* Opaque RTNETLINK context - defined in net/nl/internal.h */
 typedef struct ds_nl_ctx ds_nl_ctx_t;
@@ -26,10 +26,10 @@ struct ds_net_handshake {
 
 /* NAT networking constants */
 
-#define DS_DEFAULT_SUBNET "172.28.0.0/16"
-#define DS_NAT_BRIDGE "ds-br0"
-#define DS_NAT_GW_IP "172.28.0.1"
-#define DS_NAT_PREFIX 16
+#define CHDROID_DEFAULT_SUBNET "172.28.0.0/16"
+#define CHDROID_NAT_BRIDGE "ds-br0"
+#define CHDROID_NAT_GW_IP "172.28.0.1"
+#define CHDROID_NAT_PREFIX 16
 
 /* NAT66. One ULA /48 for everything we masquerade. RFC 4193 wants the global
  * ID random; ours is fixed (64:73:70 is "dsp") for the same reason the IPv4
@@ -40,16 +40,16 @@ struct ds_net_handshake {
  *                 the last two octets of its 172.28.XX.YY address.
  * Containers always route through fe80::1, which sits on the bridge or on the
  * bridgeless host veth. */
-#define DS_NAT6_SUBNET "fd64:7370::/48"
-#define DS_NAT6_PREFIX "fd64:7370::"
-#define DS_NAT6_PREFIX_LEN 48
-#define DS_NAT6_GW_LL "fe80::1"
+#define CHDROID_NAT6_SUBNET "fd64:7370::/48"
+#define CHDROID_NAT6_PREFIX "fd64:7370::"
+#define CHDROID_NAT6_PREFIX_LEN 48
+#define CHDROID_NAT6_GW_LL "fe80::1"
 
 /* Router Advertisement frame: ethernet + IPv6 + RA with a prefix option. The
  * router lifetime is 30 minutes and the DHCP thread re-announces every 5. */
-#define DS_RA_FRAME_LEN 102
-#define DS_RA_ROUTER_LIFETIME 1800
-#define DS_RA_INTERVAL_SEC 300
+#define CHDROID_RA_FRAME_LEN 102
+#define CHDROID_RA_ROUTER_LIFETIME 1800
+#define CHDROID_RA_INTERVAL_SEC 300
 
 /* Android ip rule priorities for DS subnet routing.
  *
@@ -63,31 +63,31 @@ struct ds_net_handshake {
  * dangerously close to 0 and triggered route re-evaluation races on
  * certain OEM kernels.
  *
- * DS_RULE_PRIO_TO_SUBNET  - "to 172.28.0.0/16 lookup main"
+ * CHDROID_RULE_PRIO_TO_SUBNET  - "to 172.28.0.0/16 lookup main"
  *   Guarantees reply traffic to the container always resolves correctly.
  *
- * DS_RULE_PRIO_TETHER - "from 172.28.0.0/16 lookup local_network(97)"
+ * CHDROID_RULE_PRIO_TETHER - "from 172.28.0.0/16 lookup local_network(97)"
  *   Returns container replies to hotspot/USB-tether clients out the tether
  *   interface.  Reply packets of DNAT'd port-forward connections still carry
  *   the container source address at routing time (conntrack un-DNATs in
  *   POSTROUTING, after the route lookup), so without this rule they would
- *   match DS_RULE_PRIO_FROM_SUBNET and leak out the WAN uplink instead of
+ *   match CHDROID_RULE_PRIO_FROM_SUBNET and leak out the WAN uplink instead of
  *   reaching the tethered client.  netd keeps the connected route of every
  *   downstream interface (swlan*, ap*, rndis*, ncm*, bt-pan) in the
  *   local_network table, which has no default route - so this rule only
  *   matches tether-bound traffic and falls through to FROM_SUBNET otherwise.
  *   Must sit between TO_SUBNET and FROM_SUBNET.
  *
- * DS_RULE_PRIO_FROM_SUBNET - "from 172.28.0.0/16 lookup <gw_table>"
+ * CHDROID_RULE_PRIO_FROM_SUBNET - "from 172.28.0.0/16 lookup <gw_table>"
  *   Routes container-originated traffic through the active uplink table.
  */
-#define DS_RULE_PRIO_TO_SUBNET 6090
-#define DS_RULE_PRIO_TETHER 6095
-#define DS_RULE_PRIO_FROM_SUBNET 6100
+#define CHDROID_RULE_PRIO_TO_SUBNET 6090
+#define CHDROID_RULE_PRIO_TETHER 6095
+#define CHDROID_RULE_PRIO_FROM_SUBNET 6100
 
 /* netd's fixed local_network routing table
  * (RouteController::ROUTE_TABLE_LOCAL_NETWORK, constant since Android 5.x). */
-#define DS_ANDROID_TABLE_LOCAL_NETWORK 97
+#define CHDROID_ANDROID_TABLE_LOCAL_NETWORK 97
 
 /* cleanup.c */
 void ds_net_cleanup(struct ds_config *cfg, pid_t container_pid);
@@ -95,7 +95,7 @@ void ds_net_cleanup(struct ds_config *cfg, pid_t container_pid);
 /* dhcp/server.c */
 /* Start a single-lease DHCP server on veth_host (detached monitor thread).
  * Offers offer_ip_be to any DHCP client that broadcasts on the interface.
- * gw_ip_be becomes the router/server-id option (typically DS_NAT_GW_IP).
+ * gw_ip_be becomes the router/server-id option (typically CHDROID_NAT_GW_IP).
  * Isolation is enforced by AF_PACKET bind to veth_host's ifindex; no MAC
  * filter is needed or used (see net/dhcp/server.c for rationale). */
 void ds_dhcp_server_start(struct ds_config *cfg, const char *veth_host,
@@ -250,7 +250,7 @@ void ds_net_mark_local_forward_active(void);
 
 /* static_ip.c */
 /* Validate a user-supplied static NAT IP string.
- * Must be a valid IPv4 address inside DS_DEFAULT_SUBNET (172.28.0.0/16),
+ * Must be a valid IPv4 address inside CHDROID_DEFAULT_SUBNET (172.28.0.0/16),
  * with octet3 in 1-254 and octet4 in 1-254 (excludes gateway row .0.x).
  * Returns 0 on success, -1 on failure (reason written to errbuf). */
 int ds_net_validate_static_ip(const char *ip_str, char *errbuf, size_t errsize);
@@ -270,4 +270,4 @@ int ds_net_check_ip_collision(const char *ip_str, const char *exclude_name);
  * Callers must save config after this returns to persist the result. */
 void ds_net_resolve_static_ip(struct ds_config *cfg);
 
-#endif /* DS_NET_NET_H */
+#endif /* CHDROID_NET_NET_H */

@@ -16,8 +16,8 @@ jobs:
           github-token: ${{ secrets.WEBPAT }}
           script: |
             await github.rest.repos.createDispatchEvent({
-              owner: 'droidspaces',
-              repo: 'droidspaces.github.io',
+              owner: 'chdroid',
+              repo: 'chdroid.github.io',
               event_type: 'docs-updated',
               client_payload: {
                 ref: context.ref,

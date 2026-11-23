@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -71,7 +71,7 @@ static void runit_request_halt(pid_t pid, struct ds_config *cfg) {
 int stop_rootfs_locked(struct ds_config *caller_cfg, int skip_unmount,
                        int timeout_seconds) {
   if (timeout_seconds < 0)
-    timeout_seconds = DS_STOP_TIMEOUT;
+    timeout_seconds = CHDROID_STOP_TIMEOUT;
 
   pid_t pid = 0;
   if (!is_container_running(caller_cfg, &pid) || pid <= 0) {
@@ -117,12 +117,12 @@ int stop_rootfs_locked(struct ds_config *caller_cfg, int skip_unmount,
     /* Detect the init system through the live container's root rather than a
      * host path: that is right for a volatile overlay, a --pidfile-only
      * invocation and a container whose monitor did not answer alike. */
-    ds_init_type_t init_type = DS_INIT_UNKNOWN;
+    ds_init_type_t init_type = CHDROID_INIT_UNKNOWN;
     char probe_root[PATH_MAX];
     if (build_proc_root_path(pid, "", probe_root, sizeof(probe_root)) == 0)
       init_type = detect_container_init(probe_root);
 
-    if (init_type == DS_INIT_SYSVINIT) {
+    if (init_type == CHDROID_INIT_SYSVINIT) {
       /* sysvinit ignores all signals for shutdown -- it only listens on the
        * initctl FIFO. Write a telinit-compatible init_request struct directly
        * into the container's /run/initctl via /proc/<pid>/root. */
@@ -169,15 +169,15 @@ int stop_rootfs_locked(struct ds_config *caller_cfg, int skip_unmount,
     } else {
       /* Each family's own shutdown request; SIGTERM when we cannot tell. */
       int sig = SIGTERM;
-      if (init_type == DS_INIT_PROCD || init_type == DS_INIT_S6 ||
-          init_type == DS_INIT_BUSYBOX)
+      if (init_type == CHDROID_INIT_PROCD || init_type == CHDROID_INIT_S6 ||
+          init_type == CHDROID_INIT_BUSYBOX)
         sig = SIGUSR2;
-      else if (init_type == DS_INIT_RUNIT) {
+      else if (init_type == CHDROID_INIT_RUNIT) {
         runit_request_halt(pid, cfg);
         sig = SIGCONT;
-      } else if (init_type == DS_INIT_SYSTEMD)
-        sig = DS_SIG_STOP; /* SIGRTMIN+3 */
-      else if (init_type == DS_INIT_OPENRC)
+      } else if (init_type == CHDROID_INIT_SYSTEMD)
+        sig = CHDROID_SIG_STOP; /* SIGRTMIN+3 */
+      else if (init_type == CHDROID_INIT_OPENRC)
         sig = SIGPWR;
       kill(pid, sig);
     }
@@ -266,5 +266,5 @@ int stop_rootfs_with_timeout(struct ds_config *cfg, int skip_unmount,
 }
 
 int stop_rootfs(struct ds_config *cfg, int skip_unmount) {
-  return stop_rootfs_with_timeout(cfg, skip_unmount, DS_STOP_TIMEOUT);
+  return stop_rootfs_with_timeout(cfg, skip_unmount, CHDROID_STOP_TIMEOUT);
 }

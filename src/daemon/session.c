@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <grp.h>
 #include <pwd.h>
@@ -18,7 +18,7 @@
 #include "internal.h"
 
 static void drain_fd(int fd, int conn, uint8_t type) {
-  char buf[DS_IOBUF];
+  char buf[CHDROID_IOBUF];
   int fl = fcntl(fd, F_GETFL);
   fcntl(fd, F_SETFL, fl | O_NONBLOCK);
   for (;;) {
@@ -48,7 +48,7 @@ void handle_session(int conn, ds_req_t *r) {
   int is_pty = (r->flags & REQ_FLAG_PTY);
   int master = -1, slave = -1;
   int out[2] = {-1, -1}, err[2] = {-1, -1}, in[2] = {-1, -1};
-  char buf[DS_IOBUF];
+  char buf[CHDROID_IOBUF];
 
   if (is_pty) {
     if (ds_openpty("/dev/ptmx", &master, &slave, NULL) < 0) {
@@ -148,7 +148,7 @@ void handle_session(int conn, ds_req_t *r) {
     if (r->flags & REQ_FLAG_UMASK)
       umask((r->flags >> REQ_UMASK_SHIFT) & 0777);
     /* Prevent the spawned child from proxying back to the daemon */
-    setenv("DS_NO_PROXY", "1", 1);
+    setenv("CHDROID_NO_PROXY", "1", 1);
     reexec(av);
   }
 
@@ -304,7 +304,7 @@ void handle_session(int conn, ds_req_t *r) {
                   if (pty_wbuf_len + rem > pty_wbuf_cap) {
                     /* Double capacity without overflow: clamp before shifting.
                      */
-                    size_t ncap = pty_wbuf_cap ? pty_wbuf_cap : DS_IOBUF;
+                    size_t ncap = pty_wbuf_cap ? pty_wbuf_cap : CHDROID_IOBUF;
                     while (ncap < pty_wbuf_len + rem) {
                       if (ncap > PTY_WBUF_MAX / 2) {
                         ncap = PTY_WBUF_MAX;

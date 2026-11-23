@@ -1,17 +1,17 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <stdarg.h>
 
 /* Get binary name from argv[0], handling paths */
 static const char *get_binary_name(const char *argv0) {
   if (!argv0)
-    return "droidspaces";
+    return "chdroid";
   const char *name = strrchr(argv0, '/');
   return name ? name + 1 : argv0;
 }
@@ -102,7 +102,7 @@ static void print_header(int page, int total_pages, const char *title) {
   if (page_len < 0 || page_len >= (int)sizeof(page_str))
     page_len = (int)sizeof(page_str) - 1;
 
-  const char *doc = DS_PROJECT_NAME " v" DS_VERSION " Documentation";
+  const char *doc = CHDROID_PROJECT_NAME " v" CHDROID_VERSION " Documentation";
   int doc_len = (int)strlen(doc);
   int left = width / 2 - doc_len / 2;
   if (left < page_len + 2)
@@ -123,7 +123,7 @@ static void print_page(int page, const char *bin) {
     p_printf("\n");
     p_printf("CLI BASICS & ARGUMENT FLEXIBILITY\n");
     p_printf("---------------------------------\n\n");
-    p_printf("Droidspaces features a robust multi-pass argument parser.\n");
+    p_printf("ChDroid features a robust multi-pass argument parser.\n");
     p_printf("You can combine arguments like a \"salad\":\n\n");
 
     p_printf("%sInterchangeable Flags:%s\n", bold, reset);

@@ -1,0 +1,37 @@
+# ChDroid init service
+# Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Starts the chdroid daemon in the post-fs-data stage on boot.
+# Once boot completes, runs the autoboot script to start any containers
+# marked as "Run at boot". If the daemon is killed and respawned by init,
+# the autoboot script is triggered again automatically.
+#
+# Note: if a user manually stopped a container before the daemon was killed,
+# the autoboot script will start it again - this is a known edge case, since
+# daemon kills are rare in normal usage.
+
+service chdroidd /vendor/bin/chdroid daemon --foreground
+    user root
+    group root
+    seclabel u:r:chdroidd:s0
+    onrestart start chdroid_autoboot
+
+service chdroid_autoboot /vendor/bin/chdroid_autoboot.sh
+    user root
+    group root
+    seclabel u:r:chdroidd:s0
+    oneshot
+    disabled
+
+on post-fs-data
+    start chdroidd
+
+on property:sys.boot_completed=1
+    start chdroid_autoboot
+
+# Uncomment this to auto-boot the device when the charger
+# is plugged in while the device is powered off
+#
+# on property:ro.bootmode=charger
+#    setprop sys.powerctl "reboot"

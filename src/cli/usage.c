@@ -1,15 +1,15 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 void print_ds_banner(void) {
-  printf(C_CYAN C_BOLD "Welcome to " C_WHITE DS_PROJECT_NAME
-                       " v" DS_VERSION C_CYAN " !" C_RESET "\r\n\r\n");
+  printf(C_CYAN C_BOLD "Welcome to " C_WHITE CHDROID_PROJECT_NAME
+                       " v" CHDROID_VERSION C_CYAN " !" C_RESET "\r\n\r\n");
   fflush(stdout);
 }
 
@@ -17,13 +17,13 @@ void print_usage(void) {
   printf(C_BOLD
          "%s v%s - High-performance Container Runtime for Android/Linux" C_RESET
          "\n",
-         DS_PROJECT_NAME, DS_VERSION);
-  printf("by " C_CYAN "%s" C_RESET "\n", DS_AUTHOR);
-  printf("\n" C_BLUE "%s" C_RESET "\n", DS_REPO);
+         CHDROID_PROJECT_NAME, CHDROID_VERSION);
+  printf("by " C_CYAN "%s" C_RESET "\n", CHDROID_AUTHOR);
+  printf("\n" C_BLUE "%s" C_RESET "\n", CHDROID_REPO);
   /* __DATE__ space-pads single-digit days ("Nov  3 2026"), skip the pad */
   printf(C_DIM "Built on: %.4s%s %s" C_RESET "\n\n", __DATE__,
          __DATE__ + 4 + (__DATE__[4] == ' '), __TIME__);
-  printf("Usage: droidspaces [options] <command> [args]\n\n");
+  printf("Usage: chdroid [options] <command> [args]\n\n");
 
   printf(C_BOLD
          "Commands:" C_RESET "\n"
@@ -136,7 +136,7 @@ void print_usage(void) {
 
   printf(C_BOLD
          "Examples:" C_RESET "\n"
-         "  droidspaces --name=mycontainer --rootfs=/path/to/rootfs start\n"
-         "  droidspaces --name=mycontainer enter\n"
-         "  droidspaces --name=mycontainer stop\n\n");
+         "  chdroid --name=mycontainer --rootfs=/path/to/rootfs start\n"
+         "  chdroid --name=mycontainer enter\n"
+         "  chdroid --name=mycontainer stop\n\n");
 }

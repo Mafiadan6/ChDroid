@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -16,13 +16,13 @@ void v1_own_mount_dir(char *buf, size_t size) {
   snprintf(buf, size, "%s/cgroup/", get_workspace_dir());
 }
 
-/* Mounts under a Droidspaces path belong to a container's rootfs and must not
+/* Mounts under a ChDroid path belong to a container's rootfs and must not
  * be mistaken for host hierarchies on restart. Our own v1 mounts are the
  * exception. */
 int is_container_mount(const char *mp) {
   char own[PATH_MAX];
   v1_own_mount_dir(own, sizeof(own));
-  return strstr(mp, "/Droidspaces/") && strncmp(mp, own, strlen(own)) != 0;
+  return strstr(mp, "/ChDroid/") && strncmp(mp, own, strlen(own)) != 0;
 }
 
 /* Scan mountinfo for a host cgroup mount: the cgroup2 one when ctrl is NULL
@@ -194,12 +194,12 @@ int ds_cgroup_ctrl_dir(const char *ctrl, const char *container_name, char *dir,
                        size_t size) {
   char safe_name[256], mnt[PATH_MAX];
   sanitize_container_name(container_name, safe_name, sizeof(safe_name));
-  snprintf(dir, size, "/sys/fs/cgroup/droidspaces/%s", safe_name);
+  snprintf(dir, size, "/sys/fs/cgroup/chdroid/%s", safe_name);
   if (ctrl_supported_v2(dir, ctrl))
     return 2;
   if (!find_host_cgroup_mount(ctrl, mnt, sizeof(mnt)))
     return 0;
-  snprintf(dir, size, "%s/droidspaces/%s", mnt, safe_name);
+  snprintf(dir, size, "%s/chdroid/%s", mnt, safe_name);
   return 1;
 }
 

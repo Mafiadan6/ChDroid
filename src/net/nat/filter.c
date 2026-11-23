@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -34,7 +34,7 @@
  * monitor's presence probe so the two can never disagree about what to look
  * for.  Empty until setup_veth_host_side() has taken its snapshot. */
 const char *host_filter_iface(void) {
-  return g_host_bridgeless ? g_host_veth : DS_NAT_BRIDGE;
+  return g_host_bridgeless ? g_host_veth : CHDROID_NAT_BRIDGE;
 }
 
 /* One family's rule set. Returns the MASQUERADE result, the one rule without
@@ -58,9 +58,9 @@ static int install_family_rules(int family, const char *subnet) {
 }
 
 void install_netfilter_rules(void) {
-  install_family_rules(AF_INET, DS_DEFAULT_SUBNET);
+  install_family_rules(AF_INET, CHDROID_DEFAULT_SUBNET);
   if (g_host_nat6)
-    install_family_rules(AF_INET6, DS_NAT6_SUBNET);
+    install_family_rules(AF_INET6, CHDROID_NAT6_SUBNET);
 
   if (g_host_port_forward_count > 0 && g_host_container_ip[0])
     ds_ipt_add_portforwards(g_host_port_forwards, g_host_port_forward_count,
@@ -112,7 +112,7 @@ int setup_nat6_host(ds_nl_ctx_t *ctx, struct ds_config *cfg,
     return 0;
 
   /* Not a warning: stock GKI kernels have no IPv6 nat table, and telling
-   * every one of those users on every start would be noise. `droidspaces
+   * every one of those users on every start would be noise. `chdroid
    * check` reports it. */
   if (!ds_ipt6_available()) {
     ds_log("[NET] IPv6 NAT unavailable (the kernel lacks CONFIG_IP6_NF_NAT or "
@@ -140,8 +140,8 @@ int setup_nat6_host(ds_nl_ctx_t *ctx, struct ds_config *cfg,
   }
 
   struct in6_addr gw_ll;
-  inet_pton(AF_INET6, DS_NAT6_GW_LL, &gw_ll);
-  inet_pton(AF_INET6, DS_NAT6_PREFIX, prefix);
+  inet_pton(AF_INET6, CHDROID_NAT6_GW_LL, &gw_ll);
+  inet_pton(AF_INET6, CHDROID_NAT6_PREFIX, prefix);
 
   int err = ds_nl_add_addr6(ctx, iface, &gw_ll, 64);
   if (cfg->net_bridgeless) {
@@ -177,7 +177,7 @@ int setup_nat6_host(ds_nl_ctx_t *ctx, struct ds_config *cfg,
    * and a default route that lead nowhere, and every IPv6 connection would
    * hang until it timed out instead of falling back to IPv4 at once. A kernel
    * with the nat table but no CONFIG_IP6_NF_TARGET_MASQUERADE lands here. */
-  if (install_family_rules(AF_INET6, DS_NAT6_SUBNET) < 0)
+  if (install_family_rules(AF_INET6, CHDROID_NAT6_SUBNET) < 0)
     return 0;
 
   keep_host_slaac();
@@ -187,6 +187,6 @@ int setup_nat6_host(ds_nl_ctx_t *ctx, struct ds_config *cfg,
   char pfx[INET6_ADDRSTRLEN];
   inet_ntop(AF_INET6, prefix, pfx, sizeof(pfx));
   ds_log("[NET] IPv6 NAT enabled: advertising %s/64 via %s", pfx,
-         DS_NAT6_GW_LL);
+         CHDROID_NAT6_GW_LL);
   return 1;
 }

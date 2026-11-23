@@ -13,9 +13,9 @@ val gitCommitCount = runCatching {
         .standardOutput.asText.get().trim().toInt()
 }.getOrDefault(0)
 
-// One version for the app and the backend it ships: DS_VERSION from the C header
-val dsVersionName = Regex("#define\\s+DS_VERSION\\s+\"([^\"]+)\"")
-    .find(file("../../src/include/droidspaces.h").readText())?.groupValues?.get(1) ?: "1.0.0"
+// One version for the app and the backend it ships: CHDROID_VERSION from the C header
+val dsVersionName = Regex("#define\\s+CHDROID_VERSION\\s+\"([^\"]+)\"")
+    .find(file("../../src/include/chdroid.h").readText())?.groupValues?.get(1) ?: "1.0.0"
 // ponytail: 10000 commits per release before the suffix spills into the next slot; still monotonic, just ugly
 val dsVersionCodeVal = dsVersionName.split(".").let { parts ->
     try {
@@ -29,11 +29,11 @@ val dsVersionCodeVal = dsVersionName.split(".").let { parts ->
 } * 10000 + gitCommitCount
 
 android {
-    namespace = "com.droidspaces.app"
+    namespace = "com.chdroid.app"
     compileSdk = 36
 
     defaultConfig {
-        // Fork identity: installable beside upstream Droidspaces.
+        // Fork identity: installable beside upstream ChDroid.
         applicationId = "com.chdroid.app"
         minSdk = 26
         targetSdk = 34
@@ -42,14 +42,14 @@ android {
     }
 
     signingConfigs {
-        // droidspaces.keystore signs debug and release alike. The passwords come
+        // chdroid.keystore signs debug and release alike. The passwords come
         // from -P, gradle.properties or ~/.gradle/gradle.properties.
-        val keystoreFile = file("../../droidspaces.keystore")
+        val keystoreFile = file("../../chdroid.keystore")
         val keystorePassword = providers.gradleProperty("KEYSTORE_PASSWORD").orNull ?: ""
         if (keystorePassword.isEmpty() &&
             rootProject.file("local.properties").let { it.exists() && it.readText().contains("KEYSTORE_PASSWORD") }
         ) logger.warn("KEYSTORE_PASSWORD in local.properties is no longer read: move it, KEY_ALIAS and KEY_PASSWORD to ~/.gradle/gradle.properties or pass them with -P, or the release APK comes out unsigned")
-        val keyAliasName = providers.gradleProperty("KEY_ALIAS").orNull ?: "droidspaces"
+        val keyAliasName = providers.gradleProperty("KEY_ALIAS").orNull ?: "chdroid"
         val actualKeyPassword = providers.gradleProperty("KEY_PASSWORD").orNull ?: keystorePassword
 
         if (keystoreFile.exists() && keystorePassword.isNotEmpty()) {
@@ -129,7 +129,7 @@ android {
 
 // Build-generated assets live here, registered as an extra source root, so
 // nothing the build rewrites ever shows up as a diff.
-val generatedDir = layout.buildDirectory.dir("generated/droidspaces").get()
+val generatedDir = layout.buildDirectory.dir("generated/chdroid").get()
 android.sourceSets["main"].assets.srcDir(generatedDir.dir("assets"))
 
 val repo = rootProject.layout.projectDirectory.dir("..")
@@ -141,7 +141,7 @@ val buildBackend = tasks.register<Exec>("buildBackend") {
     commandLine(listOf("make") + phoneArches)
     inputs.dir(repo.dir("src"))
     inputs.file(repo.file("Makefile"))
-    outputs.files(phoneArches.map { repo.file("output/droidspaces-$it") })
+    outputs.files(phoneArches.map { repo.file("output/chdroid-$it") })
 }
 val backendAssets = tasks.register<Sync>("backendAssets") {
     from(buildBackend)

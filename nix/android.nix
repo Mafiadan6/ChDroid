@@ -3,16 +3,16 @@
   inputs,
   self,
   lib,
-  mkDroidspacesAndroidApp,
+  mkChDroidAndroidApp,
   androidAppSource,
   ...
 }: {
   _module.args = {
-    mkDroidspacesAndroidApp = pkgs: androidSdk: baseOverrides: let
+    mkChDroidAndroidApp = pkgs: androidSdk: baseOverrides: let
       # Gradle's buildBackend task runs `make <arch>` for the phone arches and
       # looks for <triplet>-gcc under MUSL_CROSS, so hand it nixpkgs' musl
       # cross compilers under the names the Makefile expects.
-      muslCross = pkgs.linkFarm "droidspaces-musl-cross" (lib.mapAttrsToList (triplet: cross: {
+      muslCross = pkgs.linkFarm "chdroid-musl-cross" (lib.mapAttrsToList (triplet: cross: {
           name = "${triplet}-gcc";
           path = "${cross.stdenv.cc}/bin/${cross.stdenv.cc.targetPrefix}gcc";
         }) {
@@ -23,7 +23,7 @@
         });
     in
       (pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
-        pname = "droidspaces-app";
+        pname = "chdroid-app";
         inherit version;
         src = androidAppSource;
         sourceRoot = "${androidAppSource.name}/Android";
@@ -70,7 +70,7 @@
 
         # The APK carries the backend it built, signed by the build's own debug key
         installPhase = ''
-          find app/build/outputs/apk -name "*.apk" -exec install -Dm644 {} $out/droidspaces.apk \;
+          find app/build/outputs/apk -name "*.apk" -exec install -Dm644 {} $out/chdroid.apk \;
         '';
       })).overrideAttrs
       baseOverrides;
@@ -99,8 +99,8 @@
     packages.app = self.legacyPackages.${system}.androidApp.release;
 
     legacyPackages.androidApp = {
-      release = mkDroidspacesAndroidApp pkgs androidSdk {};
-      debug = mkDroidspacesAndroidApp pkgs androidSdk {
+      release = mkChDroidAndroidApp pkgs androidSdk {};
+      debug = mkChDroidAndroidApp pkgs androidSdk {
         gradleBuildTask = "assembleDebug";
         gradleUpdateTask = "assembleDebug";
       };

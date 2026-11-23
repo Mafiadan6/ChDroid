@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -20,7 +20,7 @@ static int restart_rootfs_locked(struct ds_config *cfg, int *lock_fd, int argc,
     return -1;
   }
   ds_log("Restarting container %s...", cfg->container_name);
-  if (stop_rootfs_locked(cfg, 1, DS_STOP_TIMEOUT) < 0) {
+  if (stop_rootfs_locked(cfg, 1, CHDROID_STOP_TIMEOUT) < 0) {
     return -1;
   }
   /* The stop above tore down using the booted config (its monitor's, loaded

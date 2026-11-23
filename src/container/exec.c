@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Namespace Entry (shared for enter and run) */
 
@@ -58,7 +58,7 @@ int enter_namespace(pid_t pid, struct ds_config *cfg) {
 
     /* Skip entering the 'net' namespace (index 5) if host networking is enabled
      */
-    if (i == 5 && cfg && cfg->net_mode == DS_NET_HOST) {
+    if (i == 5 && cfg && cfg->net_mode == CHDROID_NET_HOST) {
       close(ns_fds[i]);
       continue;
     }

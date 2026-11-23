@@ -21,7 +21,7 @@
     <!-- Main Tab Screen -->
     <string name="container_singular">Conteneur</string>
     <string name="running">En cours</string>
-    <!-- Droidspaces Status Card -->
+    <!-- ChDroid Status Card -->
     <string name="backend_checking">Backend : Vérification…</string>
     <string name="backend_installed">Backend : Installé</string>
     <string name="backend_update_available">Backend : Mise à jour disponible</string>
@@ -50,7 +50,7 @@
     <string name="dynamic_color">Appliquer la palette de couleurs par défaut du système</string>
     <string name="dynamic_color_description">Utiliser le theming Monet d\'Android 12+ (Material You)</string>
     <string name="about_section">À propos</string>
-    <string name="about_droidspaces">À propos de ChDroid</string>
+    <string name="about_chdroid">À propos de ChDroid</string>
     <string name="about_description">Gestionnaire de conteneurs de style LXC pour Android</string>
     <string name="developers">Développeur(s)</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -135,7 +135,7 @@
     <!-- Installation Screen -->
     <string name="installation_complete">Installation terminée</string>
     <string name="installation_failed">Échec de l\'installation</string>
-    <string name="installing_droidspaces">Installation de ChDroid</string>
+    <string name="installing_chdroid">Installation de ChDroid</string>
     <string name="backend_installed_success">Le backend a été installé avec succès</string>
     <string name="binary_installation_failed">Échec de l\'installation du binaire</string>
     <!-- Control Panel Screen -->
@@ -226,7 +226,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Vérifier les exigences</string>
     <string name="requirements_check_title">Vérification des exigences</string>
-    <string name="requirements_for_droidspaces">Exigences pour ChDroid</string>
+    <string name="requirements_for_chdroid">Exigences pour ChDroid</string>
     <string name="requirements_check_completed_successfully">Vérification des exigences terminée avec succès</string>
     <string name="requirements_check_completed_with_errors">Vérification des exigences terminée avec des erreurs</string>
     <string name="kernel_requirements_copied">Exigences du noyau copiées dans le presse-papier</string>

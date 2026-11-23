@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
@@ -12,33 +12,33 @@
  * whole life. LXC answers the same questions the same way, from the command
  * socket lxc-start serves (src/lxc/commands.c). */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <sys/socket.h>
 #include <sys/un.h>
 
 #include "internal.h"
 
-#define DS_CMD_PREFIX "droidspaces/"
-#define DS_CMD_SUFFIX "/command"
+#define CHDROID_CMD_PREFIX "chdroid/"
+#define CHDROID_CMD_SUFFIX "/command"
 /* A booted config never comes near this; it only bounds what we allocate */
-#define DS_CMD_REPLY_MAX (1024 * 1024)
+#define CHDROID_CMD_REPLY_MAX (1024 * 1024)
 
-/* droidspaces/<safe name>/command, or droidspaces/#<hash>/command for a name
+/* chdroid/<safe name>/command, or chdroid/#<hash>/command for a name
  * that would not fit in sun_path. The name is never trusted from the socket
  * either way: discovery asks the monitor for its config, name included. */
 static void cmd_sock_name(const char *name, char *out, size_t size) {
   char safe[256];
   struct sockaddr_un probe;
   sanitize_container_name(name, safe, sizeof(safe));
-  if (strlen(DS_CMD_PREFIX) + strlen(safe) + strlen(DS_CMD_SUFFIX) <
+  if (strlen(CHDROID_CMD_PREFIX) + strlen(safe) + strlen(CHDROID_CMD_SUFFIX) <
       sizeof(probe.sun_path) - 1) {
-    snprintf(out, size, DS_CMD_PREFIX "%s" DS_CMD_SUFFIX, safe);
+    snprintf(out, size, CHDROID_CMD_PREFIX "%s" CHDROID_CMD_SUFFIX, safe);
     return;
   }
   uint64_t h = 1469598103934665603ULL; /* FNV-1a 64 */
   for (const unsigned char *c = (const unsigned char *)safe; *c; c++)
     h = (h ^ *c) * 1099511628211ULL;
-  snprintf(out, size, DS_CMD_PREFIX "#%016llx" DS_CMD_SUFFIX,
+  snprintf(out, size, CHDROID_CMD_PREFIX "#%016llx" CHDROID_CMD_SUFFIX,
            (unsigned long long)h);
 }
 
@@ -113,7 +113,7 @@ static void serve_one(int lfd) {
   uint8_t type;
   uint32_t len;
   if (ds_peer_authorized(c, NULL) && ds_recv_frame_hdr(c, &type, &len) == 0 &&
-      len == 0 && type == DS_CMD_CONFIG) {
+      len == 0 && type == CHDROID_CMD_CONFIG) {
     pthread_mutex_lock(&g_reply_lock);
     uint32_t n = g_reply_len;
     char *copy = g_reply ? malloc(n) : NULL;
@@ -121,7 +121,7 @@ static void serve_one(int lfd) {
       memcpy(copy, g_reply, n);
     pthread_mutex_unlock(&g_reply_lock);
     if (copy)
-      ds_send_frame(c, DS_CMD_CONFIG, copy, n);
+      ds_send_frame(c, CHDROID_CMD_CONFIG, copy, n);
     free(copy);
   }
   pthread_mutex_lock(&g_reply_lock);
@@ -288,14 +288,14 @@ static int cmd_query(const char *sock, unsigned long ino, char **out,
   set_timeouts(fd, 1);
   /* The 5-byte request frame, sent with MSG_NOSIGNAL: a monitor that went
    * away since connect must not take a direct CLI run down with SIGPIPE. */
-  uint8_t req[5] = {DS_CMD_CONFIG, 0, 0, 0, 0}, rtype;
+  uint8_t req[5] = {CHDROID_CMD_CONFIG, 0, 0, 0, 0}, rtype;
   pid_t mon = 0;
   int ok = connect(fd, (struct sockaddr *)&addr, alen) == 0 &&
            fcntl(fd, F_SETFL, 0) == 0 &&
            (mon = server_is_monitor(fd, sock, ino)) > 0 &&
            send(fd, req, sizeof(req), MSG_NOSIGNAL) == (ssize_t)sizeof(req) &&
-           ds_recv_frame_hdr(fd, &rtype, len) == 0 && rtype == DS_CMD_CONFIG &&
-           *len > sizeof(uint32_t) && *len <= DS_CMD_REPLY_MAX &&
+           ds_recv_frame_hdr(fd, &rtype, len) == 0 && rtype == CHDROID_CMD_CONFIG &&
+           *len > sizeof(uint32_t) && *len <= CHDROID_CMD_REPLY_MAX &&
            (*out = malloc(*len + 1)) != NULL;
   if (ok && ds_read_exact(fd, *out, *len) < 0) {
     free(*out);
@@ -365,9 +365,9 @@ int ds_cmd_for_each(void (*visit)(struct ds_config *booted, pid_t pid,
   unsigned long ino;
   int visited = 0;
   while (next_listener(f, sock, &ino)) {
-    size_t n = strlen(sock), sl = strlen(DS_CMD_SUFFIX);
-    if (strncmp(sock, DS_CMD_PREFIX, strlen(DS_CMD_PREFIX)) != 0 || n <= sl ||
-        strcmp(sock + n - sl, DS_CMD_SUFFIX) != 0)
+    size_t n = strlen(sock), sl = strlen(CHDROID_CMD_SUFFIX);
+    if (strncmp(sock, CHDROID_CMD_PREFIX, strlen(CHDROID_CMD_PREFIX)) != 0 || n <= sl ||
+        strcmp(sock + n - sl, CHDROID_CMD_SUFFIX) != 0)
       continue;
 
     struct ds_config booted;

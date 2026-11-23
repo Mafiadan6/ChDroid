@@ -45,7 +45,7 @@
     <string name="daemon_mode">Modul daemon</string>
     <string name="daemon_mode_description">Rulează ChDroid ca un proces persistent la nivel de sistem pentru a evita blocările seccomp de la Magisk/APatch, GrapheneOS, etc. Această setare adaugă posibilitatea de a rula operații cu permisiuni crescute prin preluarea și executarea comenzilor din userspace (Restart necesar).</string>
     <string name="about_section">Despre</string>
-    <string name="about_droidspaces">Despre ChDroid</string>
+    <string name="about_chdroid">Despre ChDroid</string>
     <string name="developers">Dezvoltator(i)</string>
     <string name="developer_ravindu644_role">Maintainer</string>
     <string name="telegram_channel">Canal de Telegram</string>
@@ -158,7 +158,7 @@
     <string name="next_storage">Următorul: Stocarea</string>
     <string name="installation_complete">Instalarea a fost finalizată</string>
     <string name="installation_failed">Instalarea a eșuat</string>
-    <string name="installing_droidspaces">Se instalează ChDroid</string>
+    <string name="installing_chdroid">Se instalează ChDroid</string>
     <string name="backend_installed_success">Backend-ul ChDroid a fost instalat cu succes</string>
     <string name="binary_installation_failed">Instalarea binary-ului a eșuat</string>
     <string name="no_containers_running">Niciun container nu este activ</string>
@@ -230,7 +230,7 @@
     <string name="error_hostname_invalid">Hostname-ul poate conține numai litere, numere, și linii (-)</string>
     <string name="check_requirements">Verifică necesitățile</string>
     <string name="requirements_check_title">Verificarea necesităților</string>
-    <string name="requirements_for_droidspaces">Necesitățile pentru ChDroid</string>
+    <string name="requirements_for_chdroid">Necesitățile pentru ChDroid</string>
     <string name="requirements_check_completed_successfully">Verificatul necesităților a fost finalizat cu succes</string>
     <string name="requirements_check_completed_with_errors">Verificatul necesităților a finalizat cu erori</string>
     <string name="kernel_requirements_copied">Necesitățile pentru kernel au fost copiate în clipboard</string>

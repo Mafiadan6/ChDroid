@@ -2,8 +2,8 @@
 title: Android 安装
 section: Basics
 order: 1
-desc: 在已 root 的 Android 设备上安装 Droidspaces：安装 APK，让应用设置好后端，无需输入任何终端命令即可创建 Linux 容器。
-keywords: install, droidspaces, android, rooted, container, apk, backend, sparse, image, linux, kernelsu, magisk, apatch
+desc: 在已 root 的 Android 设备上安装 ChDroid：安装 APK，让应用设置好后端，无需输入任何终端命令即可创建 Linux 容器。
+keywords: install, chdroid, android, rooted, container, apk, backend, sparse, image, linux, kernelsu, magisk, apatch
 -->
 
 # Android 安装
@@ -16,7 +16,7 @@ Android 上的一切都在应用内完成，从安装后端到在运行中的容
 
 **Root：** 推荐使用 KernelSU 获取 root。Magisk 和 APatch 也可以。它们的 root shell 带有 seccomp 过滤器，会拦截容器运行时所需的操作，因此后端以守护进程的形式在开机时启动，而不是从 shell 启动。这是默认方式，安装后按应用提示重启一次即可。
 
-**支持容器的内核：** 多数原厂内核缺少 Droidspaces 所需的选项，尤其是 PID 和 IPC 命名空间。[内核配置指南](./Kernel-Configuration.md)列出了这些选项，并说明如何构建带这些选项的内核。如果你不想自己编译，[社区支持的设备](./community-supported-devices.md)页面会链接到其他用户构建好的内核。应用会在首次启动时告诉你内核是否受支持。
+**支持容器的内核：** 多数原厂内核缺少 ChDroid 所需的选项，尤其是 PID 和 IPC 命名空间。[内核配置指南](./Kernel-Configuration.md)列出了这些选项，并说明如何构建带这些选项的内核。如果你不想自己编译，[社区支持的设备](./community-supported-devices.md)页面会链接到其他用户构建好的内核。应用会在首次启动时告诉你内核是否受支持。
 
 > [!CAUTION]
 >
@@ -26,12 +26,12 @@ Android 上的一切都在应用内完成，从安装后端到在运行中的容
 
 ## 第 1 步：安装应用
 
-1. 从[最新版本](https://github.com/ravindu644/Droidspaces-OSS/releases/latest)下载 APK 并安装。
-2. 在 KernelSU 和 APatch 上，先在 **Root 管理器** 中为 Droidspaces 应用授予 root 权限。Magisk 会在应用请求时询问。
+1. 从[最新版本](https://github.com/Mafiadan6/ChDroid/releases/latest)下载 APK 并安装。
+2. 在 KernelSU 和 APatch 上，先在 **Root 管理器** 中为 ChDroid 应用授予 root 权限。Magisk 会在应用请求时询问。
 3. 打开应用，点 **开始使用**。
 4. 点 **检查 Root 权限**，在 Magisk 上允许该请求。
-5. 应用会自行安装后端：`droidspaces` 二进制和一个静态 BusyBox 会被放到 `/data/local/Droidspaces/bin`，一个小型启动模块会被安装到你的 Root 管理器，使守护进程和容器能在开机时启动。这需要几秒钟。
-6. 阅读结果。"Droidspaces 后端安装成功"表示你的内核通过了探测。如果提示内核不支持 Droidspaces，请先去看[内核配置指南](./Kernel-Configuration.md)再继续。
+5. 应用会自行安装后端：`chdroid` 二进制和一个静态 BusyBox 会被放到 `/data/local/ChDroid/bin`，一个小型启动模块会被安装到你的 Root 管理器，使守护进程和容器能在开机时启动。这需要几秒钟。
+6. 阅读结果。"ChDroid 后端安装成功"表示你的内核通过了探测。如果提示内核不支持 ChDroid，请先去看[内核配置指南](./Kernel-Configuration.md)再继续。
 7. 按应用提示重启。重启会应用后端所需的 SELinux 规则并启动守护进程。
 
 重启后，在受支持的内核上，**主页** 标签页会显示"后端：已安装"和 "DAEMON" 标签，下方是你的内核版本、SELinux 状态和架构。
@@ -42,7 +42,7 @@ Android 上的一切都在应用内完成，从安装后端到在运行中的容
 
 ### 从仓库安装
 
-**仓库** 会打开一个为 Droidspaces 构建的发行版列表，并按你设备的架构过滤。里面有 Ubuntu、Debian、Fedora、Arch、Alpine、OpenWrt 等，部分还预配好了桌面环境。
+**仓库** 会打开一个为 ChDroid 构建的发行版列表，并按你设备的架构过滤。里面有 Ubuntu、Debian、Fedora、Arch、Alpine、OpenWrt 等，部分还预配好了桌面环境。
 
 1. 选择一个发行版，点 **下载**。文件会保存到你的下载文件夹，完成后会有通知。
 2. 在同一张卡片上点 **安装**。

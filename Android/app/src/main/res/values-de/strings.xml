@@ -52,7 +52,7 @@
     <string name="dynamic_color">System-Standardfarbpalette anwenden</string>
     <string name="dynamic_color_description">Android 12+ Monet-Theming (Material You) verwenden</string>
     <string name="about_section">Über</string>
-    <string name="about_droidspaces">Über ChDroid</string>
+    <string name="about_chdroid">Über ChDroid</string>
     <string name="about_description">LXC-ähnlicher Container-Manager für Android</string>
     <string name="developers">Entwickler</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -137,7 +137,7 @@
     <!-- Installation Screen -->
     <string name="installation_complete">Installation abgeschlossen</string>
     <string name="installation_failed">Installation fehlgeschlagen</string>
-    <string name="installing_droidspaces">ChDroid wird installiert</string>
+    <string name="installing_chdroid">ChDroid wird installiert</string>
     <string name="backend_installed_success">ChDroid-Backend erfolgreich installiert</string>
     <string name="binary_installation_failed">Binary-Installation fehlgeschlagen</string>
     <!-- Control Panel Screen -->
@@ -228,7 +228,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Anforderungen prüfen</string>
     <string name="requirements_check_title">Anforderungsprüfung</string>
-    <string name="requirements_for_droidspaces">Anforderungen für ChDroid</string>
+    <string name="requirements_for_chdroid">Anforderungen für ChDroid</string>
     <string name="requirements_check_completed_successfully">Anforderungsprüfung erfolgreich abgeschlossen</string>
     <string name="requirements_check_completed_with_errors">Anforderungsprüfung mit Fehlern abgeschlossen</string>
     <string name="kernel_requirements_copied">Kernel-Anforderungen in die Zwischenablage kopiert</string>
@@ -377,7 +377,7 @@
     <string name="starting_resizing">Größenänderung wird gestartet...</string>
     <string name="help_card_title">Neu bei ChDroid?</string>
     <string name="help_card_message">Hier tippen, um zu erfahren, wie Sie Ihren ersten Linux-Container einrichten!</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">Privilegierter Modus</string>
     <string name="privileged_nomask_desc">Jail-Masken deaktivieren, um Schreibzugriff auf /proc und /sys zu ermöglichen. Hinweis: /sys bleibt schreibgeschützt, sofern nicht auch der Hardwarezugriff aktiviert ist.</string>
     <string name="privileged_nocaps_desc">Auf keinerlei Linux-Funktionen verzichten (vollständige Root-Rechte).</string>

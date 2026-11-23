@@ -7,30 +7,30 @@
 }: {
   perSystem = {...}: {
     legacyPackages = {
-      nixosDroidspacesTarballs = lib.genAttrs systems (system: {
+      nixosChDroidTarballs = lib.genAttrs systems (system: {
         minimal =
           (inputs.nixpkgs.lib.nixosSystem {
             inherit system;
-            modules = [self.nixosModules.working-droidspaces-rootfs-minimal];
+            modules = [self.nixosModules.working-chdroid-rootfs-minimal];
           }).config.system.build.tarball;
 
         minimal-with-systemd-v259 =
           (inputs.nixpkgs-with-systemd-v259.lib.nixosSystem {
             inherit system;
-            modules = [self.nixosModules.working-droidspaces-rootfs-minimal];
+            modules = [self.nixosModules.working-chdroid-rootfs-minimal];
           }).config.system.build.tarball;
 
         minimal-with-systemd-v257 =
           (inputs.nixpkgs-with-systemd-v257.lib.nixosSystem {
             inherit system;
-            modules = [self.nixosModules.working-droidspaces-rootfs-minimal];
+            modules = [self.nixosModules.working-chdroid-rootfs-minimal];
           }).config.system.build.tarball;
 
         minimal-with-pinned-systemd-v257 =
           (inputs.nixpkgs.lib.nixosSystem {
             inherit system;
             modules = [
-              self.nixosModules.working-droidspaces-rootfs-minimal
+              self.nixosModules.working-chdroid-rootfs-minimal
               self.nixosModules.pin-systemd-v257
               self.nixosModules.container-disable-unwanted
             ];
@@ -42,7 +42,7 @@
   flake = {
     nixosModules = {
       # Minimal configuration that doesn't cause systemd degradation
-      working-droidspaces-rootfs-minimal = {
+      working-chdroid-rootfs-minimal = {
         modulesPath,
         pkgs,
         ...
@@ -55,7 +55,7 @@
           self.overlays.default
         ];
 
-        # These services are broken or unnecessaray in a droidspaces container
+        # These services are broken or unnecessaray in a chdroid container
         systemd.services.nix-channel-init.enable = false;
         systemd.services.wpa_supplicant.enable = false;
         systemd.services.systemd-networkd-wait-online.enable = false;
@@ -74,15 +74,15 @@
 
         # Only let these start on nat mode
         systemd.services.NetworkManager.serviceConfig.ExecCondition = [
-          (pkgs.droidspacesConfigIf "net_mode=nat")
+          (pkgs.chdroidConfigIf "net_mode=nat")
         ];
 
         systemd.services.dhcpcd.serviceConfig.ExecCondition = [
-          (pkgs.droidspacesConfigIf "net_mode=nat")
+          (pkgs.chdroidConfigIf "net_mode=nat")
         ];
 
         systemd.services.systemd-resolved.serviceConfig.ExecCondition = [
-          (pkgs.droidspacesConfigIf "net_mode=nat")
+          (pkgs.chdroidConfigIf "net_mode=nat")
         ];
 
         networking.nameservers = ["8.8.8.8" "1.1.1.1"];

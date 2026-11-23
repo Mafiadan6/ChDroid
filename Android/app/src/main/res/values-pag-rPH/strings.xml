@@ -44,7 +44,7 @@
     <string name="dynamic_color">I-apply so Default Color Palette na System</string>
     <string name="dynamic_color_description">Usaren so Android 12+ Monet theming (Material You)</string>
     <string name="about_section">Nipaakar</string>
-    <string name="about_droidspaces">Nipaakar ed ChDroid</string>
+    <string name="about_chdroid">Nipaakar ed ChDroid</string>
     <string name="about_description">LXC-Style ya container manager parad Android</string>
     <string name="developers">(Saray) Developer</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -122,7 +122,7 @@
     <string name="next_storage">Ontumbok: Storage</string>
     <string name="installation_complete">Asumpal so Pan-install</string>
     <string name="installation_failed">Ag Agawa so Pan-install</string>
-    <string name="installing_droidspaces">I-i-install so ChDroid</string>
+    <string name="installing_chdroid">I-i-install so ChDroid</string>
     <string name="backend_installed_success">Maong ya a-install so backend</string>
     <string name="binary_installation_failed">Ag a-install so binary</string>
     <string name="no_containers_running">Anggapoy container ya aandar</string>
@@ -199,7 +199,7 @@
     <string name="error_hostname_invalid">Say hostname et nayari labat ya walaay letra, numero, tan gitling (-)</string>
     <string name="check_requirements">I-chek iray Kaukolan</string>
     <string name="requirements_check_title">Pan-chek na saray Kaukolan</string>
-    <string name="requirements_for_droidspaces">Saray Kaukolan parad ChDroid</string>
+    <string name="requirements_for_chdroid">Saray Kaukolan parad ChDroid</string>
     <string name="requirements_check_completed_successfully">Maong ya asumpal so pan-chek ed saray kaukolan</string>
     <string name="requirements_check_completed_with_errors">Asumpal so pan-chek ed saray kaukolan ya walay error</string>
     <string name="kernel_requirements_copied">Akopya ed clipboard iray kaukolan na kernel</string>

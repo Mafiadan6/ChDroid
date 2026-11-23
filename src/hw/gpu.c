@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - Hardware Access Module
+ * ChDroid v7 - Hardware Access Module
  *
  * This module manages GPU acceleration and hardware device nodes.
  *
@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <dirent.h>
 #include <linux/videodev2.h>
 
@@ -140,7 +140,7 @@ static void mirror_gpu_node(const char *host_path, const char *dev_path,
       return;
     }
     if (ds_stage_dev_node(staging, dev_path, rel, S_IFCHR | 0660,
-                          host_st.st_rdev, DS_GPU_UNIFIED_GID) == 0)
+                          host_st.st_rdev, CHDROID_GPU_UNIFIED_GID) == 0)
       ds_log("[GPU] Mirrored node: %-30s (%d:%d)", tgt,
              (int)major(host_st.st_rdev), (int)minor(host_st.st_rdev));
     return;
@@ -158,7 +158,7 @@ static void mirror_gpu_node(const char *host_path, const char *dev_path,
   if (tgt_exists) {
     if (S_ISCHR(tgt_st.st_mode)) {
       /* Reached twice (static list and prefix scan). Just re-own it. */
-      if (chown(tgt, 0, DS_GPU_UNIFIED_GID) < 0)
+      if (chown(tgt, 0, CHDROID_GPU_UNIFIED_GID) < 0)
         ds_warn("[GPU] chown %s: %s", tgt, strerror(errno));
       chmod(tgt, 0660);
       return;
@@ -183,7 +183,7 @@ static void mirror_gpu_node(const char *host_path, const char *dev_path,
 
   /* Unified GPU group so UID 1000 can open the node regardless of the GID the
    * host assigned to it. */
-  if (chown(tgt, 0, DS_GPU_UNIFIED_GID) < 0)
+  if (chown(tgt, 0, CHDROID_GPU_UNIFIED_GID) < 0)
     ds_warn("[GPU] chown %s: %s", tgt, strerror(errno));
   chmod(tgt, 0660);
 

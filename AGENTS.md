@@ -6,13 +6,13 @@ exists here.
 
 ## What this is
 
-Droidspaces is a container runtime. Two halves:
+ChDroid is a container runtime. Two halves:
 
 - `src/` is the C backend, statically linked against musl, one binary for Android and Linux.
 - `Android/` is the Compose app that drives that binary over a root shell.
 
 The compiled backend ships inside the APK. Gradle runs `make` for the four phone arches and
-packages `output/droidspaces-<arch>` as a generated asset, so the APK always carries the
+packages `output/chdroid-<arch>` as a generated asset, so the APK always carries the
 backend from the tree it was built from.
 
 ## Build
@@ -24,7 +24,7 @@ make native            # build for the host arch, this is the real build command
 make aarch64           # cross builds: aarch64, x86_64, armhf, x86, riscv64
 make debug-hardened    # ASan, UBSan, LSan
 make all-build         # every arch
-make bump NEW=x.y.z    # set DS_VERSION in droidspaces.h
+make bump NEW=x.y.z    # set CHDROID_VERSION in chdroid.h
 make format            # clang-format over src/
 ```
 
@@ -39,7 +39,7 @@ Android app, from `Android/`:
 
 Use the script, not gradle directly. It needs the musl toolchains, because the APK build runs
 `make`. CI runs `make all-tarball`, `scripts/mkdeb.sh`, then gradle, and does not check
-formatting, so `make format` is on you. A pushed `v*` tag that matches `DS_VERSION` publishes
+formatting, so `make format` is on you. A pushed `v*` tag that matches `CHDROID_VERSION` publishes
 a release.
 
 Adding a new `.c` file means adding it to `SRCS` in the Makefile. There is no wildcard.
@@ -54,18 +54,18 @@ Run `adb devices` first, every time. If no line ends in `device`, stop and say s
 
 ### Running a test build without touching the daemon
 
-On the phone the CLI forwards every command to the running `droidspaces daemon`, and the
-daemon serves it with its own installed binary (`/data/local/Droidspaces/bin/droidspaces`).
+On the phone the CLI forwards every command to the running `chdroid daemon`, and the
+daemon serves it with its own installed binary (`/data/local/ChDroid/bin/chdroid`).
 A freshly pushed build called by absolute path therefore still runs the installed code.
 
-`DS_NO_PROXY=1` skips the forwarding, so the binary you invoked does the work itself. The
+`CHDROID_NO_PROXY=1` skips the forwarding, so the binary you invoked does the work itself. The
 daemon keeps running and nothing gets reinstalled.
 
 ```
 make aarch64                                   # match `adb shell uname -m`
-adb push output/droidspaces /data/local/tmp/ds-test
+adb push output/chdroid /data/local/tmp/ds-test
 adb shell su <<'EOF'
-DS_NO_PROXY=1 /data/local/tmp/ds-test -n NAME start
+CHDROID_NO_PROXY=1 /data/local/tmp/ds-test -n NAME start
 EOF
 ```
 
@@ -74,8 +74,8 @@ EOF
 - To confirm your build is the one that started a container, look for its monitor process:
   `ls -l /proc/[0-9]*/exe 2>/dev/null | grep ds-test`. The PID that `show` prints is the
   container's init, whose `exe` is the guest's own, so it tells you nothing.
-- Container logs are at `/data/local/Droidspaces/Logs/<name>/log`, timestamps in UTC. The
-  daemon log is `Logs/droidspacesd.log`.
+- Container logs are at `/data/local/ChDroid/Logs/<name>/log`, timestamps in UTC. The
+  daemon log is `Logs/chdroidd.log`.
 - Do not pass config flags such as `--upstream` in a test run without asking. They can be
   saved into the container's `container.config` and outlive the test.
 
@@ -87,20 +87,20 @@ spaces or shell syntax arrive intact.
 ```bash
 ds() {
     local name=$1; shift
-    local inner="${DS:-/data/local/Droidspaces/bin/droidspaces} -n ${name@Q} run -- ${*@Q}"
+    local inner="${DS:-/data/local/ChDroid/bin/chdroid} -n ${name@Q} run -- ${*@Q}"
     adb shell "su -c ${inner@Q}"
 }
 
 ds Docmost fastfetch
 ds Alpine-3.23 'ip -6 route; cat /etc/resolv.conf'
-DS='DS_NO_PROXY=1 /data/local/tmp/ds-test' ds Alpine-3.23 ip -6 route
+DS='CHDROID_NO_PROXY=1 /data/local/tmp/ds-test' ds Alpine-3.23 ip -6 route
 ```
 
 A single argument containing a space is handed to the container's `/bin/sh -c` by `run`
 itself, so a pipeline or a `;` list goes in as one quoted string, no `sh -c` wrapper.
 
-The helper calls the installed binary by absolute path, because `droidspaces` is only on
-the PATH when the app's "Integrate Droidspaces to the system path" toggle is on. Set `DS`
+The helper calls the installed binary by absolute path, because `chdroid` is only on
+the PATH when the app's "Integrate ChDroid to the system path" toggle is on. Set `DS`
 as in the last line to run the command through a pushed test build instead.
 
 Bare `ds` prints the table of running containers, which is how you find the names. The
@@ -188,7 +188,7 @@ copies of the init system screen, one bottom bar pasted seven times. Grep before
 
 These are choke points. Bypassing one is a bug, not a shortcut.
 
-- `ContainerCommandBuilder.quote()` in `Android/app/src/main/java/com/droidspaces/app/util/ContainerCommandBuilder.kt`
+- `ContainerCommandBuilder.quote()` in `Android/app/src/main/java/com/chdroid/app/util/ContainerCommandBuilder.kt`
   wraps every dynamic value that reaches a root shell.
 - `ContainerInitManager.isSafeServiceName()` allow-lists service names that came from inside a
   container. It fails closed. So does `ValidationUtils`.
@@ -202,7 +202,7 @@ These are choke points. Bypassing one is a bug, not a shortcut.
   comes from the host's process tree (`is_valid_container_pid`). The only reads left are for
   display (`os-release`) or for choices that touch nothing but that container (which signal
   stops its init).
-- `src/include/droidspaces.h` is the umbrella header. Every `.c` file includes it first, and it
+- `src/include/chdroid.h` is the umbrella header. Every `.c` file includes it first, and it
   pulls in one public header per folder, `src/include/<folder>/<folder>.h`, where each
   source file's prototypes sit under a `/* file.c */` label. A folder's private helpers are
   declared in its `internal.h`, which sits next to its sources (`src/net/internal.h`) and only

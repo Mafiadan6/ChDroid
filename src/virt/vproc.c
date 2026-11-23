@@ -1,15 +1,15 @@
 /*
- * Droidspaces v7 - Resource Visibility Virtualization
+ * ChDroid v7 - Resource Visibility Virtualization
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
-#define VPROC_PATH "/run/droidspaces/vproc"
+#define VPROC_PATH "/run/chdroid/vproc"
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
 /* Internal helpers */
@@ -30,7 +30,7 @@ static int write_inplace(int dir, const char *name, const char *buf,
     return -1;
   }
 
-  /* Security check: must be on tmpfs (the container's /run/droidspaces/vproc)
+  /* Security check: must be on tmpfs (the container's /run/chdroid/vproc)
    */
   struct statfs sfs;
   if (fstatfs(fd, &sfs) < 0 || sfs.f_type != TMPFS_MAGIC) {

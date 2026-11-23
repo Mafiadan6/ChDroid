@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -26,7 +26,7 @@
  * (which scans for "ds-v") never miscounts a gateway client as a live NAT
  * container and so keeps shared NAT iptables/route rules alive forever. */
 const char *app_veth_host_prefix(const struct ds_config *cfg) {
-  return (cfg && cfg->net_mode == DS_NET_GATEWAY) ? "ds-c" : "ds-v";
+  return (cfg && cfg->net_mode == CHDROID_NET_GATEWAY) ? "ds-c" : "ds-v";
 }
 
 /* Derive the host-side veth name (mode-aware). A NAT veth is named after the
@@ -36,7 +36,7 @@ const char *app_veth_host_prefix(const struct ds_config *cfg) {
  * what lets the next start find that leftover and replace it. */
 void veth_host_name(const struct ds_config *cfg, pid_t pid, char *buf,
                     size_t sz) {
-  if (cfg && cfg->net_mode == DS_NET_GATEWAY)
+  if (cfg && cfg->net_mode == CHDROID_NET_GATEWAY)
     snprintf(buf, sz, "%s%08x", app_veth_host_prefix(cfg),
              ds_net_hash_string(cfg->container_name));
   else
@@ -47,7 +47,7 @@ void veth_host_name(const struct ds_config *cfg, pid_t pid, char *buf,
  * Gateway clients use "ds-q" to match the distinct host-side prefix. */
 void veth_peer_name(const struct ds_config *cfg, pid_t pid, char *buf,
                     size_t sz) {
-  const char *p = (cfg && cfg->net_mode == DS_NET_GATEWAY) ? "ds-q" : "ds-p";
+  const char *p = (cfg && cfg->net_mode == CHDROID_NET_GATEWAY) ? "ds-q" : "ds-p";
   snprintf(buf, sz, "%s%d", p, (int)pid);
 }
 
@@ -63,12 +63,12 @@ static void veth_peer_ip(pid_t pid, char *buf, size_t sz) {
    *
    * We also reserve 172.28.0.x entirely for gateway/infrastructure:
    * octet3 starts at 1 so the first container gets 172.28.1.x, keeping
-   * 172.28.0.1 (DS_NAT_GW_IP) unambiguously the gateway in every row. */
+   * 172.28.0.1 (CHDROID_NAT_GW_IP) unambiguously the gateway in every row. */
   uint32_t hash = (uint32_t)pid;
   hash = ((hash >> 16) ^ hash) * 0x45d9f3b;
   int octet3 = (int)(((hash >> 8) % 254) + 1);
   int octet4 = (int)((hash % 254) + 1);
-  snprintf(buf, sz, "172.28.%d.%d/%d", octet3, octet4, DS_NAT_PREFIX);
+  snprintf(buf, sz, "172.28.%d.%d/%d", octet3, octet4, CHDROID_NAT_PREFIX);
 }
 
 uint32_t ds_net_hash_string(const char *s) {
@@ -177,9 +177,9 @@ void ds_net_derive_handshake(pid_t init_pid, struct ds_config *cfg,
    * ip_str is informational on the child side (voided in
    * setup_veth_child_side_named) but the boot/init.c log line prints it,
    * so it should reflect the actual IP the DHCP server will offer. */
-  if (cfg && cfg->net_mode == DS_NET_NAT && cfg->static_nat_ip[0])
+  if (cfg && cfg->net_mode == CHDROID_NET_NAT && cfg->static_nat_ip[0])
     safe_strncpy(hs->ip_str, cfg->static_nat_ip, sizeof(hs->ip_str));
-  else if (cfg && cfg->net_mode == DS_NET_NAT)
+  else if (cfg && cfg->net_mode == CHDROID_NET_NAT)
     veth_peer_ip(init_pid, hs->ip_str,
                  sizeof(hs->ip_str)); /* last-resort fallback */
   else

@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Kernel firmware search path management
  *
@@ -26,8 +26,8 @@
 /*
  * Token-aware removal: walk the comma-separated list and rebuild it without
  * the matching entry.  Matches on exact token boundaries (not substrings) to
- * avoid accidentally removing "/mnt/Droidspaces/Void" when removing
- * "/mnt/Droidspaces/Void2".
+ * avoid accidentally removing "/mnt/ChDroid/Void" when removing
+ * "/mnt/ChDroid/Void2".
  * Returns the length of the rebuilt string (0 = only entry, do not write).
  */
 static int fw_remove_token(const char *buf, const char *token, char *out,
@@ -75,7 +75,7 @@ void firmware_path_add(const char *fw_path) {
   /* Read the current comma-separated path list.
    * read_file() already strips trailing newlines. */
   char current[FW_PATH_BUF_SIZE] = {0};
-  read_file(DS_FW_PATH_FILE, current, sizeof(current));
+  read_file(CHDROID_FW_PATH_FILE, current, sizeof(current));
 
   /* Idempotent - don't add if already present as an exact token. */
   size_t fw_len = strlen(fw_path);
@@ -111,7 +111,7 @@ void firmware_path_add(const char *fw_path) {
   }
 
   ds_log("[FW] Adding firmware path: %s", fw_path);
-  write_file(DS_FW_PATH_FILE, new_path);
+  write_file(CHDROID_FW_PATH_FILE, new_path);
 }
 
 void firmware_path_remove(const char *fw_path) {
@@ -120,7 +120,7 @@ void firmware_path_remove(const char *fw_path) {
 
   /* Read current list - read_file() strips trailing newlines. */
   char current[FW_PATH_BUF_SIZE] = {0};
-  if (read_file(DS_FW_PATH_FILE, current, sizeof(current)) < 0)
+  if (read_file(CHDROID_FW_PATH_FILE, current, sizeof(current)) < 0)
     return;
 
   char new_path[FW_PATH_BUF_SIZE] = {0};
@@ -134,5 +134,5 @@ void firmware_path_remove(const char *fw_path) {
   }
 
   ds_log("[FW] Removing firmware path: %s", fw_path);
-  write_file(DS_FW_PATH_FILE, new_path);
+  write_file(CHDROID_FW_PATH_FILE, new_path);
 }

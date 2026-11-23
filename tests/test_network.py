@@ -6,7 +6,7 @@ import time
 import unittest
 import urllib.request
 
-from dstest import DsTest, ds, has_internet, require_daemon
+from dstest import ChDroidTest, ds, has_internet, require_daemon
 
 
 def setUpModule():
@@ -40,15 +40,15 @@ SERVE = ("(while :; do printf 'HTTP/1.0 200 OK\\r\\nContent-Length: 6\\r\\n\\r\\
 WGET = "for i in 1 2 3 4 5 6 7 8; do wget -q -O- -T 4 {url} && exit 0; sleep 0.5; done; echo NO"
 
 
-class Nat(DsTest):
+class Nat(ChDroidTest):
     def test_nat_is_the_default(self):
         c = self.container("nat")
         d = c.info()
         self.assertEqual(d["networking_mode"], "NAT")
         self.assertTrue(d["nat_ip"].startswith("172.28."), d["nat_ip"])
         self.assertIn("eth0", c.links())
-        # Droidspaces owns the resolver until a DHCP client inside rewrites the file
-        self.assertEqual(c.sh("readlink /etc/resolv.conf || echo not-a-symlink"), "/run/droidspaces/resolv.conf")
+        # ChDroid owns the resolver until a DHCP client inside rewrites the file
+        self.assertEqual(c.sh("readlink /etc/resolv.conf || echo not-a-symlink"), "/run/chdroid/resolv.conf")
         self.assertEqual(c.sh("cat /etc/resolv.conf"),
                          "nameserver 1.1.1.1\nnameserver 8.8.8.8\nnameserver 2606:4700:4700::1111")
         self.assertEqual(c.dhcp(), d["nat_ip"])
@@ -134,7 +134,7 @@ class Nat(DsTest):
         self.assertEqual(c.sh("wget -q -O /dev/null --timeout=8 http://one.one.one.one/ && echo dns-ok"), "dns-ok")
 
 
-class HostAndNone(DsTest):
+class HostAndNone(ChDroidTest):
     def test_host_mode_shares_the_host_namespace(self):
         c = self.container("host", "--net=host")
         self.assertEqual(c.info()["networking_mode"], "host")
@@ -147,7 +147,7 @@ class HostAndNone(DsTest):
         self.assertEqual(c.sh("ping -c1 -W1 127.0.0.1 >/dev/null && echo ok"), "ok")
 
 
-class Gateway(DsTest):
+class Gateway(ChDroidTest):
     def test_gateway_mode_wires_a_lan_between_two_containers(self):
         gw = self.container("gw")
         client = self.container("gc", "--net=gateway", f"--gateway={gw.name}")
@@ -191,7 +191,7 @@ class Gateway(DsTest):
         self.assertIsNotNone(client.pid())
 
 
-class Macvlan(DsTest):
+class Macvlan(ChDroidTest):
     def test_missing_parent_is_deferred_not_fatal(self):
         c = self.container("mv-missing", start=False)
         p = c.start("--net=macvlan", "--macvlan-parent=nosuch0")
@@ -207,9 +207,9 @@ class Macvlan(DsTest):
         self.assertIsNone(c.pid())
 
     def test_macvlan_on_a_real_parent(self):
-        parent = os.environ.get("DS_TEST_MACVLAN_PARENT")
+        parent = os.environ.get("CHDROID_TEST_MACVLAN_PARENT")
         if not parent:
-            self.skipTest("set DS_TEST_MACVLAN_PARENT=<wired NIC> to run this")
+            self.skipTest("set CHDROID_TEST_MACVLAN_PARENT=<wired NIC> to run this")
         c = self.container("mv", "--net=macvlan", f"--macvlan-parent={parent}", "--macvlan-mode=private")
         self.assertIn("eth0", c.links())
         self.assertEqual(c.info()["macvlan_mode"], "private")

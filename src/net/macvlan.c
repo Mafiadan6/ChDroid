@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -85,7 +85,7 @@ static int macvlan_parent_taken(const struct ds_config *cfg, char *who,
     if (ds_config_peek(ent->d_name, &c) != 0)
       continue;
     pid_t p = 0;
-    if (c.net_mode == DS_NET_MACVLAN &&
+    if (c.net_mode == CHDROID_NET_MACVLAN &&
         strcmp(c.container_name, cfg->container_name) != 0 &&
         strcmp(c.macvlan_parent, cfg->macvlan_parent) == 0 &&
         (c.macvlan_mode == MACVLAN_MODE_PASSTHRU ||

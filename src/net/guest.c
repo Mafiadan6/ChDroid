@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -39,7 +39,7 @@ int setup_veth_child_side_named(struct ds_config *cfg, const char *peer_name,
    * whether we are starting now or already running when it (re)boots, and means
    * a client started before its gateway simply has no eth0 until the gateway
    * comes up and wires it. */
-  if (cfg && cfg->net_mode == DS_NET_GATEWAY) {
+  if (cfg && cfg->net_mode == CHDROID_NET_GATEWAY) {
     ds_nl_link_up(ctx, "lo");
     ds_nl_close(ctx);
     ds_log("[NET] Child: gateway mode - lo up; gateway container owns "
@@ -98,8 +98,8 @@ int setup_veth_child_side_named(struct ds_config *cfg, const char *peer_name,
  * DNS.)
  *
  *   2. everything else (nat/host/none, or any mode with custom --dns):
- *      Droidspaces owns DNS. Write our content (custom or default) to
- *      /run/droidspaces/resolv.conf and symlink it.
+ *      ChDroid owns DNS. Write our content (custom or default) to
+ *      /run/chdroid/resolv.conf and symlink it.
  *
  * This replaces the old /run/resolvconf duct-tape, which clobbered the distro's
  * resolver and left a dangling symlink in gateway mode. */
@@ -108,9 +108,9 @@ static void setup_resolv_conf(struct ds_config *cfg) {
 
   /* Gateway or macvlan mode with no explicit --dns: DNS belongs to whoever
    * serves the LAN (OpenWrt's dnsmasq, a home router), advertised in the DHCP
-   * lease.  Droidspaces must NOT write a static resolv.conf or it would bypass
+   * lease.  ChDroid must NOT write a static resolv.conf or it would bypass
    * that DNS and its filtering/caching. */
-  if ((cfg->net_mode == DS_NET_GATEWAY || cfg->net_mode == DS_NET_MACVLAN) &&
+  if ((cfg->net_mode == CHDROID_NET_GATEWAY || cfg->net_mode == CHDROID_NET_MACVLAN) &&
       !cfg->dns_servers[0]) {
     if (is_systemd_rootfs("/")) {
       /* systemd-resolved consumes the lease and publishes the real resolver. */
@@ -125,9 +125,9 @@ static void setup_resolv_conf(struct ds_config *cfg) {
       return;
     }
   } else {
-    mkdir("/run/droidspaces", 0755);
-    write_file(DS_RESOLV_CONF, cfg->dns_server_content);
-    target = DS_RESOLV_CONF;
+    mkdir("/run/chdroid", 0755);
+    write_file(CHDROID_RESOLV_CONF, cfg->dns_server_content);
+    target = CHDROID_RESOLV_CONF;
   }
 
   unlink("/etc/resolv.conf");
@@ -179,7 +179,7 @@ int fix_networking_rootfs(struct ds_config *cfg) {
   setup_resolv_conf(cfg);
 
   if (!ipv6_enabled) {
-    if (cfg->net_mode == DS_NET_HOST) {
+    if (cfg->net_mode == CHDROID_NET_HOST) {
       /* In host mode, disabling IPv6 affects the host's netns. Warn and apply.
        */
       ds_warn("--disable-ipv6 in host mode disables IPv6 on the host "
@@ -187,7 +187,7 @@ int fix_networking_rootfs(struct ds_config *cfg) {
     }
     write_file("/proc/sys/net/ipv6/conf/all/disable_ipv6", "1");
     write_file("/proc/sys/net/ipv6/conf/default/disable_ipv6", "1");
-  } else if (cfg->net_mode == DS_NET_NAT || cfg->net_mode == DS_NET_MACVLAN) {
+  } else if (cfg->net_mode == CHDROID_NET_NAT || cfg->net_mode == CHDROID_NET_MACVLAN) {
     /* Docker and friends turn on forwarding inside the container, and the
      * kernel then ignores RAs (ours, or the LAN router's) unless accept_ra is
      * 2. Without this the IPv6 default route quietly expires half an hour

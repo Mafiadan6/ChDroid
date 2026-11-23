@@ -2,16 +2,16 @@
 title: 显示、音频与桌面
 section: Guides
 order: 4
-desc: 在 Android 和 Linux 上为 Droidspaces 容器配置 GPU 加速、PulseAudio 音效与自动启动的桌面环境。
-keywords: gpu, acceleration, droidspaces, termux, x11, virgl, turnip, adreno, pulseaudio, sound, audio, desktop, xfce, container, graphics
+desc: 在 Android 和 Linux 上为 ChDroid 容器配置 GPU 加速、PulseAudio 音效与自动启动的桌面环境。
+keywords: gpu, acceleration, chdroid, termux, x11, virgl, turnip, adreno, pulseaudio, sound, audio, desktop, xfce, container, graphics
 -->
 
 # 显示、音频与桌面
 
-在 Android 上，只要打开对应的开关，Droidspaces 就会替你启动 Termux:X11 显示服务、VirGL 服务和 PulseAudio 服务，并在容器内设置 `DISPLAY`、`GALLIUM_DRIVER` 和 `PULSE_SERVER`。打开开关、启动容器，图形程序就会在 Termux:X11 应用中打开，声音从手机扬声器输出。本页涵盖一次性设置、三种渲染方式、声音、开机自启的桌面，以及 Linux 端。像 KDE Plasma 这样的 Wayland 桌面还有第二条路径，见 [Anland](./Anland.md) 页面。
+在 Android 上，只要打开对应的开关，ChDroid 就会替你启动 Termux:X11 显示服务、VirGL 服务和 PulseAudio 服务，并在容器内设置 `DISPLAY`、`GALLIUM_DRIVER` 和 `PULSE_SERVER`。打开开关、启动容器，图形程序就会在 Termux:X11 应用中打开，声音从手机扬声器输出。本页涵盖一次性设置、三种渲染方式、声音、开机自启的桌面，以及 Linux 端。像 KDE Plasma 这样的 Wayland 桌面还有第二条路径，见 [Anland](./Anland.md) 页面。
 
 > [!IMPORTANT]
-> Droidspaces 不附带 Termux:X11、VirGL 或 PulseAudio。它们是 Termux 的软件包。Droidspaces 负责启动和停止它们，并把它们的 socket 桥接进容器。
+> ChDroid 不附带 Termux:X11、VirGL 或 PulseAudio。它们是 Termux 的软件包。ChDroid 负责启动和停止它们，并把它们的 socket 桥接进容器。
 
 ## 在 Android 上的一次性设置
 
@@ -19,7 +19,7 @@ keywords: gpu, acceleration, droidspaces, termux, x11, virgl, turnip, adreno, pu
 2. 在 Termux 中运行设置脚本。它会把 Termux:X11、VirGL 和 PulseAudio 安装进 Termux，并针对 Android 的音频栈修改 PulseAudio 的配置：
 
    ```bash
-   curl -fsSL https://github.com/ravindu644/Droidspaces-OSS/raw/refs/heads/dev/scripts/setup-termux.sh | bash
+   curl -fsSL https://github.com/Mafiadan6/ChDroid/raw/refs/heads/dev/scripts/setup-termux.sh | bash
    ```
 
 这样就完成了。之后你不需要在 Termux 里手动启动任何东西。
@@ -27,7 +27,7 @@ keywords: gpu, acceleration, droidspaces, termux, x11, virgl, turnip, adreno, pu
 > [!TIP]
 > 仓库中的官方 XFCE 镜像会自动启动 XFCE。安装一个，打开 **配置 Termux:X11**，启动容器并打开 Termux:X11 应用，桌面就在那里。[开机自启的桌面](#开机自启的桌面)一节说明了它的接线方式，方便你为其他桌面做同样的事。
 
-显示相关的变量通过 `/etc/profile.d` 为登录 shell 设置。在 `zsh`、`fish` 或其他会跳过它的 shell 中，请在容器启动后执行一次 `source /run/droidspaces.env`。
+显示相关的变量通过 `/etc/profile.d` 为登录 shell 设置。在 `zsh`、`fish` 或其他会跳过它的 shell 中，请在容器启动后执行一次 `source /run/chdroid.env`。
 
 ## Android 上的三种渲染方式
 
@@ -62,17 +62,17 @@ Turnip 是 Mesa 面向 Adreno 的开源 Vulkan 驱动，配合 Zink 还能提供
 
 4. 启动容器。图形程序现在会在 GPU 上渲染。
 
-非 root 用户需要加入 `droidspaces-gpu` 组才能打开 GPU 节点：在容器内执行 `usermod -aG droidspaces-gpu <user>`。
+非 root 用户需要加入 `chdroid-gpu` 组才能打开 GPU 节点：在容器内执行 `usermod -aG chdroid-gpu <user>`。
 
 ## Android 上的声音
 
-打开 **配置 PulseAudio** 并启动容器。Droidspaces 会在 Termux 中启动 PulseAudio 服务（Android 的音频系统允许它在那里播放），把声音路由到扬声器，将它的 socket 挂载到容器内的 `/tmp/.pulse-socket`，并设置 `PULSE_SERVER`。任何使用 PulseAudio 或 PipeWire 的 PulseAudio 兼容层的程序，声音都会从手机输出。`paplay file.wav` 可以快速测试，`pactl info` 会显示连接状态。
+打开 **配置 PulseAudio** 并启动容器。ChDroid 会在 Termux 中启动 PulseAudio 服务（Android 的音频系统允许它在那里播放），把声音路由到扬声器，将它的 socket 挂载到容器内的 `/tmp/.pulse-socket`，并设置 `PULSE_SERVER`。任何使用 PulseAudio 或 PipeWire 的 PulseAudio 兼容层的程序，声音都会从手机输出。`paplay file.wav` 可以快速测试，`pactl info` 会显示连接状态。
 
-声音能否工作完全取决于手机：Android 版本、厂商的音频 HAL 以及 Termux 的 PulseAudio 构建。在三星 One UI 6.1 及更新版本上，Droidspaces 会预加载音频模块所需的库；你这边无需操作。
+声音能否工作完全取决于手机：Android 版本、厂商的音频 HAL 以及 Termux 的 PulseAudio 构建。在三星 One UI 6.1 及更新版本上，ChDroid 会预加载音频模块所需的库；你这边无需操作。
 
 ## 开机自启的桌面
 
-Droidspaces 会确保 X 服务的 socket `/tmp/.X11-unix/X5` 在容器的 init 到达 `graphical.target` 之前存在，因此 systemd 单元可以在不产生竞争的情况下启动桌面。官方 XFCE 镜像自带这样一个单元；同样的模式适用于任何桌面。
+ChDroid 会确保 X 服务的 socket `/tmp/.X11-unix/X5` 在容器的 init 到达 `graphical.target` 之前存在，因此 systemd 单元可以在不产生竞争的情况下启动桌面。官方 XFCE 镜像自带这样一个单元；同样的模式适用于任何桌面。
 
 该单元位于 `/etc/systemd/system/xfce-autostart.service`：
 
@@ -84,7 +84,7 @@ After=graphical.target
 [Service]
 Type=simple
 User=root
-ExecCondition=/bin/sh -c "grep -q 'enable_x11=1' /run/droidspaces/container.config"
+ExecCondition=/bin/sh -c "grep -q 'enable_x11=1' /run/chdroid/container.config"
 ExecCondition=/bin/sh -c "test -S /tmp/.X11-unix/X5"
 ExecStart=/usr/local/bin/xfce-start
 Restart=on-failure
@@ -95,13 +95,13 @@ WantedBy=graphical.target
 
 当 Termux:X11 关闭或 socket 不存在时，这两个条件会让单元保持静默：systemd 会跳过它，而不是报错。
 
-启动脚本 `/usr/local/bin/xfce-start` 会加载 Droidspaces 写入的环境，并以 root 或 `XFCE_USER` 指定的用户身份启动桌面：
+启动脚本 `/usr/local/bin/xfce-start` 会加载 ChDroid 写入的环境，并以 root 或 `XFCE_USER` 指定的用户身份启动桌面：
 
 ```sh
 #!/bin/sh
 
-ENV_FILE=/run/droidspaces.env
-CONFIG=/run/droidspaces/container.config
+ENV_FILE=/run/chdroid.env
+CONFIG=/run/chdroid/container.config
 
 if [ -f "$ENV_FILE" ]; then
     . "$ENV_FILE"
@@ -138,7 +138,7 @@ fi
 2. 允许容器访问你的 X 服务：在宿主机上执行 `xhost +local:`。
 3. 用 `--x11` 启动容器（它会挂载宿主机的 X socket），并在容器的环境文件中设置 `DISPLAY=:0`，或宿主机实际使用的值。
 
-这样，在容器中启动的图形程序就会带着硬件加速显示在你的桌面上。如果你把宿主机的 PulseAudio 或 PipeWire socket 绑定挂载进去，声音也会通过它输出；Droidspaces 在 Linux 上不管理音频。
+这样，在容器中启动的图形程序就会带着硬件加速显示在你的桌面上。如果你把宿主机的 PulseAudio 或 PipeWire socket 绑定挂载进去，声音也会通过它输出；ChDroid 在 Linux 上不管理音频。
 
 ---
 

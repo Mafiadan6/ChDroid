@@ -1,2 +1,2 @@
-/bin/droidspaces_autoboot.sh 0 0 755
-/etc/init/init.droidspaces.rc 0 0 644
+/bin/chdroid_autoboot.sh 0 0 755
+/etc/init/init.chdroid.rc 0 0 644

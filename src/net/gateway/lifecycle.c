@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <fnmatch.h>
 #include <linux/ethtool.h>
@@ -21,7 +21,7 @@
 
 /* setup_gateway_veth_side
  *
- * Called at client start.  OpenWrt gateway mode: Droidspaces owns only the L2
+ * Called at client start.  OpenWrt gateway mode: ChDroid owns only the L2
  * plumbing (bridge + veths), never NAT/DHCP/DNS/firewall - the gateway
  * container runs that policy.
  *
@@ -123,7 +123,7 @@ void ds_net_rewire_gateway_clients(const char *gateway_name,
       continue;
 
     pid_t p = 0;
-    if (c.net_mode == DS_NET_GATEWAY && c.gateway_container[0] &&
+    if (c.net_mode == CHDROID_NET_GATEWAY && c.gateway_container[0] &&
         strcmp(c.gateway_container, gateway_name) == 0 &&
         is_container_running(&c, &p) && p > 0)
       gateway_wire_client(&c, p, gateway_pid);
@@ -177,7 +177,7 @@ void ds_net_gateway_teardown(const char *gateway_name) {
     if (ds_config_peek(ent->d_name, &c) != 0)
       continue;
 
-    if (!(c.net_mode == DS_NET_GATEWAY && c.gateway_container[0] &&
+    if (!(c.net_mode == CHDROID_NET_GATEWAY && c.gateway_container[0] &&
           strcmp(c.gateway_container, gateway_name) == 0)) {
       ds_config_free(&c);
       continue;

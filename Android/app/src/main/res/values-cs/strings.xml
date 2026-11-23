@@ -71,7 +71,7 @@
     <string name="symlink_integration">Začlenit ChDroid do systémové cesty</string>
     <string name="symlink_integration_description">Vytvoří symbolický odkaz v /system/bin, aby byl příkaz chdroid dostupný v rootovém shellu Androidu. VAROVÁNÍ: ZAPNUTÍ ZPŮSOBÍ BOOTLOOP, POKUD VÁŠ SYSTÉM PŘIPOJENÍ POUŽÍVÁ METAMODULY OVERLAYFS. Tuto možnost používejte pouze se systémem připojení založeným na Magic Mount nebo se systémem nomount implementovaným v jádře (vyžaduje restart)</string>
     <string name="about_section">O aplikaci</string>
-    <string name="about_droidspaces">O aplikaci ChDroid</string>
+    <string name="about_chdroid">O aplikaci ChDroid</string>
     <string name="about_description">Správce kontejnerů ve stylu LXC pro Android</string>
     <string name="developers">Vývojáři</string>
     <string name="developer_ravindu644_role">Správce projektu</string>
@@ -268,7 +268,7 @@
     <string name="installation_complete">Instalace byla dokončena</string>
     <string name="installation_failed">Instalace se nezdařila</string>
     <string name="done">Hotovo</string>
-    <string name="installing_droidspaces">Instaluje se ChDroid</string>
+    <string name="installing_chdroid">Instaluje se ChDroid</string>
     <string name="backend_installed_success">Backend ChDroid byl úspěšně nainstalován</string>
     <string name="binary_installation_failed">Instalace binárního souboru se nezdařila</string>
     <string name="filter_absolute_path_hint">Filtrujte nebo zadejte absolutní cestu…</string>
@@ -367,7 +367,7 @@
     <string name="error_hostname_invalid">Název hostitele smí obsahovat pouze písmena, číslice a spojovníky (-)</string>
     <string name="check_requirements">Zkontrolovat požadavky</string>
     <string name="requirements_check_title">Kontrola požadavků</string>
-    <string name="requirements_for_droidspaces">Požadavky pro ChDroid</string>
+    <string name="requirements_for_chdroid">Požadavky pro ChDroid</string>
     <string name="requirements_check_completed_successfully">Kontrola požadavků byla úspěšně dokončena</string>
     <string name="requirements_check_completed_with_errors">Kontrola požadavků byla dokončena s chybami</string>
     <string name="kernel_requirements_copied">Požadavky na jádro byly zkopírovány do schránky</string>

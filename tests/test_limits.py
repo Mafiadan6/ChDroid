@@ -5,7 +5,7 @@ import os
 import unittest
 from pathlib import Path
 
-from dstest import DsTest, ds, ds_json, require_daemon
+from dstest import ChDroidTest, ds, ds_json, require_daemon
 
 
 def setUpModule():
@@ -14,7 +14,7 @@ def setUpModule():
         raise unittest.SkipTest("host is not on cgroup v2; these tests read the unified hierarchy")
 
 
-class Limits(DsTest):
+class Limits(ChDroidTest):
     def test_memory(self):
         c = self.container("mem", "--memory=64M")
         self.assertEqual(c.cgroup("memory.max"), "67108864")
@@ -65,7 +65,7 @@ class Limits(DsTest):
 
     def test_cgroup_is_removed_on_stop(self):
         c = self.container("cgrm")
-        path = Path("/sys/fs/cgroup/droidspaces") / c.name
+        path = Path("/sys/fs/cgroup/chdroid") / c.name
         self.assertTrue(path.is_dir())
         c.stop()
         self.assertFalse(path.exists())

@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_VIRT_VIRT_H
-#define DS_VIRT_VIRT_H
+#ifndef CHDROID_VIRT_VIRT_H
+#define CHDROID_VIRT_VIRT_H
 
 /* affinity.c */
 void ds_virtualize_join(pid_t init_pid);
@@ -23,4 +23,4 @@ int ds_virtualize_init(struct ds_config *cfg);
 void ds_virtualize_update(struct ds_config *cfg);
 unsigned long ds_get_pid_ns_inode(pid_t pid);
 
-#endif /* DS_VIRT_VIRT_H */
+#endif /* CHDROID_VIRT_VIRT_H */

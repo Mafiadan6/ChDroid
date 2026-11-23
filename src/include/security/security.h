@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_SECURITY_SECURITY_H
-#define DS_SECURITY_SECURITY_H
+#ifndef CHDROID_SECURITY_SECURITY_H
+#define CHDROID_SECURITY_SECURITY_H
 
 /* caps.c */
 void ds_apply_capability_hardening(int hw_access, int privileged_mask,
@@ -54,4 +54,4 @@ int ds_get_selinux_status(void);
 int get_selinux_context(const char *path, char *buf, size_t size);
 void ds_selinux_enter_domain(void);
 
-#endif /* DS_SECURITY_SECURITY_H */
+#endif /* CHDROID_SECURITY_SECURITY_H */

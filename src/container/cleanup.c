@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 void cleanup_container_resources(struct ds_config *cfg, pid_t pid,
                                  int skip_unmount, int force_cleanup) {
@@ -79,11 +79,11 @@ void cleanup_container_resources(struct ds_config *cfg, pid_t pid,
   /* Network cleanup: remove host veth and owned network state. Any isolated
    * mode can be someone's gateway (an OpenWrt in --net=none, say), and its
    * LAN cables must go with it, so this is not limited to NAT and gateway. */
-  if (cfg->net_mode != DS_NET_HOST) {
+  if (cfg->net_mode != CHDROID_NET_HOST) {
     ds_net_cleanup(cfg, pid > 0 ? pid : cfg->container_pid);
   }
 
-  /* Cgroup subtree cleanup: remove /sys/fs/cgroup/droidspaces/<name>/.
+  /* Cgroup subtree cleanup: remove /sys/fs/cgroup/chdroid/<name>/.
    * All container processes are dead by now so every leaf is empty and
    * the bottom-up rmdir walk always succeeds.  Skipped on restart
    * (skip_unmount=1) so the monitor's cgroup context stays intact for

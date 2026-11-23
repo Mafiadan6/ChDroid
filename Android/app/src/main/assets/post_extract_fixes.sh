@@ -5,7 +5,7 @@
 # This script runs after extraction but before unmounting
 #
 # Every fix here mirrors one applied at build time by the Dockerfiles in
-# Droidspaces-rootfs-builder, so a user-supplied tarball ends up with the same
+# ChDroid-rootfs-builder, so a user-supplied tarball ends up with the same
 # Android compatibility as a first-party one. Each fix is guarded by what is
 # actually present in the rootfs, never by assumption.
 
@@ -13,7 +13,7 @@ set -e
 
 # Parameters
 ROOTFS_PATH="$1"
-BUSYBOX_PATH="${BUSYBOX_PATH:-/data/local/Droidspaces/bin/busybox}"
+BUSYBOX_PATH="${BUSYBOX_PATH:-/data/local/ChDroid/bin/busybox}"
 
 # Check if BusyBox exists
 if [ ! -x "$BUSYBOX_PATH" ]; then
@@ -81,7 +81,7 @@ log "Starting post-extraction fixes for: $ROOTFS_PATH"
 if $TEST -d "$ROOTFS_PATH/nix"; then
     log "NixOS detected, skipping all post-extraction fixes (Nix manages its own state)"
     # Mark as applied anyway to prevent re-running
-    $TOUCH "$ROOTFS_PATH/etc/droidspaces" 2>/dev/null || true
+    $TOUCH "$ROOTFS_PATH/etc/chdroid" 2>/dev/null || true
     exit 0
 fi
 
@@ -92,7 +92,7 @@ $ECHO "" >> "$ROOTFS_PATH/etc/machine-id"
 $CHMOD 444 "$ROOTFS_PATH/etc/machine-id"
 
 # Check if fixes were already applied
-if $TEST -f "$ROOTFS_PATH/etc/droidspaces"; then
+if $TEST -f "$ROOTFS_PATH/etc/chdroid"; then
     log "Post-extraction fixes already applied, skipping..."
     exit 0
 fi
@@ -155,9 +155,9 @@ if $TEST -d "$ROOTFS_PATH/etc/NetworkManager"; then
     log "Writing NetworkManager DHCP profile for eth* interfaces..."
     $MKDIR -p "$ROOTFS_PATH/etc/NetworkManager/system-connections"
     $CHMOD 700 "$ROOTFS_PATH/etc/NetworkManager/system-connections"
-    $CAT > "$ROOTFS_PATH/etc/NetworkManager/system-connections/droidspaces-ethernet.nmconnection" << 'EOF'
+    $CAT > "$ROOTFS_PATH/etc/NetworkManager/system-connections/chdroid-ethernet.nmconnection" << 'EOF'
 [connection]
-id=droidspaces-ethernet
+id=chdroid-ethernet
 type=ethernet
 autoconnect=true
 
@@ -172,7 +172,7 @@ route-metric=100
 method=auto
 addr-gen-mode=stable-privacy
 EOF
-    $CHMOD 600 "$ROOTFS_PATH/etc/NetworkManager/system-connections/droidspaces-ethernet.nmconnection"
+    $CHMOD 600 "$ROOTFS_PATH/etc/NetworkManager/system-connections/chdroid-ethernet.nmconnection"
 fi
 
 # elogind (Artix, Devuan, Gentoo) reacts to the phone's power key exactly like
@@ -276,7 +276,7 @@ EOF
 
     # 06. Keep network services out of host and none modes
     # Every mode with its own network namespace needs an in-container DHCP
-    # client (NAT: lease from Droidspaces; gateway: from the gateway container;
+    # client (NAT: lease from ChDroid; gateway: from the gateway container;
     # macvlan: from the LAN). Host mode skips them so they never touch Android's
     # interfaces, none mode because there is no eth0. Listing the two modes to
     # skip, rather than the ones to run in, keeps a new mode working on rootfs
@@ -288,7 +288,7 @@ EOF
             $CAT > "$ROOTFS_PATH/etc/systemd/system/${unit}.d/99-netmode-limit.conf" << 'EOF'
 [Service]
 ExecCondition=
-ExecCondition=/bin/sh -c "grep -q '^net_mode=' /run/droidspaces/container.config && ! grep -qE '^net_mode=(host|none)$' /run/droidspaces/container.config"
+ExecCondition=/bin/sh -c "grep -q '^net_mode=' /run/chdroid/container.config && ! grep -qE '^net_mode=(host|none)$' /run/chdroid/container.config"
 EOF
         fi
     done
@@ -321,19 +321,19 @@ EOF
         ! $TEST -e "$ROOTFS_PATH/etc/systemd/system/multi-user.target.wants/dhcpcd.service" &&
         { $TEST -x "$ROOTFS_PATH/usr/sbin/dhcpcd" || $TEST -x "$ROOTFS_PATH/sbin/dhcpcd"; }; then
         log "Adding the macvlan dhcpcd fallback for NetworkManager..."
-        $CAT > "$ROOTFS_PATH/etc/systemd/system/droidspaces-macvlan-dhcp.service" << 'EOF'
+        $CAT > "$ROOTFS_PATH/etc/systemd/system/chdroid-macvlan-dhcp.service" << 'EOF'
 [Unit]
-Description=DHCP for the Droidspaces macvlan eth0
+Description=DHCP for the ChDroid macvlan eth0
 After=network-pre.target
 
 [Service]
-ExecCondition=/bin/sh -c "grep -qs '^net_mode=macvlan$' /run/droidspaces/container.config"
+ExecCondition=/bin/sh -c "grep -qs '^net_mode=macvlan$' /run/chdroid/container.config"
 ExecStart=/bin/sh -c "exec dhcpcd -M -B --nodev -z eth0"
 
 [Install]
 WantedBy=multi-user.target
 EOF
-        $LN -sf /etc/systemd/system/droidspaces-macvlan-dhcp.service "$ROOTFS_PATH/etc/systemd/system/multi-user.target.wants/droidspaces-macvlan-dhcp.service"
+        $LN -sf /etc/systemd/system/chdroid-macvlan-dhcp.service "$ROOTFS_PATH/etc/systemd/system/multi-user.target.wants/chdroid-macvlan-dhcp.service"
     fi
 
     # 08. Mount binfmt_misc at boot so qemu-user-static handlers register.
@@ -398,22 +398,22 @@ if $TEST -f "$ROOTFS_PATH/etc/rc.conf" && $TEST -x "$ROOTFS_PATH/sbin/openrc-run
     # Tell OpenRC it runs in an LXC-style container.
     $SED -i 's/^#\?rc_sys=.*/rc_sys="lxc"/' "$ROOTFS_PATH/etc/rc.conf"
 
-    # machine-id must not wait for a "dev" service Droidspaces never provides.
+    # machine-id must not wait for a "dev" service ChDroid never provides.
     if $TEST -f "$ROOTFS_PATH/etc/init.d/machine-id"; then
         $SED -i 's/need root dev/need root/' "$ROOTFS_PATH/etc/init.d/machine-id"
     fi
 
     # eudev under rc_sys="lxc": the stock script excludes itself from every
-    # container type and needs sysfs, which Droidspaces mounts before init.
+    # container type and needs sysfs, which ChDroid mounts before init.
     # Replace the unrestricted coldplug with the same subsystem allow-list the
     # systemd override uses.
     if $TEST -f "$ROOTFS_PATH/etc/init.d/udev" && $GREP -q 'keyword -containers' "$ROOTFS_PATH/etc/init.d/udev"; then
         log "Enabling eudev with a restricted coldplug..."
         $SED -i -e '/keyword -containers/d' -e 's/need sysfs dev-mount/need dev-mount/' "$ROOTFS_PATH/etc/init.d/udev"
-        $CAT > "$ROOTFS_PATH/etc/init.d/droidspaces-udev-trigger" << 'EOT'
+        $CAT > "$ROOTFS_PATH/etc/init.d/chdroid-udev-trigger" << 'EOT'
 #!/sbin/openrc-run
 
-description="Restricted eudev coldplug for DroidSpaces"
+description="Restricted eudev coldplug for ChDroid"
 
 depend() {
     need udev
@@ -437,10 +437,10 @@ start() {
     eend $?
 }
 EOT
-        $CHMOD 755 "$ROOTFS_PATH/etc/init.d/droidspaces-udev-trigger"
+        $CHMOD 755 "$ROOTFS_PATH/etc/init.d/chdroid-udev-trigger"
         rc_enable udev sysinit
         rc_disable udev-trigger sysinit
-        rc_enable droidspaces-udev-trigger sysinit
+        rc_enable chdroid-udev-trigger sysinit
     fi
 
     # NetworkManager only in modes with their own network, the OpenRC twin of the
@@ -452,23 +452,23 @@ EOT
     # dhcpcd would wait on it forever.
     if $TEST -f "$ROOTFS_PATH/etc/init.d/NetworkManager"; then
         log "Gating NetworkManager on network mode..."
-        $CAT > "$ROOTFS_PATH/etc/init.d/droidspaces-network" << 'EOT'
+        $CAT > "$ROOTFS_PATH/etc/init.d/chdroid-network" << 'EOT'
 #!/sbin/openrc-run
 
-description="Conditional DroidSpaces NetworkManager startup"
+description="Conditional ChDroid NetworkManager startup"
 
 depend() {
     need dbus
-    after udev droidspaces-udev-trigger
+    after udev chdroid-udev-trigger
 }
 
 is_managed_mode() {
-    grep -qs '^net_mode=' /run/droidspaces/container.config &&
-        ! grep -qsE '^net_mode=(host|none)$' /run/droidspaces/container.config
+    grep -qs '^net_mode=' /run/chdroid/container.config &&
+        ! grep -qsE '^net_mode=(host|none)$' /run/chdroid/container.config
 }
 
 is_macvlan_mode() {
-    grep -qs '^net_mode=macvlan$' /run/droidspaces/container.config
+    grep -qs '^net_mode=macvlan$' /run/chdroid/container.config
 }
 
 start() {
@@ -497,14 +497,14 @@ stop() {
     rc-service NetworkManager stop
 }
 EOT
-        $CHMOD 755 "$ROOTFS_PATH/etc/init.d/droidspaces-network"
+        $CHMOD 755 "$ROOTFS_PATH/etc/init.d/chdroid-network"
         rc_enable dbus default
-        rc_enable droidspaces-network default
+        rc_enable chdroid-network default
         rc_disable dhcpcd default
     fi
 
     # Artix boots with openrc-init and agetty.<port> services. Drop the VT
-    # gettys and add one on /dev/console for the Droidspaces foreground console.
+    # gettys and add one on /dev/console for the ChDroid foreground console.
     if $TEST -f "$ROOTFS_PATH/etc/init.d/agetty" && $TEST -f "$ROOTFS_PATH/etc/conf.d/agetty.tty1"; then
         log "Replacing VT gettys with a console getty..."
         for n in 1 2 3 4 5 6; do rc_disable agetty.tty$n default; done
@@ -513,7 +513,7 @@ EOT
         rc_enable agetty.console default
     fi
 
-    # /proc/sys is read-only in Droidspaces containers and the distro's sysctl.d
+    # /proc/sys is read-only in ChDroid containers and the distro's sysctl.d
     # defaults mean nothing on an Android kernel. Artix keeps erroring on it.
     if $TEST -f "$ROOTFS_PATH/etc/os-release" && $GREP -q '^ID=artix$' "$ROOTFS_PATH/etc/os-release"; then
         rc_disable sysctl boot
@@ -564,8 +564,8 @@ depend() {
 
 start_pre() {
 	# Not in host mode (cellular breakage) or none mode (no eth0)
-	if ! grep -qs '^net_mode=' /run/droidspaces/container.config ||
-		grep -qsE '^net_mode=(host|none)$' /run/droidspaces/container.config; then
+	if ! grep -qs '^net_mode=' /run/chdroid/container.config ||
+		grep -qsE '^net_mode=(host|none)$' /run/chdroid/container.config; then
 		einfo "Skipping dhcpcd: host or none network mode"
 		return 1
 	fi
@@ -627,6 +627,6 @@ if $TEST -f "$ROOTFS_PATH/etc/logrotate.conf"; then
 fi
 
 # Mark fixes as completed
-$ECHO "Post-extraction fixes applied on $(date)" > "$ROOTFS_PATH/etc/droidspaces"
+$ECHO "Post-extraction fixes applied on $(date)" > "$ROOTFS_PATH/etc/chdroid"
 
 log "Post-extraction fixes completed successfully"

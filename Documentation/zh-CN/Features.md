@@ -2,8 +2,8 @@
 title: 容器设置
 section: Guides
 order: 2
-desc: 按 App 显示顺序介绍 Droidspaces 的每一项容器设置：每个开关或参数做什么、什么时候打开，以及它对内核有什么要求。
-keywords: droidspaces, settings, features, network, mode, hardware, access, gpu, volatile, bind, mount, resource, limits, privileged, sandboxing, run, at, boot
+desc: 按 App 显示顺序介绍 ChDroid 的每一项容器设置：每个开关或参数做什么、什么时候打开，以及它对内核有什么要求。
+keywords: chdroid, settings, features, network, mode, hardware, access, gpu, volatile, bind, mount, resource, limits, privileged, sandboxing, run, at, boot
 -->
 
 # 容器设置
@@ -76,7 +76,7 @@ keywords: droidspaces, settings, features, network, mode, hardware, access, gpu,
 
 ### GPU 访问
 
-`--gpu`，键 `enable_gpu_mode`。折中方案。容器保留私有的 `/dev`，只把 GPU 渲染节点镜像进去，因此程序可以使用 GPU，而宿主机上的其他设备都不会暴露。镜像进来的节点属于 root 所在的 `droidspaces-gpu` 组；用 `usermod` 把其他用户加入该组。硬件访问也会一并打开它。
+`--gpu`，键 `enable_gpu_mode`。折中方案。容器保留私有的 `/dev`，只把 GPU 渲染节点镜像进去，因此程序可以使用 GPU，而宿主机上的其他设备都不会暴露。镜像进来的节点属于 root 所在的 `chdroid-gpu` 组；用 `usermod` 把其他用户加入该组。硬件访问也会一并打开它。
 
 已知支持的 GPU 系列：Intel、AMD 和多数 ARM SoC 上的 Mesa DRI 渲染节点，高通 Adreno（`kgsl`），ARM Mali，NVIDIA，PowerVR，以及这些驱动所需的 DMA heap。
 
@@ -101,11 +101,11 @@ keywords: droidspaces, settings, features, network, mode, hardware, access, gpu,
 `--memory=SIZE`、`--cpus=COUNT` 和 `--pids-limit=N`，键分别为 `memory_limit`、`cpu_quota`（配合 `cpu_period`）和 `pids_limit`。默认关闭；容器共享设备的全部资源。
 
 - **限制内存**：`--memory=512M` 或 `--memory=2G`。容器无法越过该上限使用设备的 swap，因此到达上限时，是容器自己的 OOM killer 终止容器内的某个进程，而不是让手机随着 zram 被填满而变慢。容器内的一切，包括 `free` 和 fastfetch，都会依据该上限报告用量，并且看不到 swap。
-- **允许 swap**：`--allow-swap`，键 `allow_swap`。让受内存限制的容器越过上限使用设备的 swap，就像设置上限之前那样，并让它看到设备的 swap。`droidspaces info` 和 `show --json` 会显示运行中的容器是否可以使用 swap。
+- **允许 swap**：`--allow-swap`，键 `allow_swap`。让受内存限制的容器越过上限使用设备的 swap，就像设置上限之前那样，并让它看到设备的 swap。`chdroid info` 和 `show --json` 会显示运行中的容器是否可以使用 swap。
 - **限制 CPU**：`--cpus=1.5` 给容器一个半核心的计算时间，分摊到所有核心上。
 - **限制进程数**：容器同时可以拥有的最大进程和线程数，最小为 16。一个 systemd 发行版需要几百个。
 
-每个限制都需要内核中对应的 cgroup 控制器：`CONFIG_MEMCG`、`CONFIG_CFS_BANDWIDTH` 和 `CONFIG_CGROUP_PIDS`。内核无法执行某项限制时，App 会把它置灰并指出缺少的选项；CLI 会在启动时跳过它并给出警告。原厂 Android 内核常常缺少 CPU 和进程这两项。`droidspaces info` 会打印当前生效的限制和当前用量。
+每个限制都需要内核中对应的 cgroup 控制器：`CONFIG_MEMCG`、`CONFIG_CFS_BANDWIDTH` 和 `CONFIG_CGROUP_PIDS`。内核无法执行某项限制时，App 会把它置灰并指出缺少的选项；CLI 会在启动时跳过它并给出警告。原厂 Android 内核常常缺少 CPU 和进程这两项。`chdroid info` 会打印当前生效的限制和当前用量。
 
 有一个缺口：直接通过 `sysinfo()` 向内核查询、而不读取 `/proc` 的程序，看到的仍是宿主机的内存和负载。OpenWrt 的 LuCI 就是这样。限制本身依然照常执行。
 
@@ -119,9 +119,9 @@ keywords: droidspaces, settings, features, network, mode, hardware, access, gpu,
 
 ### 允许沙箱
 
-`--allow-sandboxing`，键 `allow_sandboxing`。默认关闭。当容器内的程序要构建自己的沙箱时打开：rootless Docker 或 Podman、Flatpak、bwrap、Firefox、Chromium。它们都会创建用户命名空间，并在其中挂载自己的 `/proc`，而默认配置的容器会同时拦截这两步。打开后，用户命名空间被允许，容器会获得内核为此所需的干净 `/proc` 和只读 `/sys` 实例，位于 `/run/droidspaces/` 下。
+`--allow-sandboxing`，键 `allow_sandboxing`。默认关闭。当容器内的程序要构建自己的沙箱时打开：rootless Docker 或 Podman、Flatpak、bwrap、Firefox、Chromium。它们都会创建用户命名空间，并在其中挂载自己的 `/proc`，而默认配置的容器会同时拦截这两步。打开后，用户命名空间被允许，容器会获得内核为此所需的干净 `/proc` 和只读 `/sys` 实例，位于 `/run/chdroid/` 下。
 
-代价是容器内的 root 可以通过那份干净的 `/proc` 触达宿主机实时的 sysctl 树，因此这相当于对容器 root 用户的信任声明。需要 `CONFIG_USER_NS`，`droidspaces check` 会把缺失报告为 user namespace 支持缺失。容器内使用 Docker 时，请在 `/etc/docker/daemon.json` 中加入 `{"userns-remap": "default"}` 并重启它。
+代价是容器内的 root 可以通过那份干净的 `/proc` 触达宿主机实时的 sysctl 树，因此这相当于对容器 root 用户的信任声明。需要 `CONFIG_USER_NS`，`chdroid check` 会把缺失报告为 user namespace 支持缺失。容器内使用 Docker 时，请在 `/etc/docker/daemon.json` 中加入 `{"userns-remap": "default"}` 并重启它。
 
 ### 易失模式
 
@@ -163,13 +163,13 @@ keywords: droidspaces, settings, features, network, mode, hardware, access, gpu,
 
 ### Termux:X11 额外参数与 VirGL 额外参数
 
-`--tx11-flags="..."`，键 `tx11_extra_flags`；`--virgl-flags="..."`，键 `virgl_extra_flags`。传给 Droidspaces 启动的 Termux:X11 和 VirGL 服务的额外参数。只有在对应开关打开时，App 才会显示它们。
+`--tx11-flags="..."`，键 `tx11_extra_flags`；`--virgl-flags="..."`，键 `virgl_extra_flags`。传给 ChDroid 启动的 Termux:X11 和 VirGL 服务的额外参数。只有在对应开关打开时，App 才会显示它们。
 
 ## 存储
 
 安装容器时选定一次。
 
-**稀疏镜像**：rootfs 存放在一个 ext4 镜像文件里，由 Droidspaces 在启动时 loop 挂载。CLI 上对应 `--rootfs-img=PATH`，也可以接受块设备。无论宿主机使用什么文件系统，镜像的行为都一致，这在 Android 的 f2fs 上很重要；迁移容器时也只有一个文件需要复制。镜像的超级块表明需要时，会用 `e2fsck` 检查。你选择的大小是上限；文件随容器占用空间增长。App 之后可以 **调整稀疏镜像容量**，也可以用 **迁移至稀疏镜像** 把目录形式的容器转换过去。
+**稀疏镜像**：rootfs 存放在一个 ext4 镜像文件里，由 ChDroid 在启动时 loop 挂载。CLI 上对应 `--rootfs-img=PATH`，也可以接受块设备。无论宿主机使用什么文件系统，镜像的行为都一致，这在 Android 的 f2fs 上很重要；迁移容器时也只有一个文件需要复制。镜像的超级块表明需要时，会用 `e2fsck` 检查。你选择的大小是上限；文件随容器占用空间增长。App 之后可以 **调整稀疏镜像容量**，也可以用 **迁移至稀疏镜像** 把目录形式的容器转换过去。
 
 **目录**：rootfs 就是一个普通目录，CLI 上是 `--rootfs=PATH`。从宿主机查看更简单。在 Android 上，只有在无法使用镜像时才用它。
 

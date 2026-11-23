@@ -75,13 +75,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: compilers-${{ github.run_id }}
-          name: "Musl Toolchains to compile Droidspaces"
+          name: "Musl Toolchains to compile ChDroid"
           target_commitish: ${{ github.sha }}
           prerelease: true
           body: |
             ## Musl Cross-Compilation Toolchains
 
-            Pre-built static musl toolchains for Droidspaces CI.
+            Pre-built static musl toolchains for ChDroid CI.
 
             ### Included Toolchains
             | Architecture | Tarball |
@@ -93,6 +93,6 @@ jobs:
             | riscv64 | `riscv64-linux-musl-cross.tar.zst` |
 
             ---
-            **Automated build by Droidspaces CI**
+            **Automated build by ChDroid CI**
           files: |
             tarballs/*.tar.zst

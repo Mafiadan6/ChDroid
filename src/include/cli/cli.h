@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_CLI_CLI_H
-#define DS_CLI_CLI_H
+#ifndef CHDROID_CLI_CLI_H
+#define CHDROID_CLI_CLI_H
 
 /* check.c */
 int check_ns(int flag, const char *name);
@@ -23,7 +23,7 @@ int parse_and_validate_names(const char *optarg, char *out_buf,
 
 /* Every short flag. A letter missing here is rejected as an unknown option
  * even though long_options maps it, so keep the two in sync. */
-#define DS_OPTSTRING "r:i:n:h:d:fHXPISvVB:C:E:u:"
+#define CHDROID_OPTSTRING "r:i:n:h:d:fHXPISvVB:C:E:u:"
 extern const struct option long_options[];
 
 /* The CLI override pass. Idempotent over the same argv. */
@@ -36,4 +36,4 @@ void print_ds_banner(void);
 
 void print_usage(void);
 
-#endif /* DS_CLI_CLI_H */
+#endif /* CHDROID_CLI_CLI_H */

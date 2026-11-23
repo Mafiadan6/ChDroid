@@ -1,14 +1,14 @@
 {
   version,
   lib,
-  mkDroidspacesPackage,
+  mkChDroidPackage,
   binSource,
   ...
 }: {
   _module.args = {
-    mkDroidspacesPackage = pkgs: hostPkgs:
+    mkChDroidPackage = pkgs: hostPkgs:
       hostPkgs.stdenv.mkDerivation {
-        pname = "droidspaces";
+        pname = "chdroid";
         inherit version;
         src = binSource;
 
@@ -20,28 +20,28 @@
         makeFlags = ["native"];
 
         installPhase = ''
-          install -Dm755 output/droidspaces $out/bin/droidspaces
+          install -Dm755 output/chdroid $out/bin/chdroid
         '';
 
-        meta.mainProgram = "droidspaces";
+        meta.mainProgram = "chdroid";
       };
   };
 
   perSystem = {pkgs, ...}: {
-    packages.default = mkDroidspacesPackage pkgs pkgs.pkgsMusl;
+    packages.default = mkChDroidPackage pkgs pkgs.pkgsMusl;
 
     legacyPackages.muslBuilds = {
-      aarch64 = mkDroidspacesPackage pkgs pkgs.pkgsCross.aarch64-multiplatform-musl;
-      x86_64 = mkDroidspacesPackage pkgs pkgs.pkgsCross.musl64;
-      armhf = mkDroidspacesPackage pkgs pkgs.pkgsCross.muslpi;
-      x86 = mkDroidspacesPackage pkgs pkgs.pkgsCross.musl32;
-      riscv64 = mkDroidspacesPackage pkgs pkgs.pkgsCross.riscv64-musl;
+      aarch64 = mkChDroidPackage pkgs pkgs.pkgsCross.aarch64-multiplatform-musl;
+      x86_64 = mkChDroidPackage pkgs pkgs.pkgsCross.musl64;
+      armhf = mkChDroidPackage pkgs pkgs.pkgsCross.muslpi;
+      x86 = mkChDroidPackage pkgs pkgs.pkgsCross.musl32;
+      riscv64 = mkChDroidPackage pkgs pkgs.pkgsCross.riscv64-musl;
 
       # Experimental
-      ppc64 = lib.warn "ppc64 support is experimental" ((mkDroidspacesPackage pkgs pkgs.pkgsCross.ppc64-musl).overrideAttrs {
+      ppc64 = lib.warn "ppc64 support is experimental" ((mkChDroidPackage pkgs pkgs.pkgsCross.ppc64-musl).overrideAttrs {
         NIX_CFLAGS_COMPILE = "-Wno-overflow";
       });
-      ppc64le = lib.warn "ppc64le support is experimental" ((mkDroidspacesPackage pkgs pkgs.pkgsCross.musl-power).overrideAttrs {
+      ppc64le = lib.warn "ppc64le support is experimental" ((mkChDroidPackage pkgs pkgs.pkgsCross.musl-power).overrideAttrs {
         NIX_CFLAGS_COMPILE = "-Wno-overflow";
       });
     };

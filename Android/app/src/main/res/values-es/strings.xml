@@ -44,7 +44,7 @@
     <string name="language">Idioma</string>
     <string name="system_default">Predeterminado del sistema</string>
     <string name="about_section">Acerca de</string>
-    <string name="about_droidspaces">Acerca de ChDroid</string>
+    <string name="about_chdroid">Acerca de ChDroid</string>
     <string name="about_description">Gestor de contenedores Linux (estilo LXC) para Android</string>
     <string name="developers">Desarrolladores</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -122,7 +122,7 @@
     <string name="next_storage">Siguiente: Almacenamiento</string>
     <string name="installation_complete">Instalación completada</string>
     <string name="installation_failed">Instalación fallida</string>
-    <string name="installing_droidspaces">Instalando ChDroid</string>
+    <string name="installing_chdroid">Instalando ChDroid</string>
     <string name="backend_installed_success">El backend se ha instalado correctamente</string>
     <string name="binary_installation_failed">Fallo en la instalación de binarios</string>
     <string name="no_containers_running">No hay contenedores en ejecución</string>
@@ -199,7 +199,7 @@
     <string name="error_hostname_invalid">El hostname solo puede contener letras, números y guiones (-)</string>
     <string name="check_requirements">Verificar requisitos</string>
     <string name="requirements_check_title">Comprobación de requisitos</string>
-    <string name="requirements_for_droidspaces">Requisitos para ChDroid</string>
+    <string name="requirements_for_chdroid">Requisitos para ChDroid</string>
     <string name="requirements_check_completed_successfully">Requisitos comprobados con éxito</string>
     <string name="requirements_check_completed_with_errors">Comprobación de requisitos con errores</string>
     <string name="kernel_requirements_copied">Requisitos del kernel copiados al portapapeles</string>

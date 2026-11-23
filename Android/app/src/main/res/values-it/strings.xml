@@ -56,7 +56,7 @@
     <string name="symlink_integration">Integra ChDroid nel percorso di sistema</string>
     <string name="symlink_integration_description">Crea un symlink in /system/bin per accedere al comando chdroid nella shell root Android. ATTENZIONE: ABILITARE QUESTO CAUSA UN BOOTLOOP SE IL TUO SISTEMA DI MOUNT È OVERLAYFS meta modules. Usa questa opzione solo con un sistema di mount basato su Magic Mount o un sistema di montaggio nomount basato sul kernel (Riavvio richiesto)</string>
     <string name="about_section">Informazioni</string>
-    <string name="about_droidspaces">Informazioni su ChDroid</string>
+    <string name="about_chdroid">Informazioni su ChDroid</string>
     <string name="about_description">Gestore di contenitori LXC-Style per Android</string>
     <string name="developers">Sviluppatore/i</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -199,7 +199,7 @@
     <!-- Installation Screen -->
     <string name="installation_complete">Installazione completata</string>
     <string name="installation_failed">Installazione fallita</string>
-    <string name="installing_droidspaces">Installazione di ChDroid</string>
+    <string name="installing_chdroid">Installazione di ChDroid</string>
     <string name="backend_installed_success">Backend ChDroid installato con successo</string>
     <string name="binary_installation_failed">Installazione del binario fallita</string>
     <!-- Control Panel Screen -->
@@ -290,7 +290,7 @@
     <!-- Requirements -->
     <string name="check_requirements">Verifica requisiti</string>
     <string name="requirements_check_title">Verifica Requisiti</string>
-    <string name="requirements_for_droidspaces">Requisiti per ChDroid</string>
+    <string name="requirements_for_chdroid">Requisiti per ChDroid</string>
     <string name="requirements_check_completed_successfully">Verifica dei requisiti completata con successo</string>
     <string name="requirements_check_completed_with_errors">Verifica dei requisiti completata con errori</string>
     <string name="kernel_requirements_copied">Requisiti del kernel copiati negli appunti</string>
@@ -315,7 +315,7 @@
     <string name="starting_resizing">Avvio operazione di ridimensionamento...</string>
     <string name="help_card_title">Nuovo su ChDroid?</string>
     <string name="help_card_message">Tocca qui per imparare come configurare il tuo primo contenitore Linux!</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">Modalità Privilegiata</string>
     <string name="privileged_nomask_desc">Disabilita le maschere jail per consentire l\'accesso in scrittura a /proc e /sys. Nota: /sys rimane in sola lettura a meno che sia abilitato anche l\'Accesso Hardware.</string>
     <string name="privileged_nocaps_desc">Non eliminare alcuna capability Linux (piena potenza root).</string>

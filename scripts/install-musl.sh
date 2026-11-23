@@ -1,5 +1,5 @@
 #!/bin/bash
-# install-musl.sh - Cross-compilation toolchain installer for Droidspaces
+# install-musl.sh - Cross-compilation toolchain installer for ChDroid
 # Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
 
 set -e

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate contributors.json for the Droidspaces Android app.
+Generate contributors.json for the ChDroid Android app.
 Run before building the APK:
 
     GITHUB_TOKEN=ghp_xxx python3 scripts/generate_contributors.py
@@ -17,7 +17,7 @@ import urllib.parse
 import urllib.request
 from collections import defaultdict
 
-REPO   = "ravindu644/Droidspaces-OSS"
+REPO   = "ravindu644/ChDroid-OSS"
 OUTPUT = os.path.join(os.path.dirname(__file__),
                       "../Android/app/src/main/assets/contributors.json")
 TOKEN  = os.environ.get("GITHUB_TOKEN", "")

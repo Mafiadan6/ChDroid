@@ -1,0 +1,60 @@
+; Domain declaration for ChDroid container runtime
+(type chdroidd)
+(typeattributeset domain (chdroidd))
+(typepermissive chdroidd)
+
+; Exec type declaration - needed for domain transition bookkeeping
+(type chdroidd_exec)
+(typeattributeset exec_type (chdroidd_exec))
+(typeattributeset file_type (chdroidd_exec))
+(typeattributeset system_file_type (chdroidd_exec))
+
+; seclabel in the service definition handles the domain transition directly,
+; so no typetransition rule is needed here.
+
+; Allow init to follow the symlink at /vendor/bin/chdroid
+; which is labeled chdroidd_exec
+(allow init chdroidd_exec (lnk_file (read getattr)))
+
+; Allow init to execute the resolved binary at /data/local/ChDroid/bin/chdroid
+; which is labeled system_data_file
+(allow init system_data_file (file (read getattr open execute map)))
+
+; Allow the domain transition into chdroidd (required even with seclabel)
+(allow init chdroidd (process (transition)))
+
+; Allow domain transition across nosuid-mounted filesystems.
+; Fixes: init failing to execv /vendor/bin/chdroid because the symlink
+; resolves into /data which is mounted nosuid, blocking the transition
+(allow init chdroidd (process2 (nosuid_transition)))
+
+; Allow init to run chdroid_autoboot script
+(allow init chdroidd (process (noatsecure rlimitinh siginh)))
+(allow init chdroidd_exec (file (execute getattr open read)))
+
+; Allow kernel (kdevtmpfs) to create and manage loop device nodes.
+; Fixes: rootfs.img mounting failures - the kernel needs to create /dev/loop* block
+; devices dynamically before chdroidd can attach the rootfs image to them
+(allow kernel device (blk_file (create setattr getattr unlink)))
+(allow kernel chdroidd (fd (use)))
+
+; Allow kernel to create character devices in /dev
+(allow kernel device (chr_file (create setattr)))
+
+; Allow kernel to read and write container data files.
+; Fixes: rootfs.img open/read failures
+(allow kernel system_data_file (file (read write open getattr)))
+(allow kernel vold_data_file (file (read write open getattr)))
+
+; Allow servicemanager to inspect and call into chdroidd over binder.
+; Fixes: dumpsys failures in DNS resolution
+(allow servicemanager chdroidd (binder (call transfer)))
+(allow servicemanager chdroidd (dir (search)))
+(allow servicemanager chdroidd (file (read getattr open)))
+(allow servicemanager chdroidd (process (getattr)))
+
+; Allow system_server to call into chdroidd over binder and pass file descriptors.
+; Fixes: dumpsys failures in DNS resolution
+(allow system_server chdroidd (binder (call transfer)))
+(allow system_server chdroidd (fd (use)))
+(allow system_server chdroidd (fifo_file (write)))

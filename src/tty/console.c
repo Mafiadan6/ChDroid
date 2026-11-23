@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* The console pair on its way from container init to the monitor, or to a
  * foreground start. Both fds travel together so the holder keeps the slave
@@ -111,7 +111,7 @@ int console_monitor_loop(int console_sock, pid_t monitor_pid,
           if (n >= 2 && buf[0] == '\x1b' && buf[1] == '\x11') {
             static int exit_detected = 0;
             if (exit_detected == 0) {
-              /* Droidspaces Specific: Graceful background shutdown.
+              /* ChDroid Specific: Graceful background shutdown.
                * We fork a detached child to call stop_rootfs() silently.
                * This allows the current console_monitor_loop to keep running,
                * streaming the systemd/sysvinit shutdown logs to the user's

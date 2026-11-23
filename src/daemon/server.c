@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 daemon & client mode
+ * ChDroid v7 daemon & client mode
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
@@ -11,13 +11,13 @@
  * talks to it via libsu using a dumb client that only does basic socket
  * i/o, avoiding the seccomp traps entirely.
  *
- * we use an abstract socket (@droidspaces) so there's no filesystem mess
+ * we use an abstract socket (@chdroid) so there's no filesystem mess
  * to clean up when we crash or get killed.
  *
  * the wire protocol is just simple typed frames.
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <grp.h>
 #include <pwd.h>
@@ -32,7 +32,7 @@
 static FILE *g_daemon_log_fp = NULL;
 static char g_daemon_log_path[PATH_MAX] = "";
 
-/* Rotate droidspacesd.log mid-run when it exceeds the size limit.
+/* Rotate chdroidd.log mid-run when it exceeds the size limit.
  * Renames current log to .old, reopens fresh file, and redirects
  * stdout/stderr (background mode) or g_daemon_log_fp (foreground). */
 static void rotate_daemon_log_if_needed(void) {
@@ -97,7 +97,7 @@ static void handle_conn(int conn) {
    * line and enter's user included, so only the word itself can start a
    * daemon or client recursion. It is found the way the client found it,
    * with the option table, so a flag without a value (--stdin run daemon)
-   * cannot shift it. DS_NO_PROXY=1 is the primary guard (set before reexec);
+   * cannot shift it. CHDROID_NO_PROXY=1 is the primary guard (set before reexec);
    * this is defence-in-depth.
    */
   char **av = make_exec_argv(&req);
@@ -178,7 +178,7 @@ static void daemonize(int foreground) {
   }
 
   /* Scrub dynamic-linker and field-splitting env vars before serving requests
-   * and re-exec'ing droidspaces as root, so a value inherited from the launcher
+   * and re-exec'ing chdroid as root, so a value inherited from the launcher
    * cannot influence the privileged process (defense-in-depth; container init
    * additionally receives a clearenv() in ds_env_boot_setup). */
   unsetenv("LD_PRELOAD");
@@ -198,7 +198,7 @@ static void daemonize(int foreground) {
 
   {
     char log_path[PATH_MAX];
-    snprintf(log_path, sizeof(log_path), "%s/droidspacesd.log", get_logs_dir());
+    snprintf(log_path, sizeof(log_path), "%s/chdroidd.log", get_logs_dir());
     safe_strncpy(g_daemon_log_path, log_path, sizeof(g_daemon_log_path));
     rotate_log(log_path, 2 * 1024 * 1024);
 
@@ -231,20 +231,20 @@ static void daemonize(int foreground) {
 static void sigusr2_handler(int sig) { (void)sig; }
 
 /*
- * ds_selinux_transition - re-exec into the droidspacesd SELinux domain.
+ * ds_selinux_transition - re-exec into the chdroidd SELinux domain.
  *
  * When launched from Magisk/KernelSU/APatch post-fs-data, the process runs
  * under the root manager's domain (e.g. u:r:magisk:s0) rather than our own.
  * This function writes our target context to /proc/self/attr/exec and re-execs
  * the same binary with the same argv, causing the kernel to transition into
- * u:r:droidspacesd:s0 at the exec boundary - exactly what runcon/setexeccon
+ * u:r:chdroidd:s0 at the exec boundary - exactly what runcon/setexeccon
  * does internally, with zero libselinux dependency.
  *
  * On the second entry (after re-exec) the current context already matches,
  * so the strcmp short-circuits and we continue normally. The function is also
  * a no-op on non-Android platforms and when SELinux is not mounted/enforcing.
  */
-#define DS_SELINUX_CTX "u:r:droidspacesd:s0"
+#define CHDROID_SELINUX_CTX "u:r:chdroidd:s0"
 
 static void ds_selinux_transition(char **argv) {
   if (!is_android())
@@ -266,7 +266,7 @@ static void ds_selinux_transition(char **argv) {
     *nl = '\0';
 
   /* Already in the right domain - clear any stale exec context and return */
-  if (strcmp(cur, DS_SELINUX_CTX) == 0) {
+  if (strcmp(cur, CHDROID_SELINUX_CTX) == 0) {
     fd = open("/proc/self/attr/exec", O_WRONLY);
     if (fd >= 0) {
       if (write(fd, "\0", 1) < 0) {
@@ -282,7 +282,7 @@ static void ds_selinux_transition(char **argv) {
   if (fd < 0)
     return; /* No permission or SELinux disabled - continue in current domain */
 
-  n = write(fd, DS_SELINUX_CTX, strlen(DS_SELINUX_CTX));
+  n = write(fd, CHDROID_SELINUX_CTX, strlen(CHDROID_SELINUX_CTX));
   close(fd);
   if (n < 0)
     return;
@@ -306,12 +306,12 @@ static void ds_selinux_transition(char **argv) {
    *
    * If setcon() also fails (e.g. the policy doesn't allow dyntransition),
    * we clear the stale exec context and continue in the current domain.
-   * Since droidspacesd is typepermissive, this is still functional.
+   * Since chdroidd is typepermissive, this is still functional.
    */
   {
     int sfd = open("/proc/self/attr/current", O_WRONLY);
     if (sfd >= 0) {
-      if (write(sfd, DS_SELINUX_CTX, strlen(DS_SELINUX_CTX)) < 0) {
+      if (write(sfd, CHDROID_SELINUX_CTX, strlen(CHDROID_SELINUX_CTX)) < 0) {
         /* ignore */
       }
       close(sfd);
@@ -327,18 +327,18 @@ static void ds_selinux_transition(char **argv) {
   }
 }
 
-#undef DS_SELINUX_CTX
+#undef CHDROID_SELINUX_CTX
 
 int ds_daemon_run(int foreground, char **argv) {
   ensure_workspace();
 
   if (ds_daemon_probe()) {
-    ds_error("Daemon is already running (@%s)", DS_SOCK_NAME);
+    ds_error("Daemon is already running (@%s)", CHDROID_SOCK_NAME);
     return 1;
   }
 
   /* Transition into our SELinux domain before daemonizing, so the daemon
-   * and all its children run under u:r:droidspacesd:s0 regardless of how
+   * and all its children run under u:r:chdroidd:s0 regardless of how
    * we were launched (init, Magisk, KernelSU, APatch, shell, etc.) */
   ds_selinux_transition(argv);
 
@@ -370,7 +370,7 @@ int ds_daemon_run(int foreground, char **argv) {
    * replace a stale pidfile. */
   {
     char pid_path[PATH_MAX];
-    snprintf(pid_path, sizeof(pid_path), "%s/droidspacesd.pid",
+    snprintf(pid_path, sizeof(pid_path), "%s/chdroidd.pid",
              get_workspace_dir());
     int pfd = open(pid_path,
                    O_WRONLY | O_CREAT | O_TRUNC | O_NOFOLLOW | O_CLOEXEC, 0644);
@@ -392,17 +392,17 @@ int ds_daemon_run(int foreground, char **argv) {
   }
 
   struct sockaddr_un addr;
-  socklen_t alen = ds_abstract_addr(&addr, DS_SOCK_NAME);
+  socklen_t alen = ds_abstract_addr(&addr, CHDROID_SOCK_NAME);
   if (bind(srv, (struct sockaddr *)&addr, alen) < 0) {
-    ds_error("daemon: bind(@%s): %s", DS_SOCK_NAME, strerror(errno));
+    ds_error("daemon: bind(@%s): %s", CHDROID_SOCK_NAME, strerror(errno));
     if (errno == EADDRINUSE) {
-      ds_log("Is another droidspaces daemon stuck? Check 'ps' to see.");
+      ds_log("Is another chdroid daemon stuck? Check 'ps' to see.");
     }
     close(srv);
     return 1;
   }
 
-  if (listen(srv, DS_BACKLOG) < 0) {
+  if (listen(srv, CHDROID_BACKLOG) < 0) {
     ds_error("daemon: listen: %s", strerror(errno));
     close(srv);
     return 1;
@@ -411,9 +411,9 @@ int ds_daemon_run(int foreground, char **argv) {
   signal(SIGCHLD, SIG_IGN); /* auto-reap children */
   signal(SIGPIPE, SIG_IGN); /* ignore broken pipes */
 
-  fprintf(stdout, "\nDroidspaces Daemon - v" DS_VERSION "\n\n");
+  fprintf(stdout, "\nChDroid Daemon - v" CHDROID_VERSION "\n\n");
   fflush(stdout);
-  ds_log("Listening on @" DS_SOCK_NAME " (PID %d)", getpid());
+  ds_log("Listening on @" CHDROID_SOCK_NAME " (PID %d)", getpid());
 
   for (;;) {
     /* Rotate log if it exceeds 4MB */
@@ -429,12 +429,12 @@ int ds_daemon_run(int foreground, char **argv) {
 
     /*
      * Authenticate the peer via the shared authorizer: only root or members of
-     * the 'droidspaces' group, and only from our own PID namespace (the
+     * the 'chdroid' group, and only from our own PID namespace (the
      * abstract socket has no filesystem permissions).  Same model as Docker's
      * unix group.
      */
-    if (!ds_peer_authorized(conn, "droidspaces")) {
-      const char *msg = "permission denied: only root or 'droidspaces' group "
+    if (!ds_peer_authorized(conn, "chdroid")) {
+      const char *msg = "permission denied: only root or 'chdroid' group "
                         "members from the host PID ns may connect.\n";
       ds_send_frame(conn, MSG_ERR, msg, (uint32_t)strlen(msg));
       send_exit(conn, 1);
@@ -469,7 +469,7 @@ int ds_daemon_run(int foreground, char **argv) {
  */
 int ds_daemon_probe(void) {
   struct sockaddr_un addr;
-  socklen_t alen = ds_abstract_addr(&addr, DS_SOCK_NAME);
+  socklen_t alen = ds_abstract_addr(&addr, CHDROID_SOCK_NAME);
   int s = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0)
     return 0;

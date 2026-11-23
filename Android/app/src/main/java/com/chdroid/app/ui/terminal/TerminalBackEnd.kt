@@ -1,0 +1,148 @@
+package com.chdroid.app.ui.terminal
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.res.Configuration
+import android.util.Log
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.inputmethod.InputMethodManager
+import com.chdroid.app.ui.terminal.virtualkeys.SpecialButton
+import com.chdroid.app.util.PreferencesManager
+import com.termux.terminal.TerminalEmulator
+import com.termux.terminal.TerminalSession
+import com.termux.terminal.TerminalSessionClient
+import com.termux.view.TerminalView
+import com.termux.view.TerminalViewClient
+
+class TerminalBackEnd(
+    val terminal: TerminalView,
+    val activity: android.app.Activity,
+    initialFontSizePx: Int,
+    private val onSessionFinished: () -> Unit = {},
+    private val onFontSizeChanged: (Int) -> Unit = {},
+) : TerminalViewClient, TerminalSessionClient {
+
+    private var currentFontSizePx: Float = initialFontSizePx.toFloat()
+
+    override fun onTextChanged(changedSession: TerminalSession) { terminal.onScreenUpdated() }
+    override fun onTitleChanged(changedSession: TerminalSession) {}
+
+    override fun onSessionFinished(finishedSession: TerminalSession) {
+        // `exit` (or any shell EOF) ends the session. Close the tab instead of
+        // leaving a dead prompt behind - that is what "close the terminal" means.
+        terminal.onScreenUpdated()
+        onSessionFinished.invoke()
+    }
+
+    override fun onCopyTextToClipboard(session: TerminalSession, text: String) {
+        val cb = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        cb.setPrimaryClip(ClipData.newPlainText(activity.getString(com.chdroid.app.R.string.terminal_label), text))
+    }
+
+    override fun onPasteTextFromClipboard(session: TerminalSession) {
+        val cb = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val text = cb.primaryClip?.getItemAt(0)?.text?.toString() ?: return
+        if (text.isNotBlank() && terminal.mEmulator != null) terminal.mEmulator.paste(text)
+    }
+
+    override fun onBell(session: TerminalSession) {}
+    override fun onColorsChanged(session: TerminalSession) {}
+    override fun onTerminalCursorStateChange(state: Boolean) {}
+    override fun getTerminalCursorStyle(): Int = TerminalEmulator.DEFAULT_TERMINAL_CURSOR_STYLE
+
+    override fun logError(tag: String?, message: String?) { Log.e(tag.orEmpty(), message.orEmpty()) }
+    override fun logWarn(tag: String?, message: String?) { Log.w(tag.orEmpty(), message.orEmpty()) }
+    override fun logInfo(tag: String?, message: String?) { Log.i(tag.orEmpty(), message.orEmpty()) }
+    override fun logDebug(tag: String?, message: String?) { Log.d(tag.orEmpty(), message.orEmpty()) }
+    override fun logVerbose(tag: String?, message: String?) { Log.v(tag.orEmpty(), message.orEmpty()) }
+    override fun logStackTraceWithMessage(tag: String?, message: String?, e: Exception?) {
+        Log.e(tag.orEmpty(), message.orEmpty()); e?.printStackTrace()
+    }
+    override fun logStackTrace(tag: String?, e: Exception?) { e?.printStackTrace() }
+
+    override fun onScale(scale: Float): Float {
+        // `scale` is the accumulated pinch factor in TerminalView (per-frame deltas
+        // multiplied together). Returning 1.0f resets that accumulator so the next
+        // step needs a fresh pinch - prevents runaway zooming.
+        when {
+            scale > 1.08f -> {
+                currentFontSizePx = (currentFontSizePx + 1f).coerceAtMost(72f)
+                terminal.setTextSize(currentFontSizePx.toInt())
+                onFontSizeChanged(currentFontSizePx.toInt())
+                return 1.0f
+            }
+            scale < 0.92f -> {
+                currentFontSizePx = (currentFontSizePx - 1f).coerceAtLeast(6f)
+                terminal.setTextSize(currentFontSizePx.toInt())
+                onFontSizeChanged(currentFontSizePx.toInt())
+                return 1.0f
+            }
+        }
+        return scale
+    }
+
+    override fun onSingleTapUp(e: MotionEvent) {
+        // Read live: the setting is changed on another screen while this object
+        // is alive, so a constructor copy would go stale.
+        if (!PreferencesManager.getInstance(activity).terminalTapKeyboard) return
+        val keyboard = terminal.resources.configuration.keyboard
+        if (keyboard == Configuration.KEYBOARD_NOKEYS ||
+            keyboard == Configuration.KEYBOARD_12KEY) {
+            showSoftInput()
+        }
+    }
+
+    fun activate12KeyInputMethodIfNeeded() {
+        // A 12-key hardware keypad still depends on the IME for text composition.
+        if (terminal.resources.configuration.keyboard == Configuration.KEYBOARD_12KEY) {
+            showSoftInput()
+        }
+    }
+
+    override fun shouldBackButtonBeMappedToEscape(): Boolean = false
+    override fun shouldEnforceCharBasedInput(): Boolean = true
+    override fun shouldUseCtrlSpaceWorkaround(): Boolean = true
+    override fun isTerminalViewSelected(): Boolean = true
+    override fun copyModeChanged(copyMode: Boolean) {}
+
+    override fun onKeyDown(keyCode: Int, e: KeyEvent, session: TerminalSession): Boolean {
+        // Dead sessions are closed by onSessionFinished, which fires the moment
+        // the shell exits. Enter no longer has to close them - keeping this path
+        // would double-close the tab (and pop the nav stack twice) after exit.
+        return false
+    }
+
+    override fun onKeyUp(keyCode: Int, e: KeyEvent): Boolean = false
+    override fun onLongPress(event: MotionEvent): Boolean = false
+
+    override fun readControlKey(): Boolean =
+        TerminalScreenState.virtualKeysView.get()?.readSpecialButton(SpecialButton.CTRL, true) == true
+
+    override fun readAltKey(): Boolean =
+        TerminalScreenState.virtualKeysView.get()?.readSpecialButton(SpecialButton.ALT, true) == true
+
+    override fun readShiftKey(): Boolean =
+        TerminalScreenState.virtualKeysView.get()?.readSpecialButton(SpecialButton.SHIFT, true) == true
+
+    override fun readFnKey(): Boolean =
+        TerminalScreenState.virtualKeysView.get()?.readSpecialButton(SpecialButton.FN, true) == true
+
+    override fun onCodePoint(codePoint: Int, ctrlDown: Boolean, session: TerminalSession): Boolean = false
+
+    override fun onEmulatorSet() {
+        if (terminal.mEmulator != null) terminal.setTerminalCursorBlinkerState(true, true)
+    }
+
+    internal fun showSoftInput() {
+        terminal.requestFocus()
+        val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(terminal, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    internal fun hideSoftInput() {
+        val imm = activity.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(terminal.windowToken, 0)
+    }
+}

@@ -2,8 +2,8 @@
 title: Networking from zero
 section: Guides
 order: 7
-desc: Every networking concept behind Droidspaces gateway mode, from the start: IP addresses, LAN, WAN, DHCP, DNS, NAT, bridges, veth pairs, network namespaces and OpenWrt.
-keywords: droidspaces, networking, gateway, openwrt, nat, dhcp, dns, lan, wan, veth, bridge, namespace, linux, android
+desc: Every networking concept behind ChDroid gateway mode, from the start: IP addresses, LAN, WAN, DHCP, DNS, NAT, bridges, veth pairs, network namespaces and OpenWrt.
+keywords: chdroid, networking, gateway, openwrt, nat, dhcp, dns, lan, wan, veth, bridge, namespace, linux, android
 -->
 
 # Networking from zero
@@ -127,7 +127,7 @@ The new device now has everything it needs:
 
 At home, the **router runs the DHCP server** and hands out IPs to every device that connects.
 
-In **Droidspaces NAT mode**, Droidspaces runs its own small DHCP server that gives the container its IP (in the `172.28.x.x` range). The IP is deterministic: it is derived from the container's name, saved to its config file and offered again on every boot, so a container keeps the same address across restarts.
+In **ChDroid NAT mode**, ChDroid runs its own small DHCP server that gives the container its IP (in the `172.28.x.x` range). The IP is deterministic: it is derived from the container's name, saved to its config file and offered again on every boot, so a container keeps the same address across restarts.
 
 
 ## Part 4: DNS (how names become addresses)
@@ -154,7 +154,7 @@ Your Browser:   "Thanks." [now connects to 142.250.80.46]
 
 Every device is configured with a DNS server address. On most home networks the router *is* the DNS server: it forwards your queries to your ISP's DNS or to a public one like `1.1.1.1`.
 
-In **Droidspaces NAT mode**, Droidspaces writes a `resolv.conf` inside the container that points at a DNS server (`1.1.1.1` and `8.8.8.8` by default, or whatever you pass with `--dns`). The same DNS servers are also advertised in the DHCP lease.
+In **ChDroid NAT mode**, ChDroid writes a `resolv.conf` inside the container that points at a DNS server (`1.1.1.1` and `8.8.8.8` by default, or whatever you pass with `--dns`). The same DNS servers are also advertised in the DHCP lease.
 
 
 ## Part 5: NAT (the magic your router does)
@@ -191,22 +191,22 @@ To the internet, all your home devices look like *one device*: the router.
                               [Laptop: 192.168.1.5]
 ```
 
-### NAT in Droidspaces
+### NAT in ChDroid
 
-In NAT mode, Droidspaces does for containers what your home router does for your devices:
+In NAT mode, ChDroid does for containers what your home router does for your devices:
 
 - The container gets a private IP (`172.28.x.x`).
-- Droidspaces installs iptables `MASQUERADE` rules (`MASQUERADE` is the Linux name for the NAT target), plus FORWARD-accept and MSS-clamp rules so traffic actually flows.
+- ChDroid installs iptables `MASQUERADE` rules (`MASQUERADE` is the Linux name for the NAT target), plus FORWARD-accept and MSS-clamp rules so traffic actually flows.
 - The container can reach the internet, and the internet sees Android's IP, not the container's.
-- Droidspaces runs an embedded DHCP server for the container and configures its DNS.
-- The container also gets IPv6. Droidspaces announces a private prefix (`fd64:7370::/64`) with router advertisements, so the container configures its own address, and translates it on the way out with the IPv6 version of `MASQUERADE`. This needs the IPv6 NAT table in the kernel; without it the container is IPv4 only.
+- ChDroid runs an embedded DHCP server for the container and configures its DNS.
+- The container also gets IPv6. ChDroid announces a private prefix (`fd64:7370::/64`) with router advertisements, so the container configures its own address, and translates it on the way out with the IPv6 version of `MASQUERADE`. This needs the IPv6 NAT table in the kernel; without it the container is IPv4 only.
 - On Android, a background route monitor finds the active internet uplink by reading the kernel's routing rules, and re-points container traffic as soon as the active network changes (for example, a handoff from Wi-Fi to mobile data). On Linux the same monitor keeps IP forwarding on and puts back NAT rules that a firewall reload removed.
 
 ### How NAT mode picks the WAN uplink (automatic)
 
 A NAT container has to know *which* of Android's real interfaces has internet right now, so it can MASQUERADE through it. Phones make this hard. The active network moves between Wi-Fi, mobile data, USB-ethernet and VPN tunnels, and the interface names are unstable: the mobile-data interface can be `rmnet0` one minute and `rmnet8` after a reconnect.
 
-By default Droidspaces handles this and **there is nothing to configure**:
+By default ChDroid handles this and **there is nothing to configure**:
 
 - It reads the kernel's *own* answer to "which interface is the internet right now". On Android that is the policy-routing rule `netd` installs for the active default network. On desktop Linux it is the default route in the main routing table.
 - A background **route monitor** subscribes to kernel routing events (rule, route, link and address changes). When the host switches networks, say you walk out of Wi-Fi range and it falls back to mobile data, or you plug a USB-ethernet dongle into a laptop, the monitor re-points the container's traffic straight away. No restart, no config.
@@ -222,13 +222,13 @@ Passing `--upstream` turns automatic detection off completely. The interfaces yo
 
 ```bash
 # Force the container's internet out through Wi-Fi, always
-droidspaces --name=box --rootfs=/data/box --net=nat --upstream=wlan0 start
+chdroid --name=box --rootfs=/data/box --net=nat --upstream=wlan0 start
 ```
 
 You can list **several interfaces, comma-separated**, and use **wildcards** (`*`, `?`):
 
 ```bash
-droidspaces --name=box --rootfs=/data/box --net=nat --upstream=wlan0,rmnet* start
+chdroid --name=box --rootfs=/data/box --net=nat --upstream=wlan0,rmnet* start
 ```
 
 The list is **in priority order**. The route monitor walks it from the top and uses the first interface that is up and has internet. So `wlan0,rmnet*` means "prefer Wi-Fi, and if Wi-Fi is down, fall back to mobile data". When Wi-Fi comes back, it switches back. Failover stays strictly *inside your list*: it never falls back to an interface you did not list. That is the difference from auto mode. You decide the WAN, not the host.
@@ -244,7 +244,7 @@ A pinned interface that is missing when the container starts, or that disappears
 Connect a VPN on the phone: ProtonVPN, WireGuard, OpenVPN, or any app that creates a `tun0` interface. Then pin the container to it:
 
 ```bash
-droidspaces --name=box --rootfs=/data/box --net=nat --upstream=tun0 start
+chdroid --name=box --rootfs=/data/box --net=nat --upstream=tun0 start
 ```
 
 All of the container's traffic now leaves through the VPN tunnel, and *only* the tunnel. If the VPN drops, `tun0` disappears and the container loses internet instead of leaking over your real connection. That is a killswitch with no extra setup.
@@ -254,7 +254,7 @@ All of the container's traffic now leaves through the VPN tunnel, and *only* the
 Android can keep the cellular radio up while you are on Wi-Fi. Enable **"Mobile data always active"** in Developer Options, connect to Wi-Fi, then turn mobile data on. Both networks are now live. Pin the container to the mobile-data interface:
 
 ```bash
-droidspaces --name=box --rootfs=/data/box --net=nat --upstream=rmnet* start
+chdroid --name=box --rootfs=/data/box --net=nat --upstream=rmnet* start
 ```
 
 The container's traffic goes out over mobile data while the rest of the phone stays on Wi-Fi. Useful for testing from a different IP or network, moving a container's bandwidth onto cellular, or running something on a separate connection from everything else on the phone.
@@ -296,7 +296,7 @@ Think of it as a virtual ethernet cable with two plugs. One plug goes inside a c
 
 ### How NAT mode uses bridges and veths
 
-In Droidspaces NAT mode:
+In ChDroid NAT mode:
 
 ```
 [Container netns]
@@ -315,7 +315,7 @@ In Droidspaces NAT mode:
 
 The bridge `ds-br0` holds the gateway IP `172.28.0.1`, which every NAT container uses as its default gateway. Its MAC is pinned from its name on every start, because an unpinned bridge borrows the lowest MAC among its ports and would change it whenever that container stops, leaving every other container with a stale ARP entry for the gateway. The veth pair is named after the container's init process ID: the host side is `ds-v<PID>`, and the container side starts as `ds-p<PID>` and is renamed to `eth0` inside the container.
 
-Droidspaces runs a small per-container DHCP server on the container's host-side veth. The whole `172.28.0.0/16` subnet belongs to Droidspaces. The `172.28.0.x` row is reserved for the gateway itself, so containers always get an address from `172.28.1.x` to `172.28.254.x`, and all of it is NATed out through Android's real interface.
+ChDroid runs a small per-container DHCP server on the container's host-side veth. The whole `172.28.0.0/16` subnet belongs to ChDroid. The `172.28.0.x` row is reserved for the gateway itself, so containers always get an address from `172.28.1.x` to `172.28.254.x`, and all of it is NATed out through Android's real interface.
 
 
 ## Part 7: Network namespaces (how containers are isolated)
@@ -331,12 +331,12 @@ A **network namespace** is an isolated copy of the whole networking stack. It ha
 - iptables rules
 - Everything else networking-related
 
-When Droidspaces starts a container, it creates a new network namespace for it, and the container lives there. It cannot see the host's network interfaces at all, only what Droidspaces puts into its namespace.
+When ChDroid starts a container, it creates a new network namespace for it, and the container lives there. It cannot see the host's network interfaces at all, only what ChDroid puts into its namespace.
 
 The veth pair is the link between the host's namespace and the container's:
 
 - One end sits in the container's network namespace (as `eth0`).
-- The other end stays in the host's network namespace, where Droidspaces connects it to a bridge.
+- The other end stays in the host's network namespace, where ChDroid connects it to a bridge.
 
 
 ## Part 8: OpenWrt and what it is
@@ -353,20 +353,20 @@ A running OpenWrt provides:
 - **LuCI**, a web UI for configuration
 - Everything else a real router does, in software
 
-So you can run OpenWrt in a Droidspaces container and it behaves like a real router: it manages networks, hands out DHCP leases, serves DNS, applies firewall rules, routes VPN traffic, and so on.
+So you can run OpenWrt in a ChDroid container and it behaves like a real router: it manages networks, hands out DHCP leases, serves DNS, applies firewall rules, routes VPN traffic, and so on.
 
 
 ## Part 9: Gateway mode, putting it all together
 
 ### Why does gateway mode exist?
 
-In NAT mode, Droidspaces is the router and does everything. For most uses that is fine.
+In NAT mode, ChDroid is the router and does everything. For most uses that is fine.
 
 But you may want **OpenWrt to be the router** for other containers: OpenWrt's firewall rules, OpenWrt's DHCP, OpenWrt's VPN routing, with other containers (a Kali Linux container, say) sitting on OpenWrt's LAN and getting everything from it.
 
-If Droidspaces also sets up NAT, DHCP and DNS for those containers, it *conflicts* with OpenWrt: two DHCP servers competing to hand out the address, two firewalls applying contradictory rules.
+If ChDroid also sets up NAT, DHCP and DNS for those containers, it *conflicts* with OpenWrt: two DHCP servers competing to hand out the address, two firewalls applying contradictory rules.
 
-**Gateway mode avoids this.** Droidspaces steps back. It does only the L2 plumbing (the virtual cables and the switch) and leaves all the policy to OpenWrt: DHCP, DNS, firewall and routing.
+**Gateway mode avoids this.** ChDroid steps back. It does only the L2 plumbing (the virtual cables and the switch) and leaves all the policy to OpenWrt: DHCP, DNS, firewall and routing.
 
 ### The architecture
 
@@ -376,7 +376,7 @@ Android host kernel
 +-- wlan0 (Android's real Wi-Fi - WAN)
 |
 +-- [OpenWrt container - net=nat mode]
-|    netns: owns eth0 (WAN, gets NAT from Droidspaces)
+|    netns: owns eth0 (WAN, gets NAT from ChDroid)
 |           eth1 (LAN side - plugged into ds-lan bridge by gateway mode)
 |    Runs: dnsmasq, netifd, firewall, VPN
 |
@@ -397,21 +397,21 @@ Android host kernel
 **Step 1: start OpenWrt first (in NAT mode)**
 
 ```bash
-droidspaces --name=openwrt --rootfs=/data/openwrt --net=nat start
+chdroid --name=openwrt --rootfs=/data/openwrt --net=nat start
 ```
 
 OpenWrt boots with:
 
-- `eth0` on the WAN side (Droidspaces handles NAT for it)
+- `eth0` on the WAN side (ChDroid handles NAT for it)
 - No LAN side yet. OpenWrt is waiting for one.
 
 **Step 2: start Kali (in gateway mode)**
 
 ```bash
-droidspaces --name=kali --rootfs=/data/kali --net=gateway --gateway=openwrt start
+chdroid --name=kali --rootfs=/data/kali --net=gateway --gateway=openwrt start
 ```
 
-Droidspaces does the following, all plumbing and no policy:
+ChDroid does the following, all plumbing and no policy:
 
 1. Finds OpenWrt's running process ID, so it can reach its network namespace.
 2. Creates a bridge called `ds-lan` on the host, with no IP address on it.
@@ -444,7 +444,7 @@ Kali eth0 --> ds-lan bridge --> OpenWrt eth1
                                       |
                               OpenWrt routes to eth0 (WAN)
                                       |
-                              Droidspaces NAT (eth0 -> wlan0)
+                              ChDroid NAT (eth0 -> wlan0)
                                       |
                                   Android wlan0 --> Internet
 ```
@@ -463,14 +463,14 @@ It is the same as plugging a cable into a router's LAN port after the router is 
 
 ### Why resolv.conf is left alone in gateway mode
 
-In NAT mode, Droidspaces writes `/etc/resolv.conf` inside the container, pointing at `1.1.1.1` or `8.8.8.8`.
+In NAT mode, ChDroid writes `/etc/resolv.conf` inside the container, pointing at `1.1.1.1` or `8.8.8.8`.
 
-In gateway mode, Droidspaces does NOT write a static `resolv.conf` unless you pass `--dns`. OpenWrt's `dnsmasq` gives the container its DNS server in the DHCP lease. If Droidspaces also wrote a `resolv.conf`, it would conflict with that: the container would use the wrong DNS and skip OpenWrt's DNS filtering and caching entirely.
+In gateway mode, ChDroid does NOT write a static `resolv.conf` unless you pass `--dns`. OpenWrt's `dnsmasq` gives the container its DNS server in the DHCP lease. If ChDroid also wrote a `resolv.conf`, it would conflict with that: the container would use the wrong DNS and skip OpenWrt's DNS filtering and caching entirely.
 
 How this is wired depends on the client's init system:
 
 - **systemd containers:** `/etc/resolv.conf` is a symlink to `/run/systemd/resolve/resolv.conf`, which systemd-resolved fills from the DHCP lease.
-- **non-systemd containers:** Droidspaces leaves `/etc/resolv.conf` alone, so the container's own DHCP client (udhcpc/dhclient) writes the nameserver from the gateway's lease. Earlier builds wrote a hardcoded `1.1.1.1`/`8.8.8.8` here, which silently bypassed the gateway's DNS. That is fixed. If a minimal rootfs ships no DHCP resolv.conf hook, pass `--dns` to set one explicitly.
+- **non-systemd containers:** ChDroid leaves `/etc/resolv.conf` alone, so the container's own DHCP client (udhcpc/dhclient) writes the nameserver from the gateway's lease. Earlier builds wrote a hardcoded `1.1.1.1`/`8.8.8.8` here, which silently bypassed the gateway's DNS. That is fixed. If a minimal rootfs ships no DHCP resolv.conf hook, pass `--dns` to set one explicitly.
 
 ### Why bridge-nf-call-iptables is set to 0
 
@@ -499,7 +499,7 @@ Cleanup in gateway mode is deliberately minimal, in line with "plumbing only":
 
 - **A client stops:** only that client's own veth is removed (a gateway client's host-side veth is `ds-c` plus a hash of the container's name, distinct from NAT's `ds-v<PID>`, so a leftover from a crashed instance is found and replaced by the next start). The bridge and the gateway's `eth1` stay up, so other clients on the segment are not affected.
 - **The last client stops while the gateway is still running:** the bridge is **kept**, not reaped. Tearing it down would flap the carrier on the gateway's live `eth1` and sometimes make netifd report "device initialization failed". An idle bridge with no IP does no harm, and the next client reuses it.
-- **The gateway stops:** Droidspaces deletes the gateway-side veth itself. It cannot be left to the kernel: the host end of a veth holds a reference to its peer's namespace, so the dead gateway's namespace would never be freed. Once no clients remain *and* the gateway is gone, the idle bridge is reaped.
+- **The gateway stops:** ChDroid deletes the gateway-side veth itself. It cannot be left to the kernel: the host end of a veth holds a reference to its peer's namespace, so the dead gateway's namespace would never be freed. Once no clients remain *and* the gateway is gone, the idle bridge is reaped.
 
 
 ## Part 10: Gateway mode flags and configuration
@@ -512,7 +512,7 @@ With `--net=gateway`, **only one flag is required**:
 --gateway=<container_name>
 ```
 
-Without it, Droidspaces prints an error and refuses to start. Everything else has a working default:
+Without it, ChDroid prints an error and refuses to start. Everything else has a working default:
 
 | Flag | Default | What it controls |
 |---|---|---|
@@ -524,13 +524,13 @@ Without it, Droidspaces prints an error and refuses to start. Everything else ha
 The shortest valid command is:
 
 ```bash
-droidspaces --name=client --net=gateway --gateway=openwrt start
+chdroid --name=client --net=gateway --gateway=openwrt start
 ```
 
 It is the same as spelling out every default:
 
 ```bash
-droidspaces --name=client --net=gateway --gateway=openwrt \
+chdroid --name=client --net=gateway --gateway=openwrt \
   --gateway-net=lan \
   --gateway-iface=eth1 \
   start
@@ -542,7 +542,7 @@ This flag controls two things, both derived from the same name.
 
 **1. It names the host bridge.**
 
-The bridge Droidspaces creates on the host is named `ds-{NAME}`:
+The bridge ChDroid creates on the host is named `ds-{NAME}`:
 
 ```
 --gateway-net=lan   ->  host bridge: ds-lan
@@ -558,12 +558,12 @@ This is what `--gateway-net` is for: running several isolated LAN segments throu
 
 ```bash
 # These two land on ds-lan - they see each other, OpenWrt routes them as one LAN
-droidspaces --name=kali   --net=gateway --gateway=openwrt --gateway-net=lan start
-droidspaces --name=ubuntu --net=gateway --gateway=openwrt --gateway-net=lan start
+chdroid --name=kali   --net=gateway --gateway=openwrt --gateway-net=lan start
+chdroid --name=ubuntu --net=gateway --gateway=openwrt --gateway-net=lan start
 
 # This one lands on ds-vpn - a completely separate bridge
 # OpenWrt can apply different firewall/VPN rules to this segment
-droidspaces --name=torbox --net=gateway --gateway=openwrt --gateway-net=vpn start
+chdroid --name=torbox --net=gateway --gateway=openwrt --gateway-net=vpn start
 ```
 
 Inside OpenWrt, the `lan` clients arrive on `eth1` and the `vpn` clients on `eth2`. Each segment gets its own veth, because `openwrt:lan` and `openwrt:vpn` hash differently.
@@ -572,7 +572,7 @@ Inside OpenWrt, the `lan` clients arrive on `eth1` and the `vpn` clients on `eth
 
 This sets **the name of the LAN interface inside the gateway container's network namespace**.
 
-When Droidspaces creates the gateway veth for a segment, the gateway's end is born directly inside OpenWrt's netns under the name you pass here (default `eth1`); only the host end carries a hash name (`ds-gXXXXXXXX`).
+When ChDroid creates the gateway veth for a segment, the gateway's end is born directly inside OpenWrt's netns under the name you pass here (default `eth1`); only the host end carries a hash name (`ds-gXXXXXXXX`).
 
 **Why it matters:** OpenWrt's configuration is keyed on interface names. If your OpenWrt `/etc/config/network` says:
 
@@ -595,13 +595,13 @@ The problem only appears when you use **two different `--gateway-net` segments w
 
 ```bash
 # segment 1 - creates eth1 inside OpenWrt
-droidspaces --name=kali   --net=gateway --gateway=openwrt --gateway-net=lan --gateway-iface=eth1 start
+chdroid --name=kali   --net=gateway --gateway=openwrt --gateway-net=lan --gateway-iface=eth1 start
 
 # segment 2 - WRONG: also tries to create eth1 inside OpenWrt
-droidspaces --name=torbox --net=gateway --gateway=openwrt --gateway-net=vpn --gateway-iface=eth1 start
+chdroid --name=torbox --net=gateway --gateway=openwrt --gateway-net=vpn --gateway-iface=eth1 start
 ```
 
-When the second command runs, Droidspaces sees that OpenWrt already has an `eth1`, belonging to the first segment, and refuses to wire the `vpn` segment. The log says `'openwrt' already has an interface named eth1 that is not this segment's cable`. The `vpn` segment gets no gateway-side interface: no DHCP, no routing, and its containers are effectively isolated.
+When the second command runs, ChDroid sees that OpenWrt already has an `eth1`, belonging to the first segment, and refuses to wire the `vpn` segment. The log says `'openwrt' already has an interface named eth1 that is not this segment's cable`. The `vpn` segment gets no gateway-side interface: no DHCP, no routing, and its containers are effectively isolated.
 
 **The rule:** every `--gateway-net` segment needs its own `--gateway-iface` name.
 
@@ -613,12 +613,12 @@ When the second command runs, Droidspaces sees that OpenWrt already has an `eth1
 
 ### IPv6 through the gateway
 
-NAT mode gives a container IPv6 as well as IPv4: Droidspaces announces a private IPv6 prefix (`fd64:7370::/64`) with router advertisements and translates it on the way out, the same idea as IPv4 NAT. The gateway container's WAN is a NAT interface, so OpenWrt can have IPv6 too. It does not pick it up by itself, and there are two things to understand before the steps:
+NAT mode gives a container IPv6 as well as IPv4: ChDroid announces a private IPv6 prefix (`fd64:7370::/64`) with router advertisements and translates it on the way out, the same idea as IPv4 NAT. The gateway container's WAN is a NAT interface, so OpenWrt can have IPv6 too. It does not pick it up by itself, and there are two things to understand before the steps:
 
-- **Droidspaces hands OpenWrt one address, not a block of addresses to pass on.** OpenWrt therefore numbers its own LAN from a private prefix of its own (a ULA) and does IPv6 NAT a second time on its WAN. Client traffic is translated twice, once by OpenWrt and once by Droidspaces. It works, it is just not how IPv6 is used on a real ISP line.
-- **The host kernel does the work for both.** A container shares the host's kernel, so both Droidspaces and OpenWrt need `CONFIG_IP6_NF_NAT` and `CONFIG_IP6_NF_TARGET_MASQUERADE` in it. `droidspaces check` reports this as "IPv6 NAT support".
+- **ChDroid hands OpenWrt one address, not a block of addresses to pass on.** OpenWrt therefore numbers its own LAN from a private prefix of its own (a ULA) and does IPv6 NAT a second time on its WAN. Client traffic is translated twice, once by OpenWrt and once by ChDroid. It works, it is just not how IPv6 is used on a real ISP line.
+- **The host kernel does the work for both.** A container shares the host's kernel, so both ChDroid and OpenWrt need `CONFIG_IP6_NF_NAT` and `CONFIG_IP6_NF_TARGET_MASQUERADE` in it. `chdroid check` reports this as "IPv6 NAT support".
 
-The OpenWrt image from the Droidspaces rootfs repository already ships steps 1, 2 and 4. With it you only need step 3 for each LAN. On any other OpenWrt image, do all of them, inside the gateway container.
+The OpenWrt image from the ChDroid rootfs repository already ships steps 1, 2 and 4. With it you only need step 3 for each LAN. On any other OpenWrt image, do all of them, inside the gateway container.
 
 **1. Add an IPv6 WAN on `eth0`**
 
@@ -697,16 +697,16 @@ A client container on the LAN then gets an address from OpenWrt's private prefix
 Three things to expect:
 
 - **Clients still prefer IPv4** for sites that have both. Operating systems rank a private IPv6 source below IPv4, so IPv6 is used for destinations that are IPv6 only.
-- **Mirror your isolation rules.** If your firewall blocks clients from reaching the Droidspaces NAT network `172.28.0.0/16`, add the same rule for `fd64:7370::/48` with `option family 'ipv6'`, or clients can reach other NAT containers over IPv6.
+- **Mirror your isolation rules.** If your firewall blocks clients from reaching the ChDroid NAT network `172.28.0.0/16`, add the same rule for `fd64:7370::/48` with `option family 'ipv6'`, or clients can reach other NAT containers over IPv6.
 - **`--disable-ipv6` on the gateway container turns all of this off**, and on a client container it turns IPv6 off for that client only.
 
 ### Validation rules and kernel requirements
 
-Droidspaces checks a few rules at startup and refuses to boot if any is broken:
+ChDroid checks a few rules at startup and refuses to boot if any is broken:
 
 - A container cannot be its own gateway (`--gateway` must name a different container).
 - Interface and bridge names must be shorter than 16 characters (the Linux `IFNAMSIZ` limit) and may contain only letters, digits, `_` and `-`.
-- The kernel must support network namespaces (`CONFIG_NET_NS`), veth pairs (`CONFIG_VETH`) and bridges (`CONFIG_BRIDGE`). Droidspaces probes for all three before starting and exits with a fatal error if any is missing.
+- The kernel must support network namespaces (`CONFIG_NET_NS`), veth pairs (`CONFIG_VETH`) and bridges (`CONFIG_BRIDGE`). ChDroid probes for all three before starting and exits with a fatal error if any is missing.
 
 Two more things to know:
 
@@ -718,10 +718,10 @@ Two more things to know:
 
 | Feature | NAT Mode | Host Mode | None Mode | Gateway Mode | Macvlan Mode |
 |---|---|---|---|---|---|
-| Who assigns IPs? | Droidspaces DHCP | Android (shared) | Nobody (loopback only) | OpenWrt dnsmasq | The LAN's DHCP server (your router) |
-| Who does NAT? | Droidspaces iptables | Android | N/A | OpenWrt (via Droidspaces NAT on OpenWrt's WAN) | Your router, as for any LAN device |
-| Who manages firewall? | Droidspaces | Android | N/A | OpenWrt | The container itself |
-| Who manages DNS? | Droidspaces | Android | Nobody | OpenWrt dnsmasq | The LAN's DHCP server |
+| Who assigns IPs? | ChDroid DHCP | Android (shared) | Nobody (loopback only) | OpenWrt dnsmasq | The LAN's DHCP server (your router) |
+| Who does NAT? | ChDroid iptables | Android | N/A | OpenWrt (via ChDroid NAT on OpenWrt's WAN) | Your router, as for any LAN device |
+| Who manages firewall? | ChDroid | Android | N/A | OpenWrt | The container itself |
+| Who manages DNS? | ChDroid | Android | Nobody | OpenWrt dnsmasq | The LAN's DHCP server |
 | Container isolated from host network? | Yes | No | Yes | Yes | Yes (the phone cannot even reach it over that NIC) |
 | Internet access? | Yes | Yes | No | Yes (via gateway container) | Yes (via the LAN's router) |
 | IPv6? | Yes, with NAT66 (needs kernel support) | Whatever Android has | Loopback only | Yes, once OpenWrt is set up for it (see Part 10) | Whatever the LAN advertises |
@@ -774,6 +774,6 @@ OpenWrt's `tc` (traffic control) and `sqm-scripts` can shape bandwidth per conta
 | **NAT66** | NAT for IPv6: private IPv6 addresses rewritten to the uplink's address on the way out |
 | **ULA** | A private IPv6 prefix starting with `fd`, the IPv6 counterpart of `192.168.x.x` |
 | **Router advertisement** | The message an IPv6 router sends so devices can configure their own address and gateway, IPv6's replacement for most of DHCP |
-| **Delegated LAN** | The bridge network Droidspaces creates in gateway mode - policy owned by the gateway container, not Droidspaces |
+| **Delegated LAN** | The bridge network ChDroid creates in gateway mode - policy owned by the gateway container, not ChDroid |
 | **Segment** | One isolated LAN identified by `--gateway-net` - each segment gets its own bridge and its own interface inside the gateway container |
 | **Lazy attachment** | The gateway's LAN-side veth is only created when the first client container starts, not when the gateway container starts |

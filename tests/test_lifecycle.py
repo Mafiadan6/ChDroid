@@ -9,14 +9,14 @@ import time
 import unittest
 from pathlib import Path
 
-from dstest import DS, WORKSPACE, Container, DsTest, ds, ds_json, foreign_running, require_daemon, strip_ansi
+from dstest import DS, WORKSPACE, Container, ChDroidTest, ds, ds_json, foreign_running, require_daemon, strip_ansi
 
 
 def setUpModule():
     require_daemon()
 
 
-class Lifecycle(DsTest):
+class Lifecycle(ChDroidTest):
     def test_start_stop_pid_show(self):
         c = self.container("life")
         pid = c.pid()
@@ -109,11 +109,11 @@ class Lifecycle(DsTest):
 
     def test_config_is_visible_inside(self):
         c = self.container("inside")
-        self.assertIn(f"name={c.name}", c.sh("cat /run/droidspaces/container.config"))
-        self.assertIn(ds("version", check=True).stdout.strip().lstrip("v"), c.sh("cat /run/droidspaces/version"))
+        self.assertIn(f"name={c.name}", c.sh("cat /run/chdroid/container.config"))
+        self.assertIn(ds("version", check=True).stdout.strip().lstrip("v"), c.sh("cat /run/chdroid/version"))
 
 
-class Run(DsTest):
+class Run(ChDroidTest):
     @classmethod
     def setUpClass(cls):
         cls.c = cls.shared_container("run")
@@ -138,7 +138,7 @@ class Run(DsTest):
         self.assertEqual(self.c.sh("echo $HOME; pwd", user="tester"), "/home/tester\n/home/tester")
 
     def test_environment_defaults(self):
-        self.assertEqual(self.c.sh("echo $container; echo $HOME; pwd"), "droidspaces\n/root\n/")
+        self.assertEqual(self.c.sh("echo $container; echo $HOME; pwd"), "chdroid\n/root\n/")
 
     def test_caller_umask_reaches_the_command(self):
         # The daemon used to hand every command its own umask 0, so everything
@@ -166,10 +166,10 @@ class Run(DsTest):
         self.assertNotEqual(p.returncode, 0)
 
 
-class StartUmask(DsTest):
+class StartUmask(ChDroidTest):
     def test_strict_caller_umask_does_not_reach_the_container(self):
         # A container's setup and init get 022 whoever starts it: a 077 shell
-        # would leave / and /run/droidspaces 0700 for non-root users.
+        # would leave / and /run/chdroid 0700 for non-root users.
         c = self.container("umask", start=False)  # not the cached base rootfs
         old = os.umask(0o077)
         try:
@@ -177,10 +177,10 @@ class StartUmask(DsTest):
         finally:
             os.umask(old)
         self.assertEqual(c.sh("grep Umask /proc/1/status | cut -f2"), "0022")
-        self.assertEqual(c.sh("stat -c %a /run/droidspaces"), "755")
+        self.assertEqual(c.sh("stat -c %a /run/chdroid"), "755")
 
 
-class Enter(DsTest):
+class Enter(ChDroidTest):
     @classmethod
     def setUpClass(cls):
         cls.c = cls.shared_container("enter")
@@ -201,7 +201,7 @@ class Enter(DsTest):
         self.assertIn("Interactive terminal is required", p.stdout + p.stderr)
 
 
-class Foreground(DsTest):
+class Foreground(ChDroidTest):
     def test_foreground_start_stays_attached_until_stop(self):
         c = Container("fg").prepare()
         self.addCleanup(c.cleanup)
@@ -234,7 +234,7 @@ class Foreground(DsTest):
         self.assertIsNone(c.pid())
 
 
-class Init(DsTest):
+class Init(ChDroidTest):
     def test_custom_init(self):
         c = self.container("init", start=False)
         (c.rootfs / "test-init").write_text("#!/bin/sh\necho INIT-MARK > /run/init-mark\nexec /sbin/init\n")
@@ -255,7 +255,7 @@ class Init(DsTest):
         self.assertIsNone(c.pid())
 
 
-class Environment(DsTest):
+class Environment(ChDroidTest):
     def test_env_file(self):
         c = self.container("env", start=False)
         env = c.work / "env"
@@ -265,12 +265,12 @@ class Environment(DsTest):
         for line in ("FOO=bar", "QUOTED=q v", "EXP=1", "SINGLE=s"):
             self.assertIn(line, init_env.splitlines())
         # login shells get the same variables through /etc/profile.d
-        self.assertEqual(c.sh(". /etc/profile.d/droidspaces_env.sh; echo $FOO-$QUOTED"), "bar-q v")
+        self.assertEqual(c.sh(". /etc/profile.d/chdroid_env.sh; echo $FOO-$QUOTED"), "bar-q v")
         self.assertEqual(c.sh("echo $FOO-$QUOTED", env_file=env), "bar-q v")
         self.assertEqual(c.saved_config()["env_file"], str(env))
 
 
-class Binds(DsTest):
+class Binds(ChDroidTest):
     def test_bind_mounts(self):
         c = self.container("bind", start=False)
         (c.work / "share").mkdir()
@@ -292,7 +292,7 @@ class Binds(DsTest):
         self.assertIsNotNone(c.pid())
 
 
-class Volatile(DsTest):
+class Volatile(ChDroidTest):
     def test_volatile_discards_changes_and_is_saved(self):
         c = self.container("volatile", "-V")
         c.run("touch", "/mark-one")
@@ -312,7 +312,7 @@ class Volatile(DsTest):
         self.assertTrue((c.rootfs / "mark").exists())
 
 
-class Image(DsTest):
+class Image(ChDroidTest):
     def test_rootfs_image(self):
         if shutil.which("mkfs.ext4") is None:
             self.skipTest("mkfs.ext4 not installed")
@@ -322,18 +322,18 @@ class Image(DsTest):
         subprocess.run(["mkfs.ext4", "-q", "-F", "-d", str(c.rootfs), str(img)], check=True)
         c.start("-i", str(img), rootfs=False)
         mounts = Path("/proc/self/mountinfo").read_text()
-        self.assertIn(f" /mnt/Droidspaces/{c.name} ", mounts)
+        self.assertIn(f" /mnt/ChDroid/{c.name} ", mounts)
         self.assertTrue(c.sh("cat /etc/passwd"))
         self.assertEqual(c.saved_config()["rootfs_path"], str(img))
         c.stop()
-        self.assertNotIn(f" /mnt/Droidspaces/{c.name} ", Path("/proc/self/mountinfo").read_text())
+        self.assertNotIn(f" /mnt/ChDroid/{c.name} ", Path("/proc/self/mountinfo").read_text())
 
 
-class Records(DsTest):
+class Records(ChDroidTest):
     def test_scan_keeps_a_running_container(self):
         c = self.container("scan")
         p = ds("scan", check=True)
-        self.assertIn("Scanning system for untracked Droidspaces containers", p.stdout)
+        self.assertIn("Scanning system for untracked ChDroid containers", p.stdout)
         self.assertIsNotNone(c.pid())
         self.assertIn(c.name, [e["name"] for e in ds_json("show")["running"]])
 

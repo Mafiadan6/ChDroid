@@ -27,7 +27,7 @@
     <string name="clear_logs">清除日志</string>
     <string name="restart_service">重启服务</string>
     <string name="about_section">关于</string>
-    <string name="about_droidspaces">关于 ChDroid</string>
+    <string name="about_chdroid">关于 ChDroid</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
     <string name="telegram_channel">Telegram 频道</string>
     <string name="github">GitHub</string>
@@ -153,7 +153,7 @@
     <string name="migrate_dialog_title">迁移至稀疏镜像</string>
     <string name="sparse_images_description">稀疏镜像会创建一个专用的 ext4 文件系统镜像文件，并将其作为 loop 设备挂载，从而提供更好的隔离性和兼容性。</string>
     <string name="open_terminal">打开终端</string>
-    <string name="requirements_for_droidspaces">ChDroid 运行要求</string>
+    <string name="requirements_for_chdroid">ChDroid 运行要求</string>
     <string name="resize_sparse_image">调整稀疏镜像容量</string>
     <string name="select_user_to_enter">选择以该用户身份进入容器：</string>
     <string name="sparse_images_recommended">建议在加密存储、F2FS /data 分区或其他可能与直接目录挂载存在兼容性问题的文件系统上运行容器时，使用稀疏镜像。</string>
@@ -172,7 +172,7 @@
     <string name="size_gb">容量（GB）</string>
     <string name="options_label">选项：%1$s</string>
     <string name="requirements_check_completed_with_errors">运行要求检查已完成，存在错误</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="logs_title">日志：%1$s</string>
     <string name="systemd">Systemd</string>
     <string name="image_size">镜像大小</string>
@@ -209,7 +209,7 @@
     <string name="container_setup">容器设置</string>
     <string name="no_local_users_found">未找到本地用户</string>
     <string name="container_path_placeholder">例如：/mnt/sdcard</string>
-    <string name="installing_droidspaces">正在安装 ChDroid</string>
+    <string name="installing_chdroid">正在安装 ChDroid</string>
     <string name="backend_not_available">后端不可用</string>
     <string name="no_enabled_services">没有已启用的服务</string>
     <string name="copy_login">复制登录命令</string>
@@ -393,7 +393,7 @@
     <string name="repo_status_downloading">下载中</string>
     <string name="repo_status_failed">失败</string>
     <string name="notification_action_exit">退出</string>
-    <string name="repo_banner_url" translatable="false">https://github.com/Droidspaces/Droidspaces-rootfs-builder</string>
+    <string name="repo_banner_url" translatable="false">https://github.com/Mafiadan6/ChDroid-rootfs</string>
     <string name="repo_custom_remove">移除</string>
     <string name="repo_custom_url_invalid">URL 必须以 https:// 开头</string>
     <string name="repo_banner_text">在“ChDroid developers”下的根文件系统压缩包是开源且透明的，你可以通过点击这个卡片来手动下载它们或者检查我们的更改。</string>

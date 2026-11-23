@@ -5,7 +5,7 @@
 
 set -e
 
-BINARY_NAME="droidspaces"
+BINARY_NAME="chdroid"
 OUT_DIR="output"
 PKG_RELEASE="1"
 
@@ -54,16 +54,16 @@ package_one() {
     installed_size=$(du -sk "$pkg_root/usr" | awk '{print $1}')
 
     cat > "$pkg_root/DEBIAN/control" <<EOF_CONTROL
-Package: droidspaces
+Package: chdroid
 Version: $pkg_version
 Section: utils
 Priority: optional
 Architecture: $deb_arch
-Maintainer: Droidspaces contributors <droidcasts@protonmail.com>
+Maintainer: ChDroid contributors <droidcasts@protonmail.com>
 Installed-Size: $installed_size
-Homepage: https://github.com/ravindu644/Droidspaces-OSS
+Homepage: https://github.com/Mafiadan6/ChDroid
 Description: Lightweight Linux container runtime for Android and Linux
- Droidspaces is a static, namespace-based container runtime with support for
+ ChDroid is a static, namespace-based container runtime with support for
  full init systems such as systemd, OpenRC, runit, s6, and SysV init.
 EOF_CONTROL
 
@@ -81,9 +81,9 @@ if ! command -v dpkg-deb >/dev/null 2>&1; then
     exit 1
 fi
 
-VERSION=$(grep "DS_VERSION" "src/include/droidspaces.h" | awk '{print $3}' | tr -d '"')
+VERSION=$(grep "CHDROID_VERSION" "src/include/chdroid.h" | awk '{print $3}' | tr -d '"')
 if [ -z "$VERSION" ]; then
-    echo "[-] Error: Could not determine Droidspaces version."
+    echo "[-] Error: Could not determine ChDroid version."
     exit 1
 fi
 

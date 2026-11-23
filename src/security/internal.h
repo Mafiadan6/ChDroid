@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_SECURITY_INTERNAL_H
-#define DS_SECURITY_INTERNAL_H
+#ifndef CHDROID_SECURITY_INTERNAL_H
+#define CHDROID_SECURITY_INTERNAL_H
 
 /* AUDIT_ARCH_RISCV64 was added to linux/audit.h in 4.15.  Older kernel
  * headers don't have it; fall back to the canonical value
@@ -15,4 +15,4 @@
 #define AUDIT_ARCH_RISCV64 0xC00000F3u
 #endif
 
-#endif /* DS_SECURITY_INTERNAL_H */
+#endif /* CHDROID_SECURITY_INTERNAL_H */

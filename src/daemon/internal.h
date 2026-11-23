@@ -1,18 +1,18 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_DAEMON_INTERNAL_H
-#define DS_DAEMON_INTERNAL_H
+#ifndef CHDROID_DAEMON_INTERNAL_H
+#define CHDROID_DAEMON_INTERNAL_H
 
-#define DS_SOCK_NAME "droidspaces"
-#define DS_BACKLOG SOMAXCONN
-#define DS_MAX_ARGC 64
-#define DS_MAX_ARG 8192
-#define DS_IOBUF 8192
+#define CHDROID_SOCK_NAME "chdroid"
+#define CHDROID_BACKLOG SOMAXCONN
+#define CHDROID_MAX_ARGC 64
+#define CHDROID_MAX_ARG 8192
+#define CHDROID_IOBUF 8192
 /* Client input queued toward the child: the pty master in PTY mode, the
  * command's stdin pipe in pipe mode. */
 #define PTY_WBUF_MAX                                                           \
@@ -39,7 +39,7 @@
 typedef struct {
   uint32_t flags;
   int argc;
-  char *argv[DS_MAX_ARGC + 1];
+  char *argv[CHDROID_MAX_ARGC + 1];
   uint16_t rows, cols;
 } ds_req_t;
 
@@ -75,4 +75,4 @@ void reexec(char **argv);
 char **make_exec_argv(ds_req_t *r);
 void handle_session(int conn, ds_req_t *r);
 
-#endif /* DS_DAEMON_INTERNAL_H */
+#endif /* CHDROID_DAEMON_INTERNAL_H */

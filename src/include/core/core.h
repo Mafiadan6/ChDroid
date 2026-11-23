@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_CORE_CORE_H
-#define DS_CORE_CORE_H
+#ifndef CHDROID_CORE_CORE_H
+#define CHDROID_CORE_CORE_H
 
 /* exec.c */
 int run_command_quiet(char *const argv[]);
@@ -16,7 +16,7 @@ void ds_oom_unprotect(void);
 int ds_thread_create(pthread_t *tid, void *(*fn)(void *), void *arg);
 
 /* fdpass.c */
-#define DS_MAX_PASSED_FDS 8
+#define CHDROID_MAX_PASSED_FDS 8
 int ds_send_fds(int sock, const void *data, size_t len, const int *fds,
                 int count);
 ssize_t ds_recv_fds(int sock, void *data, size_t len, int *fds, int max,
@@ -111,4 +111,4 @@ void ds_free_split_flags(char **argv, int argc);
 long long ds_parse_size(const char *str);
 void ds_format_size(long long bytes, char *buf, size_t sz);
 
-#endif /* DS_CORE_CORE_H */
+#endif /* CHDROID_CORE_CORE_H */

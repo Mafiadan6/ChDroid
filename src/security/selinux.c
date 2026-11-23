@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <sys/xattr.h>
 
 int get_selinux_context(const char *path, char *buf, size_t size) {
@@ -24,12 +24,12 @@ int get_selinux_context(const char *path, char *buf, size_t size) {
   return 0;
 }
 
-/* Transition self into u:r:droidspacesd:s0.
+/* Transition self into u:r:chdroidd:s0.
  * Best-effort: if the write fails (policy not loaded, permissive host),
  * the caller inherits whatever domain the root process already holds.
- * No MLS suffix -- droidspacesd is declared permissive in sepolicy.rule. */
+ * No MLS suffix -- chdroidd is declared permissive in sepolicy.rule. */
 void ds_selinux_enter_domain(void) {
-  const char *ctx = "u:r:droidspacesd:s0";
+  const char *ctx = "u:r:chdroidd:s0";
   int fd = open("/proc/self/attr/current", O_WRONLY | O_CLOEXEC);
   if (fd < 0)
     return;

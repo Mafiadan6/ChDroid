@@ -2,13 +2,13 @@
 title: 内核配置
 section: Guides
 order: 6
-desc: 如何构建支持 Droidspaces 的 Android 内核：非 GKI 和 GKI 内核所需的配置选项与补丁，以及如何检查结果。
-keywords: kernel, configuration, droidspaces, android, compile, gki, nongki, patches, compatibility, kabi
+desc: 如何构建支持 ChDroid 的 Android 内核：非 GKI 和 GKI 内核所需的配置选项与补丁，以及如何检查结果。
+keywords: kernel, configuration, chdroid, android, compile, gki, nongki, patches, compatibility, kabi
 -->
 
 # 内核配置
 
-Droidspaces 需要一些多数 Android 原厂内核没有启用的内核特性：PID 和 IPC 命名空间、一些网络组件以及 devtmpfs。本页列出了构建具备这些特性的内核所需的选项和补丁。支持的最旧内核是 3.10。
+ChDroid 需要一些多数 Android 原厂内核没有启用的内核特性：PID 和 IPC 命名空间、一些网络组件以及 devtmpfs。本页列出了构建具备这些特性的内核所需的选项和补丁。支持的最旧内核是 3.10。
 
 如果你从未编译过 Android 内核，请先从 [Android 内核教程](https://github.com/ravindu644/Android-Kernel-Tutorials)开始，并先查看[社区支持的设备](./community-supported-devices.md)页面：可能已经有人为你的手机构建好了内核。
 
@@ -23,7 +23,7 @@ Droidspaces 需要一些多数 Android 原厂内核没有启用的内核特性�
 把这些加入你设备的 defconfig，或保留为 fragment 并在构建时合并：
 
 ```makefile
-# Kernel configurations for full DroidSpaces support
+# Kernel configurations for full ChDroid support
 # Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
 
 # IPC mechanisms
@@ -76,7 +76,7 @@ CONFIG_FW_LOADER=y
 CONFIG_FW_LOADER_USER_HELPER=y
 CONFIG_FW_LOADER_COMPRESS=y
 
-# Droidspaces Network Isolation Support - NAT/none modes
+# ChDroid Network Isolation Support - NAT/none modes
 CONFIG_NET_NS=y
 CONFIG_VETH=y
 CONFIG_BRIDGE=y
@@ -169,11 +169,11 @@ patch -p1 < /path/to/patchfile.patch
 
 ### 第 4 步：构建、刷入、检查
 
-按你设备的常规方式构建并刷入，然后打开 Droidspaces 应用，依次进入 **设置**、**要求**、**检查要求**。"必须"和"推荐"下的所有项都应该通过。
+按你设备的常规方式构建并刷入，然后打开 ChDroid 应用，依次进入 **设置**、**要求**、**检查要求**。"必须"和"推荐"下的所有项都应该通过。
 
 ## GKI 内核（5.4 及更新）
 
-Google 的 Generic Kernel Image 保持固定的内核 ABI，以便针对原厂内核构建的厂商模块继续加载。Droidspaces 需要的若干选项 `CONFIG_SYSVIPC`、`CONFIG_IPC_NS` 和 `CONFIG_POSIX_MQUEUE` 会向核心结构体添加字段并移动 ABI。直接开启它们，厂商模块会拒绝加载，手机就会无限重启。下面的补丁把这些字段移入 ABI 已经预留的填充区，因此可以在不改变任何偏移的情况下开启这些选项。
+Google 的 Generic Kernel Image 保持固定的内核 ABI，以便针对原厂内核构建的厂商模块继续加载。ChDroid 需要的若干选项 `CONFIG_SYSVIPC`、`CONFIG_IPC_NS` 和 `CONFIG_POSIX_MQUEUE` 会向核心结构体添加字段并移动 ABI。直接开启它们，厂商模块会拒绝加载，手机就会无限重启。下面的补丁把这些字段移入 ABI 已经预留的填充区，因此可以在不改变任何偏移的情况下开启这些选项。
 
 ### 第 1 步：kABI 补丁
 
@@ -198,7 +198,7 @@ patch -p1 < /path/to/patchfile.patch
 > 配合第 1 步的补丁，这些选项是 ABI 安全的。不要开启这之外的任何选项。末尾的两个资源限制选项是有意注释掉的；在改动它们之前，请先阅读 [GKI 上的 CPU 和进程限制](#cpu-and-process-limits-on-gki)。
 
 ```makefile
-# Kernel configurations for full DroidSpaces support for GKI
+# Kernel configurations for full ChDroid support for GKI
 # Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
 
 # IPC
@@ -258,7 +258,7 @@ CONFIG_TMPFS_XATTR=y
 
 ### 第 3 步：构建、刷入、检查
 
-用 Bazel、AOSP 构建脚本或纯 `make` 构建（取决于你的源码树），然后刷入结果。由于 ABI 没有移动，原厂厂商模块仍能正常工作。然后打开 Droidspaces 应用，依次进入 **设置**、**要求**、**检查要求**。
+用 Bazel、AOSP 构建脚本或纯 `make` 构建（取决于你的源码树），然后刷入结果。由于 ABI 没有移动，原厂厂商模块仍能正常工作。然后打开 ChDroid 应用，依次进入 **设置**、**要求**、**检查要求**。
 
 <a id="cpu-and-process-limits-on-gki"></a>
 
@@ -272,7 +272,7 @@ CONFIG_TMPFS_XATTR=y
 
 ## 检查会看什么
 
-`droidspaces check` 和 App 的"要求"页面探测的是正在运行的内核，而不是它的配置。每项探测需要什么，以及缺少它时会失去什么：
+`chdroid check` 和 App 的"要求"页面探测的是正在运行的内核，而不是它的配置。每项探测需要什么，以及缺少它时会失去什么：
 
 | 探测项 | 选项 | 缺少时 |
 |-------|--------|------------|
@@ -281,7 +281,7 @@ CONFIG_TMPFS_XATTR=y
 | Seccomp | `CONFIG_SECCOMP`、`CONFIG_SECCOMP_FILTER` | 容器无法启动。 |
 | devtmpfs | `CONFIG_DEVTMPFS` | 硬件访问不可用。 |
 | Cgroup 命名空间、cgroup v2 | `CONFIG_CGROUPS`、cgroup v2 | systemd 容器行为异常。 |
-| 新挂载 API | 内核 5.2，`fsopen()` 及相关系统调用 | systemd 259 及更新版本会把服务凭据放在普通目录中，`ProtectProc=` 不起作用。在这类容器中，Droidspaces 会对这些调用返回 EPERM，让 systemd 走这些回退路径而不是失败，并为每个单元和登录 shell 设置 `LIBMOUNT_FORCE_MOUNT2=always`，让 `mount` 继续使用传统调用。经过环境重置运行的 `mount`（例如 `sudo`）需要把该变量传递下去。更旧的 systemd 不受影响。 |
+| 新挂载 API | 内核 5.2，`fsopen()` 及相关系统调用 | systemd 259 及更新版本会把服务凭据放在普通目录中，`ProtectProc=` 不起作用。在这类容器中，ChDroid 会对这些调用返回 EPERM，让 systemd 走这些回退路径而不是失败，并为每个单元和登录 shell 设置 `LIBMOUNT_FORCE_MOUNT2=always`，让 `mount` 继续使用传统调用。经过环境重置运行的 `mount`（例如 `sudo`）需要把该变量传递下去。更旧的 systemd 不受影响。 |
 | Loop 设备、ext4 | `CONFIG_BLK_DEV_LOOP`、`CONFIG_EXT4_FS` | 稀疏镜像容器无法挂载。 |
 | PTY、devpts、epoll、signalfd | Android 上始终存在 | 交互式会话失败。 |
 | 网络命名空间、veth、网桥 | `CONFIG_NET_NS`、`CONFIG_VETH`、`CONFIG_BRIDGE` | 只有主机模式可用。仅缺少网桥时，NAT 会使用直连 veth。 |
@@ -305,7 +305,7 @@ CONFIG_TMPFS_XATTR=y
 
 ## 到哪里提问
 
-内核问题可以在 [Telegram 频道](https://t.me/Droidspaces)得到解答。内核自身的选项参考是[内核文档](https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html)。
+内核问题可以在 [Telegram 频道](https://t.me/chdroid)得到解答。内核自身的选项参考是[内核文档](https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html)。
 
 ---
 

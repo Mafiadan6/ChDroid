@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <libgen.h>
 
 #include "internal.h"
@@ -233,7 +233,7 @@ int ds_config_load_file(FILE *f, struct ds_config *cfg) {
         ds_warn(
             "Unknown network mode '%s' in config file. Defaulting to 'nat'.",
             val);
-        mode = DS_NET_NAT;
+        mode = CHDROID_NET_NAT;
       }
       cfg->net_mode = (enum ds_net_mode)mode;
     } else if (strcmp(key, "gateway_container") == 0) {
@@ -270,10 +270,10 @@ int ds_config_load_file(FILE *f, struct ds_config *cfg) {
        * disables automatic uplink detection. */
       if (ds_parse_iface_csv(val, cfg->upstream_ifaces,
                              &cfg->upstream_iface_count,
-                             DS_MAX_UPSTREAM_IFACES) > 0)
+                             CHDROID_MAX_UPSTREAM_IFACES) > 0)
         ds_warn("config: too many upstream_interfaces (max %d) - extra entries "
                 "ignored",
-                DS_MAX_UPSTREAM_IFACES);
+                CHDROID_MAX_UPSTREAM_IFACES);
     } else if (strcmp(key, "port_forwards") == 0) {
       /* HOST[:CONTAINER][/proto] list, each side PORT or START-END */
       char copy[1024], err[128];
@@ -348,7 +348,7 @@ int ds_config_load_by_name(const char *name, struct ds_config *cfg) {
   /* A running container is described by what it booted with, so host-side
    * edits to container.config while it runs never desync stop, cleanup or
    * info. That comes from its monitor, never from the guest's own
-   * /run/droidspaces/container.config: root in the container can rewrite
+   * /run/chdroid/container.config: root in the container can rewrite
    * that one. config_file keeps pointing at the host file, so later saves
    * land there. No monitor answering means not running, or started by an
    * older build: the host config. */
@@ -363,7 +363,7 @@ int ds_config_load_by_name(const char *name, struct ds_config *cfg) {
 static int peek(int (*load)(const char *, struct ds_config *), const char *arg,
                 struct ds_config *cfg) {
   int was = ds_log_silent;
-  ds_log_silent = DS_LOG_PEEK;
+  ds_log_silent = CHDROID_LOG_PEEK;
   int ret = load(arg, cfg);
   ds_log_silent = was;
   return ret;

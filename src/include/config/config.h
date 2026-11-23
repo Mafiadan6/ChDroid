@@ -1,22 +1,22 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_CONFIG_CONFIG_H
-#define DS_CONFIG_CONFIG_H
+#ifndef CHDROID_CONFIG_CONFIG_H
+#define CHDROID_CONFIG_CONFIG_H
 
 /* Networking modes */
 
 /* NAT is the zero value so a zeroed config already holds the default */
 enum ds_net_mode {
-  DS_NET_NAT = 0, /* isolated netns + bridge + MASQUERADE      */
-  DS_NET_HOST,    /* share host network namespace               */
-  DS_NET_NONE,    /* isolated netns with loopback only          */
-  DS_NET_GATEWAY, /* isolated netns attached to gateway LAN     */
-  DS_NET_MACVLAN, /* isolated netns, macvlan on a host NIC      */
+  CHDROID_NET_NAT = 0, /* isolated netns + bridge + MASQUERADE      */
+  CHDROID_NET_HOST,    /* share host network namespace               */
+  CHDROID_NET_NONE,    /* isolated netns with loopback only          */
+  CHDROID_NET_GATEWAY, /* isolated netns attached to gateway LAN     */
+  CHDROID_NET_MACVLAN, /* isolated netns, macvlan on a host NIC      */
 };
 
 /* Bind mount entry */
@@ -46,8 +46,8 @@ struct ds_tty_info {
 
 /* Port forwarding (--port HOST:CONTAINER[/proto]) */
 
-#define DS_MAX_PORT_FORWARDS 32
-#define DS_MAX_UPSTREAM_IFACES 32
+#define CHDROID_MAX_PORT_FORWARDS 32
+#define CHDROID_MAX_UPSTREAM_IFACES 32
 
 struct ds_port_forward {
   uint16_t host_port;          /* port on the Android/Linux host  */
@@ -58,14 +58,14 @@ struct ds_port_forward {
 };
 
 typedef enum {
-  DS_INIT_UNKNOWN = 0,
-  DS_INIT_SYSTEMD,  /* SIGRTMIN+3 */
-  DS_INIT_PROCD,    /* SIGUSR2    -- OpenWrt; SIGTERM = reboot there! */
-  DS_INIT_OPENRC,   /* SIGTERM    */
-  DS_INIT_RUNIT,    /* stopit flag + SIGCONT */
-  DS_INIT_S6,       /* SIGUSR2    */
-  DS_INIT_BUSYBOX,  /* SIGUSR2    */
-  DS_INIT_SYSVINIT, /* SIGTERM    */
+  CHDROID_INIT_UNKNOWN = 0,
+  CHDROID_INIT_SYSTEMD,  /* SIGRTMIN+3 */
+  CHDROID_INIT_PROCD,    /* SIGUSR2    -- OpenWrt; SIGTERM = reboot there! */
+  CHDROID_INIT_OPENRC,   /* SIGTERM    */
+  CHDROID_INIT_RUNIT,    /* stopit flag + SIGCONT */
+  CHDROID_INIT_S6,       /* SIGUSR2    */
+  CHDROID_INIT_BUSYBOX,  /* SIGUSR2    */
+  CHDROID_INIT_SYSVINIT, /* SIGTERM    */
 } ds_init_type_t;
 
 /* Container configuration - replaces all global variables */
@@ -87,7 +87,7 @@ struct ds_config {
   uint32_t macvlan_mode;             /* MACVLAN_MODE_*, 0 = bridge */
 
   /* UUID for PID discovery */
-  char uuid[DS_UUID_LEN + 1];
+  char uuid[CHDROID_UUID_LEN + 1];
 
   /* Flags */
   int foreground; /* --foreground */
@@ -133,7 +133,7 @@ struct ds_config {
 
   /* NAT networking synchronization pipes
    * Both pairs start as {-1,-1} (ds_config_init). The monitor creates them
-   * only when net_mode != DS_NET_HOST. */
+   * only when net_mode != CHDROID_NET_HOST. */
   int net_ready_pipe[2]; /* child → monitor: "I am in my new netns"  */
   int net_done_pipe[2];  /* monitor → child: "veth peer is in place" */
 
@@ -168,7 +168,7 @@ struct ds_config {
   struct ds_config_line *unknown_tail;
 
   /* Port forwarding (--port HOST:CONTAINER[/proto]) */
-  struct ds_port_forward port_forwards[DS_MAX_PORT_FORWARDS];
+  struct ds_port_forward port_forwards[CHDROID_MAX_PORT_FORWARDS];
   int port_forward_count;
   char nat_container_ip[INET_ADDRSTRLEN]; /* assigned container IP, for cleanup
                                            */
@@ -182,7 +182,7 @@ struct ds_config {
    * NAT WAN is forced through this list (priority order, literals + wildcards)
    * and automatic uplink detection is disabled entirely.  Empty = auto-detect.
    */
-  char upstream_ifaces[DS_MAX_UPSTREAM_IFACES][IFNAMSIZ];
+  char upstream_ifaces[CHDROID_MAX_UPSTREAM_IFACES][IFNAMSIZ];
   int upstream_iface_count;
 
   /* Resource limits (0 = unlimited) */
@@ -253,4 +253,4 @@ char *ds_config_serialize(struct ds_config *cfg, size_t *len, size_t *known);
 int ds_config_save(const char *config_path, struct ds_config *cfg);
 int ds_config_save_by_name(const char *name, struct ds_config *cfg);
 
-#endif /* DS_CONFIG_CONFIG_H */
+#endif /* CHDROID_CONFIG_CONFIG_H */

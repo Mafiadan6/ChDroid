@@ -1,13 +1,13 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
-#define DS_VTTY_COUNT                                                          \
+#define CHDROID_VTTY_COUNT                                                          \
   6 /* /dev/tty1..6: masked in hw mode, null device nodes otherwise */
 
 /* Helper to force removal of a path, even if it is a directory */
@@ -105,7 +105,7 @@ int setup_dev(const char *rootfs, int hw_access, int gpu_mode, int allow_vts) {
        */
       if (!allow_vts) {
         char tty[16];
-        for (int i = 1; i <= DS_VTTY_COUNT; i++) {
+        for (int i = 1; i <= CHDROID_VTTY_COUNT; i++) {
           snprintf(tty, sizeof(tty), "tty%d", i);
           ds_stage_dev_node(staging, dev_path, tty, S_IFCHR | 0666,
                             makedev(1, 3), 0);
@@ -154,8 +154,8 @@ int create_devices(const char *rootfs, const char *staging) {
                  {"full", S_IFCHR | 0666, makedev(1, 7), 0},
                  {"random", S_IFCHR | 0666, makedev(1, 8), 0},
                  {"urandom", S_IFCHR | 0666, makedev(1, 9), 0},
-                 {"tty", S_IFCHR | 0666, makedev(5, 0), DS_DEFAULT_TTY_GID},
-                 {"console", S_IFCHR | 0620, makedev(5, 1), DS_DEFAULT_TTY_GID},
+                 {"tty", S_IFCHR | 0666, makedev(5, 0), CHDROID_DEFAULT_TTY_GID},
+                 {"console", S_IFCHR | 0620, makedev(5, 1), CHDROID_DEFAULT_TTY_GID},
                  {"ptmx", S_IFCHR | 0666, makedev(5, 2), 0},
                  {"net/tun", S_IFCHR | 0666, makedev(10, 200), 0},
                  {"fuse", S_IFCHR | 0666, makedev(10, 229), 0},
@@ -203,7 +203,7 @@ int create_devices(const char *rootfs, const char *staging) {
    * itself, the host's own node when it had to be bind-mounted above. Where
    * mknod is refused the VT stays absent, which only costs a log line. hw
    * mode masks the real VTs in setup_dev(). */
-  for (int i = 1; !staging && i <= DS_VTTY_COUNT; i++) {
+  for (int i = 1; !staging && i <= CHDROID_VTTY_COUNT; i++) {
     snprintf(path, sizeof(path), "%s/tty%d", dev_dir, i);
     force_unlink(path);
     if (mknod(path, S_IFCHR | 0666, makedev(1, 3)) == 0)

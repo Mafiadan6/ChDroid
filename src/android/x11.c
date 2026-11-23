@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - X11 Server and Socket Manager
+ * ChDroid v7 - X11 Server and Socket Manager
  *
  * Manages the Termux-X11 server lifecycle on Android (spawning, logging, and
  * stopping) and unifies host-to-container X11 socket bridging for both Android
@@ -10,7 +10,7 @@
  */
 
 #define _GNU_SOURCE
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <fcntl.h>
 #include <grp.h>
 #include <sys/wait.h>
@@ -235,14 +235,14 @@ int ds_setup_x11_socket(struct ds_config *cfg) {
   if (!is_android()) {
     /* Desktop Linux path */
     char src[PATH_MAX], dst[PATH_MAX];
-    snprintf(src, sizeof(src), "%s/X0", DS_X11_PATH_DESKTOP);
+    snprintf(src, sizeof(src), "%s/X0", CHDROID_X11_PATH_DESKTOP);
     if (access(src, F_OK) != 0) {
       ds_warn("X11 support skipped: no host X11 socket detected at %s", src);
       return 0;
     }
-    mkdir_p(DS_X11_CONTAINER_DIR, 01777);
-    chmod(DS_X11_CONTAINER_DIR, 01777); /* the umask strips it, users need :1 */
-    snprintf(dst, sizeof(dst), "%s/X0", DS_X11_CONTAINER_DIR);
+    mkdir_p(CHDROID_X11_CONTAINER_DIR, 01777);
+    chmod(CHDROID_X11_CONTAINER_DIR, 01777); /* the umask strips it, users need :1 */
+    snprintf(dst, sizeof(dst), "%s/X0", CHDROID_X11_CONTAINER_DIR);
     if (ds_bind_mount_socket(src, dst, 0, "X11") < 0)
       return -1;
     ds_log("X11: Bridged host X11 socket (X0) with container");
@@ -251,9 +251,9 @@ int ds_setup_x11_socket(struct ds_config *cfg) {
 
   /* Android path */
   char src_dir[PATH_MAX], src[PATH_MAX], dst[PATH_MAX];
-  snprintf(src_dir, sizeof(src_dir), "%s/.X11-unix", DS_TERMUX_TMP_OLDROOT);
+  snprintf(src_dir, sizeof(src_dir), "%s/.X11-unix", CHDROID_TERMUX_TMP_OLDROOT);
   snprintf(src, sizeof(src), "%s/.X11-unix/" TX11_DISPLAY_SOCK,
-           DS_TERMUX_TMP_OLDROOT);
+           CHDROID_TERMUX_TMP_OLDROOT);
 
   struct stat st;
   if (stat(src_dir, &st) != 0) {
@@ -269,13 +269,13 @@ int ds_setup_x11_socket(struct ds_config *cfg) {
   }
 
   uid_t termux_uid = st.st_uid;
-  mkdir_p(DS_X11_CONTAINER_DIR, 01777);
-  if (chown(DS_X11_CONTAINER_DIR, termux_uid, termux_uid) < 0) {
+  mkdir_p(CHDROID_X11_CONTAINER_DIR, 01777);
+  if (chown(CHDROID_X11_CONTAINER_DIR, termux_uid, termux_uid) < 0) {
     /* ignore */
   }
-  chmod(DS_X11_CONTAINER_DIR, 01777);
+  chmod(CHDROID_X11_CONTAINER_DIR, 01777);
 
-  snprintf(dst, sizeof(dst), "%s/" TX11_DISPLAY_SOCK, DS_X11_CONTAINER_DIR);
+  snprintf(dst, sizeof(dst), "%s/" TX11_DISPLAY_SOCK, CHDROID_X11_CONTAINER_DIR);
   if (ds_bind_mount_socket(src, dst, termux_uid, "X11") < 0)
     return 0;
 

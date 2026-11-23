@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -71,7 +71,7 @@ static void restore_from_monitor(struct ds_config *booted, pid_t pid,
 }
 
 int scan_containers(void) {
-  ds_log("Scanning system for untracked Droidspaces containers...");
+  ds_log("Scanning system for untracked ChDroid containers...");
 
   pid_t *pids;
   size_t count;
@@ -119,9 +119,9 @@ int scan_containers(void) {
     closedir(d);
   }
 
-  /* 3. Scan for orphaned loop mounts in /mnt/Droidspaces */
+  /* 3. Scan for orphaned loop mounts in /mnt/ChDroid */
   int orphaned_found = 0;
-  DIR *md = opendir(DS_IMG_MOUNT_ROOT_UNIVERSAL);
+  DIR *md = opendir(CHDROID_IMG_MOUNT_ROOT_UNIVERSAL);
   if (md) {
     struct dirent *ent;
     while ((ent = readdir(md)) != NULL) {
@@ -129,7 +129,7 @@ int scan_containers(void) {
         continue;
 
       char mpath[PATH_MAX];
-      snprintf(mpath, sizeof(mpath), "%s/%s", DS_IMG_MOUNT_ROOT_UNIVERSAL,
+      snprintf(mpath, sizeof(mpath), "%s/%s", CHDROID_IMG_MOUNT_ROOT_UNIVERSAL,
                ent->d_name);
 
       /* The directory is named after its container. A live pidfile means the

@@ -1,4 +1,4 @@
-name: Droidspaces CI
+name: ChDroid CI
 
 # One workflow. Every push and pull request builds the backend for every arch,
 # the Debian packages and the APK, and uploads them as an artifact. A v* tag, or
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: "Publish a release for this tag (existing or new, must match DS_VERSION)"
+        description: "Publish a release for this tag (existing or new, must match CHDROID_VERSION)"
         required: false
         type: string
 
@@ -32,20 +32,20 @@ jobs:
       # The tag being released, if any
       TAG: ${{ inputs.tag_name || (github.ref_type == 'tag' && github.ref_name) || '' }}
       # The Makefile finds the toolchains in ~/toolchains/<triplet>-cross/bin
-      TOOLCHAINS_URL: https://github.com/ravindu644/Droidspaces-OSS/releases/download/compilers-25843896720
+      TOOLCHAINS_URL: https://github.com/Mafiadan6/ChDroid/releases/download/compilers-25843896720
       HAS_TELEGRAM: ${{ secrets.API_ID != '' && secrets.API_HASH != '' }}
     steps:
     - uses: actions/checkout@v5
       with:
         fetch-depth: 0
 
-    # One version, DS_VERSION in droidspaces.h. A tag must match it, so a
+    # One version, CHDROID_VERSION in chdroid.h. A tag must match it, so a
     # forgotten `make bump` fails here instead of shipping.
     - name: Settle the version
       run: |
-        VERSION=$(grep "DS_VERSION" src/include/droidspaces.h | awk '{print $3}' | tr -d '"')
+        VERSION=$(grep "CHDROID_VERSION" src/include/chdroid.h | awk '{print $3}' | tr -d '"')
         if [ -n "$TAG" ]; then
-          [ "${TAG#v}" = "$VERSION" ] || { echo "Tag $TAG does not match DS_VERSION $VERSION (run make bump NEW=${TAG#v})"; exit 1; }
+          [ "${TAG#v}" = "$VERSION" ] || { echo "Tag $TAG does not match CHDROID_VERSION $VERSION (run make bump NEW=${TAG#v})"; exit 1; }
         fi
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
@@ -88,7 +88,7 @@ jobs:
       env:
         RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
       if: env.RELEASE_KEYSTORE != ''
-      run: echo "$RELEASE_KEYSTORE" | base64 -d > droidspaces.keystore
+      run: echo "$RELEASE_KEYSTORE" | base64 -d > chdroid.keystore
 
     # A release signed with a throwaway key could never update the real app, so
     # a release run without the key stops here instead of publishing one
@@ -120,11 +120,11 @@ jobs:
     - name: Stage & Rename Artifacts
       run: |
         HASH=$(git log -1 --pretty=%h)
-        APK_NAME="Droidspaces-universal-v${VERSION}-${HASH}.apk"
-        TAR_NAME=$(ls droidspaces-v*-*.tar.gz)
+        APK_NAME="ChDroid-universal-v${VERSION}-${HASH}.apk"
+        TAR_NAME=$(ls chdroid-v*-*.tar.gz)
         mkdir -p dist
         mv Android/app/build/outputs/apk/release/app-release.apk dist/${APK_NAME}
-        mv ${TAR_NAME} droidspaces_*.deb dist/
+        mv ${TAR_NAME} chdroid_*.deb dist/
         (cd dist && sha256sum * > SHA256SUMS)
         echo "APK_FILE=dist/${APK_NAME}" >> $GITHUB_ENV
         echo "TAR_FILE=dist/${TAR_NAME}" >> $GITHUB_ENV
@@ -144,7 +144,7 @@ jobs:
         COMMIT_AUTHOR=$(git log -1 --pretty=format:%an)
         {
           echo "TELEGRAM_MESSAGE<<EOF"
-          echo "**Droidspaces Build Successful**"
+          echo "**ChDroid Build Successful**"
           echo ""
           echo "**Repository:** [${{ github.repository }}](https://github.com/${{ github.repository }})"
           echo "**Branch:** ${{ github.ref_name }}"
@@ -163,7 +163,7 @@ jobs:
     - name: Upload Final Artifacts (APK, Tarball & Debian Packages)
       uses: actions/upload-artifact@v4
       with:
-        name: droidspaces-artifacts
+        name: chdroid-artifacts
         path: dist/
         if-no-files-found: error
         retention-days: 14
@@ -201,7 +201,7 @@ jobs:
           echo
           echo
           echo "---"
-          echo "**Automated Release by Droidspaces CI**"
+          echo "**Automated Release by ChDroid CI**"
         } > dist/CHANGELOG.md
 
     - name: Publish GitHub Release
@@ -209,7 +209,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ env.TAG }}
-        name: Droidspaces ${{ env.TAG }}
+        name: ChDroid ${{ env.TAG }}
         target_commitish: ${{ github.sha }}
         files: |
           dist/*.apk
@@ -222,8 +222,8 @@ jobs:
 
     # The site reads the latest release only when it builds. A release made with
     # GITHUB_TOKEN starts no other workflow, so tell the site from here.
-    - name: Rebuild droidspaces.org
+    - name: Rebuild chdroid.org
       if: env.TAG != ''
       env:
         GH_TOKEN: ${{ secrets.WEBPAT }}
-      run: gh api repos/droidspaces/droidspaces.github.io/dispatches -f event_type=docs-updated
+      run: gh api repos/chdroid/chdroid.github.io/dispatches -f event_type=docs-updated

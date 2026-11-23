@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <linux/audit.h>
 #include <linux/filter.h>
 #include <linux/seccomp.h>
@@ -56,7 +56,7 @@ static int install_rules(const struct sock_filter *rules, size_t n_rules,
  * loses them when it creates its own keyring.  Return ENOSYS for keyctl so it
  * keeps using the one it inherited.  Nothing to do on newer kernels. */
 int ds_seccomp_keyring_shim(int privileged_mask) {
-  if (privileged_mask & DS_PRIV_NOSEC)
+  if (privileged_mask & CHDROID_PRIV_NOSEC)
     return 0;
   int major = 0, minor = 0;
   get_kernel_version(&major, &minor);
@@ -110,8 +110,8 @@ static int systemd_version(void) {
  * the filter a util-linux 2.39+ mount(8) that misses the variable fails, so the
  * filter must not go where nothing needs it. */
 int ds_mount_api_shim_wanted(const struct ds_config *cfg) {
-  return cfg->init_type == DS_INIT_SYSTEMD && !cfg->custom_init[0] &&
-         !(cfg->privileged_mask & DS_PRIV_NOSEC) &&
+  return cfg->init_type == CHDROID_INIT_SYSTEMD && !cfg->custom_init[0] &&
+         !(cfg->privileged_mask & CHDROID_PRIV_NOSEC) &&
          ds_kernel_has_mount_api() == 0 && systemd_version() >= 259;
 }
 

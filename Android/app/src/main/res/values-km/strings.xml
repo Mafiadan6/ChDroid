@@ -72,7 +72,7 @@
     <string name="telegram_channel">ឆានែលតេលេក្រាម</string>
     <string name="generate_bug_report">បង្កើតរបាយការណ៍កំហុស</string>
     <string name="stopping_container">កំពុងបញ្ឈប់ Container...</string>
-    <string name="about_droidspaces">អំពីកម្មវិធី DroidSpaces</string>
+    <string name="about_chdroid">អំពីកម្មវិធី ChDroid</string>
     <string name="developers">អ្នកអភិវឌ្ឍន៍កម្មវិធី</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
     <string name="backend_attention_required">ផ្នែកខាងក្រោយ៖ ត្រូវការចំណាត់ការ</string>
@@ -222,7 +222,7 @@
     <string name="installation_complete">ការដំឡើងបានបញ្ចប់</string>
     <string name="installation_failed">ការដំឡើងបរាជ័យ</string>
     <string name="done">រួចរាល់</string>
-    <string name="installing_droidspaces">កំពុងដំឡើង ChDroid</string>
+    <string name="installing_chdroid">កំពុងដំឡើង ChDroid</string>
     <string name="backend_installed_success">បានដំឡើងផ្នែកខាងក្រោយ ChDroid ដោយជោគជ័យ</string>
     <string name="binary_installation_failed">ការដំឡើងប្រព័ន្ធគោលពីរបានបរាជ័យ</string>
     <string name="filter_absolute_path_hint">ត្រង ឬវាយបញ្ចូលផ្លូវដាច់ខាត…</string>
@@ -315,7 +315,7 @@
     <string name="error_hostname_invalid">ឈ្មោះម៉ាស៊ីន (Hostname) អាចមានត្រឹមតែ អក្សរ, លេខ និងសញ្ញាដក (-) តែប៉ុណ្ណោះ</string>
     <string name="check_requirements">ពិនិត្យតម្រូវការ</string>
     <string name="requirements_check_title">ការពិនិត្យលក្ខខណ្ឌតម្រូវ</string>
-    <string name="requirements_for_droidspaces">លក្ខខណ្ឌតម្រូវសម្រាប់ ChDroid</string>
+    <string name="requirements_for_chdroid">លក្ខខណ្ឌតម្រូវសម្រាប់ ChDroid</string>
     <string name="requirements_check_completed_successfully">ការពិនិត្យលក្ខខណ្ឌតម្រូវបានជោគជ័យ</string>
     <string name="requirements_check_completed_with_errors">ការពិនិត្យលក្ខខណ្ឌតម្រូវបានបញ្ចប់ ប៉ុន្តែមានកំហុស</string>
     <string name="kernel_requirements_copied">បានចម្លងលក្ខខណ្ឌតម្រូវ Kernel ទៅកាន់ក្តារតម្បៀតខ្ទាស់ហើយ</string>
@@ -347,7 +347,7 @@
     <string name="starting_resizing">កំពុងចាប់ផ្តើមដំណើរការប្តូរទំហំ...</string>
     <string name="help_card_title">ទើបតែប្រើប្រាស់ ChDroid មែនទេ?</string>
     <string name="help_card_message">ចុចទីនេះ ដើម្បីស្វែងយល់ពីរបៀបដំឡើងកុងតឺន័រ Linux ដំបូងរបស់អ្នក!</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="privileged_mode">របៀប Privileged</string>
     <string name="privileged_nomask_desc">បិទ Jail Masks ដើម្បីអនុញ្ញាតឱ្យមានសិទ្ធិកែប្រែ (Write Access) ទៅលើ /proc និង /sys។ សម្គាល់៖ /sys នៅតែរក្សាស្ថានភាពសម្រាប់តែអានប៉ុណ្ណោះ (Read-only) លុះត្រាតែមុខងារចូលប្រើប្រាស់ Hardware ត្រូវបានបើកដំណើរការផងដែរ។</string>
     <string name="privileged_nocaps_desc">មិនលុបបំបាត់សមត្ថភាព Linux ណាមួយឡើយ (ទទួលបានអំណាច root ពេញលេញ)។</string>

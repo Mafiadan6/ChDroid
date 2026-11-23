@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /*
  * Resolve every SRC component of a --bind-mount / -B value string.
@@ -177,7 +177,7 @@ const char *ds_command_word(int argc, char **argv) {
   const char *cmd = NULL;
   int opt;
   optind = 0;
-  while (!cmd && (opt = getopt_long(argc, argv, "-" DS_OPTSTRING, long_options,
+  while (!cmd && (opt = getopt_long(argc, argv, "-" CHDROID_OPTSTRING, long_options,
                                     NULL)) != -1)
     if (opt == 1)
       cmd = optarg;
@@ -196,7 +196,7 @@ int ds_apply_cli_overrides(int argc, char **argv, struct ds_config *cfg,
   int opt;
 
   /* Strict mode for 'run' prevents stealing arguments from the sub-command. */
-  const char *optstring = strict ? "+" DS_OPTSTRING : DS_OPTSTRING;
+  const char *optstring = strict ? "+" CHDROID_OPTSTRING : CHDROID_OPTSTRING;
 
   /* --reset must wipe the config BEFORE the other flags land on top, but
    * getopt hands us options in argv order. Scan for it first so
@@ -383,9 +383,9 @@ int ds_apply_cli_overrides(int argc, char **argv, struct ds_config *cfg,
        * NAT WAN to this list in priority order and disables auto-detection. */
       if (ds_parse_iface_csv(optarg, cfg->upstream_ifaces,
                              &cfg->upstream_iface_count,
-                             DS_MAX_UPSTREAM_IFACES) > 0) {
+                             CHDROID_MAX_UPSTREAM_IFACES) > 0) {
         ds_error("Too many --upstream interfaces (max %d)",
-                 DS_MAX_UPSTREAM_IFACES);
+                 CHDROID_MAX_UPSTREAM_IFACES);
         return -1;
       }
       break;
@@ -457,10 +457,10 @@ int ds_apply_cli_overrides(int argc, char **argv, struct ds_config *cfg,
       /* Add a sane upper bound (4194304 = 2^22) matching the Linux kernel's
        * default pid_max ceiling. Values above this are almost certainly
        * user errors and would be rejected by the kernel with EINVAL. */
-      if (errno || end == optarg || *end != '\0' || p < DS_MIN_PIDS_LIMIT ||
+      if (errno || end == optarg || *end != '\0' || p < CHDROID_MIN_PICHDROID_LIMIT ||
           p > 4194304LL) {
         ds_error("--pids-limit: invalid value (must be %d..4194304): %s",
-                 DS_MIN_PIDS_LIMIT, optarg);
+                 CHDROID_MIN_PICHDROID_LIMIT, optarg);
         return -1;
       }
       cfg->pids_limit = p;

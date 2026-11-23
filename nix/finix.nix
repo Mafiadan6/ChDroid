@@ -7,7 +7,7 @@
 }: {
   perSystem = {...}: {
     legacyPackages = {
-      finixDroidspacesTarballs = lib.genAttrs systems (system: let
+      finixChDroidTarballs = lib.genAttrs systems (system: let
         pkgs = import inputs.nixpkgs {inherit system;};
       in {
         experimental =
@@ -17,16 +17,16 @@
               {
                 nixpkgs.pkgs = inputs.nixpkgs.lib.mkDefault pkgs;
               }
-              self.nixosModules.finix-droidspaces-rootfs-experimental
+              self.nixosModules.finix-chdroid-rootfs-experimental
             ];
-          }).config.droidspaces.tarball;
+          }).config.chdroid.tarball;
       });
     };
   };
 
   flake = {
     nixosModules = {
-      finix-droidspaces-rootfs-experimental = {pkgs, ...}: {
+      finix-chdroid-rootfs-experimental = {pkgs, ...}: {
         imports = with inputs.finix.nixosModules; [
           openssh
           nix-daemon
@@ -42,9 +42,9 @@
             ...
           }: {
             options = {
-              droidspaces.tarball = lib.mkOption {
+              chdroid.tarball = lib.mkOption {
                 type = lib.types.path;
-                description = "Path to droidspaces tarball to be extracted and used as rootfs";
+                description = "Path to chdroid tarball to be extracted and used as rootfs";
               };
             };
 
@@ -67,7 +67,7 @@
                 description = "Register Nix Store Paths";
               };
 
-              droidspaces.tarball = pkgs.callPackage "${inputs.nixpkgs}/nixos/lib/make-system-tarball.nix" {
+              chdroid.tarball = pkgs.callPackage "${inputs.nixpkgs}/nixos/lib/make-system-tarball.nix" {
                 fileName = "rootfs";
                 extraArgs = "--owner=0";
 

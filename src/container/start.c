@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -53,7 +53,7 @@ int start_rootfs_locked(struct ds_config *cfg, int *lock_fd, int reuse_mount) {
 
   /* Here and not with the other network checks in main.c: a restart reloads
    * its config after those ran, and this is the one both paths go through. */
-  if (cfg->net_mode == DS_NET_MACVLAN && ds_net_macvlan_check(cfg) < 0)
+  if (cfg->net_mode == CHDROID_NET_MACVLAN && ds_net_macvlan_check(cfg) < 0)
     return -1;
 
   /* 0. Restart: pick the preserved mount back up. If it is gone after all,
@@ -184,7 +184,7 @@ int start_rootfs_locked(struct ds_config *cfg, int *lock_fd, int reuse_mount) {
       rootfs_norm[rlen - 1] = '\0';
 
     const char *init_bin =
-        cfg->custom_init[0] ? cfg->custom_init : DS_DEFAULT_INIT;
+        cfg->custom_init[0] ? cfg->custom_init : CHDROID_DEFAULT_INIT;
     snprintf(init_path, sizeof(init_path), "%.*s%s",
              (int)(sizeof(init_path) - strlen(init_bin) - 1), rootfs_norm,
              init_bin);
@@ -246,7 +246,7 @@ int start_rootfs_locked(struct ds_config *cfg, int *lock_fd, int reuse_mount) {
    *     any IPC needed.
    *
    * Only relevant for NAT mode -- host/none modes skip this cleanly. */
-  if (cfg->net_mode == DS_NET_NAT)
+  if (cfg->net_mode == CHDROID_NET_NAT)
     ds_net_resolve_static_ip(cfg);
 
   /* Persist UUID and resolved static_nat_ip (for NAT) to config immediately
@@ -280,7 +280,7 @@ int start_rootfs_locked(struct ds_config *cfg, int *lock_fd, int reuse_mount) {
    * happens inside internal_boot's isolated mount namespace) */
   if (cfg->volatile_mode) {
     snprintf(cfg->volatile_dir, sizeof(cfg->volatile_dir),
-             "%s/" DS_VOLATILE_SUBDIR "/%s", get_workspace_dir(),
+             "%s/" CHDROID_VOLATILE_SUBDIR "/%s", get_workspace_dir(),
              cfg->container_name);
   }
 

@@ -2,13 +2,13 @@
 title: Recipes
 section: Recipes
 order: 1
-desc: Things to build with Droidspaces on a phone: a home server reachable through Tailscale and locked down with UFW and Fail2Ban, Docker inside a container, and a watchdog that keeps Wi-Fi awake.
-keywords: droidspaces, recipes, android, server, tailscale, ufw, fail2ban, docker, nested, container, wifi, power, save
+desc: Things to build with ChDroid on a phone: a home server reachable through Tailscale and locked down with UFW and Fail2Ban, Docker inside a container, and a watchdog that keeps Wi-Fi awake.
+keywords: chdroid, recipes, android, server, tailscale, ufw, fail2ban, docker, nested, container, wifi, power, save
 -->
 
 # Recipes
 
-Three things people build with Droidspaces on a phone. Each one assumes a container that already starts and has internet, which the [installation guide](Installation-Android.md) gets you to. The commands are for Debian and Ubuntu; other distributions have the same packages under other names.
+Three things people build with ChDroid on a phone. Each one assumes a container that already starts and has internet, which the [installation guide](Installation-Android.md) gets you to. The commands are for Debian and Ubuntu; other distributions have the same packages under other names.
 
 ## A phone as a home server, reachable from anywhere
 
@@ -81,7 +81,7 @@ Turn on **Run at Boot** in the container's settings, and the server comes up wit
 
 ## Docker inside a container
 
-Docker runs inside a Droidspaces container on every supported kernel, so Portainer, Home Assistant, Pi-hole or anything else packaged for Docker runs on the phone.
+Docker runs inside a ChDroid container on every supported kernel, so Portainer, Home Assistant, Pi-hole or anything else packaged for Docker runs on the phone.
 
 The Base and desktop images in the repository, the ones named Base, XFCE or bspwm, ship with Docker installed and configured. Install one, start it, and this works straight away:
 
@@ -111,7 +111,7 @@ usermod -aG docker alice
 docker run --rm hello-world
 ```
 
-**3. Optional: user namespace remapping.** With **Allow Sandboxing** on in the container's settings, Docker can run its containers under a remapped user range so that root inside a Docker container is not root inside the Droidspaces container. Put this in `/etc/docker/daemon.json` and restart Docker:
+**3. Optional: user namespace remapping.** With **Allow Sandboxing** on in the container's settings, Docker can run its containers under a remapped user range so that root inside a Docker container is not root inside the ChDroid container. Put this in `/etc/docker/daemon.json` and restart Docker:
 
 ```json
 { "userns-remap": "default" }

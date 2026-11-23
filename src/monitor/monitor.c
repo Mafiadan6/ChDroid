@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -55,9 +55,9 @@ void ds_monitor_run(struct ds_config *cfg, int sync_pipe_write) {
   /* Make monitor unkillable */
   ds_oom_protect();
 
-  /* Enter droidspacesd domain. Best-effort: if policy not yet loaded
+  /* Enter chdroidd domain. Best-effort: if policy not yet loaded
    * (user hasn't rebooted after module install), we stay in the inherited
-   * domain -- still functional since droidspacesd is typepermissive. */
+   * domain -- still functional since chdroidd is typepermissive. */
   ds_selinux_enter_domain();
 
   prctl(PR_SET_NAME, "[ds-monitor]", 0, 0, 0);
@@ -96,7 +96,7 @@ void ds_monitor_run(struct ds_config *cfg, int sync_pipe_write) {
    * Reboot detection uses EXIT CODES ONLY (no signal interception):
    *   1. Init calls reboot(2) → kernel kills init with SIGHUP
    *   2. Intermediate sees WTERMSIG(init)==SIGHUP via waitpid()
-   *   3. Intermediate exits with DS_REBOOT_EXIT (249)
+   *   3. Intermediate exits with CHDROID_REBOOT_EXIT (249)
    *   4. Monitor sees WEXITSTATUS(mid)==249 → loop back
    *
    * This eliminates ghost containers because the Monitor never handles
@@ -129,7 +129,7 @@ reboot_loop:;
   }
   fcntl(mid_sync_pipe[0], F_SETFD, FD_CLOEXEC);
   fcntl(mid_sync_pipe[1], F_SETFD, FD_CLOEXEC);
-  if (cfg->net_mode != DS_NET_HOST) {
+  if (cfg->net_mode != CHDROID_NET_HOST) {
     if (pipe(cfg->net_ready_pipe) < 0 || pipe(cfg->net_done_pipe) < 0) {
       ds_error("Failed to create NAT sync pipes: %s", strerror(errno));
       _exit(EXIT_FAILURE);
@@ -180,7 +180,7 @@ reboot_loop:;
     ds_cgroup_join(cfg->container_name);
 
     int clone_flags = CLONE_NEWPID;
-    if (cfg->net_mode != DS_NET_HOST)
+    if (cfg->net_mode != CHDROID_NET_HOST)
       clone_flags |= CLONE_NEWNET;
     if (access("/proc/self/ns/cgroup", F_OK) == 0)
       clone_flags |= CLONE_NEWCGROUP;
@@ -250,7 +250,7 @@ reboot_loop:;
       sync_pipe[1] = -1;
     } else {
       /* Reboot cycle - update PID file directly so
-       * 'droidspaces show/status' report the correct PID. */
+       * 'chdroid show/status' report the correct PID. */
       char pid_str[32];
       snprintf(pid_str, sizeof(pid_str), "%d", init_pid);
       write_file_atomic(cfg->pidfile, pid_str);
@@ -262,10 +262,10 @@ reboot_loop:;
       ;
 
     /* Convert kernel signal to exit code:
-     * SIGHUP from reboot(RESTART) → DS_REBOOT_EXIT (249)
+     * SIGHUP from reboot(RESTART) → CHDROID_REBOOT_EXIT (249)
      * Everything else → pass through as-is */
     if (WIFSIGNALED(init_status) && WTERMSIG(init_status) == SIGHUP) {
-      _exit(DS_REBOOT_EXIT);
+      _exit(CHDROID_REBOOT_EXIT);
     }
 
     _exit(WIFEXITED(init_status) ? WEXITSTATUS(init_status) : EXIT_FAILURE);
@@ -292,7 +292,7 @@ reboot_loop:;
    * where we try to open /proc/<pid>/ns/net before the process exists. */
   /* HOST mode has no handshake, but its pid comes the same way, straight
    * from the intermediate rather than from the pidfile. */
-  if (cfg->net_mode == DS_NET_HOST && mid_sync_pipe[0] >= 0) {
+  if (cfg->net_mode == CHDROID_NET_HOST && mid_sync_pipe[0] >= 0) {
     close(mid_sync_pipe[1]);
     pid_t p = -1;
     if (read(mid_sync_pipe[0], &p, sizeof(p)) == (ssize_t)sizeof(p) && p > 0)
@@ -300,7 +300,7 @@ reboot_loop:;
     close(mid_sync_pipe[0]);
   }
 
-  if (cfg->net_mode != DS_NET_HOST && mid_sync_pipe[0] >= 0) {
+  if (cfg->net_mode != CHDROID_NET_HOST && mid_sync_pipe[0] >= 0) {
     close(mid_sync_pipe[1]); /* monitor is reader */
 
     pid_t netns_pid = -1;
@@ -330,7 +330,7 @@ reboot_loop:;
       }
       close_and_forget(&cfg->net_ready_pipe[0]);
 
-      if (cfg->net_mode == DS_NET_NAT) {
+      if (cfg->net_mode == CHDROID_NET_NAT) {
         if (setup_veth_host_side(cfg, netns_pid) < 0) {
           ds_warn("[NET] Monitor: setup_veth_host_side failed - "
                   "container will have no internet");
@@ -339,12 +339,12 @@ reboot_loop:;
            * switches */
           ds_net_start_route_monitor(cfg->container_name);
         }
-      } else if (cfg->net_mode == DS_NET_GATEWAY) {
+      } else if (cfg->net_mode == CHDROID_NET_GATEWAY) {
         if (setup_gateway_veth_side(cfg, netns_pid) < 0) {
           ds_warn("[NET] Monitor: setup_gateway_veth_side failed - "
                   "container will remain isolated");
         }
-      } else if (cfg->net_mode == DS_NET_MACVLAN) {
+      } else if (cfg->net_mode == CHDROID_NET_MACVLAN) {
         ds_net_macvlan_wire(cfg, netns_pid, 1);
       }
 
@@ -367,7 +367,7 @@ reboot_loop:;
       /* Send handshake to init */
       struct ds_net_handshake hs;
       ds_net_derive_handshake(netns_pid, cfg, &hs);
-      if (cfg->net_mode != DS_NET_NAT)
+      if (cfg->net_mode != CHDROID_NET_NAT)
         ds_log("[NET] Monitor: sending DONE (eth0, if any, is wired "
                "host-side and addressed by the LAN's DHCP)");
       else
@@ -489,12 +489,12 @@ reboot_loop:;
 
         /* A gateway client whose gateway was not up yet is still unwired.
          * Look again every couple of seconds until the cable is in. */
-        if (cfg->net_mode == DS_NET_GATEWAY && !gw_wired && ++net_tick % 4 == 0)
+        if (cfg->net_mode == CHDROID_NET_GATEWAY && !gw_wired && ++net_tick % 4 == 0)
           gw_wired = ds_net_gateway_reconcile(cfg, cfg->container_pid);
 
         /* A macvlan dies with its parent NIC, so keep checking for good:
          * a replugged USB adapter gets the container's eth0 back. */
-        if (cfg->net_mode == DS_NET_MACVLAN && ++net_tick % 4 == 0)
+        if (cfg->net_mode == CHDROID_NET_MACVLAN && ++net_tick % 4 == 0)
           ds_net_macvlan_wire(cfg, cfg->container_pid, 0);
       }
 
@@ -591,7 +591,7 @@ reboot_loop:;
   /* Log what monitor saw */
   if (WIFEXITED(status)) {
     int code = WEXITSTATUS(status);
-    if (code == DS_REBOOT_EXIT) {
+    if (code == CHDROID_REBOOT_EXIT) {
       write_monitor_debug_log(cfg->container_name, "Detected internal REBOOT");
     } else {
       write_monitor_debug_log(cfg->container_name,
@@ -656,11 +656,11 @@ reboot_loop:;
   }
 
   /* Reboot detection (internal reboot) */
-  if (WIFEXITED(status) && WEXITSTATUS(status) == DS_REBOOT_EXIT) {
+  if (WIFEXITED(status) && WEXITSTATUS(status) == CHDROID_REBOOT_EXIT) {
     if (cfg->foreground) {
-      printf("\n" C_WHITE "Droidspaces v%s : Container " C_GREEN
+      printf("\n" C_WHITE "ChDroid v%s : Container " C_GREEN
              "%s" C_RESET C_WHITE " is now Rebooting...." C_RESET "\n",
-             DS_VERSION, cfg->container_name);
+             CHDROID_VERSION, cfg->container_name);
       fflush(stdout);
     }
 

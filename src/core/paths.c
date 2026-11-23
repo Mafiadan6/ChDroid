@@ -1,36 +1,36 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Workspace / Paths */
 
 const char *get_workspace_dir(void) {
-  return is_android() ? DS_WORKSPACE_ANDROID : DS_WORKSPACE_LINUX;
+  return is_android() ? CHDROID_WORKSPACE_ANDROID : CHDROID_WORKSPACE_LINUX;
 }
 
 const char *get_pids_dir(void) {
   static char pids_path[PATH_MAX];
   snprintf(pids_path, sizeof(pids_path), "%s/%s", get_workspace_dir(),
-           DS_PIDS_SUBDIR);
+           CHDROID_PICHDROID_SUBDIR);
   return pids_path;
 }
 
 const char *get_net_dir(void) {
   static char net_path[PATH_MAX];
   snprintf(net_path, sizeof(net_path), "%s/%s", get_workspace_dir(),
-           DS_NET_SUBDIR);
+           CHDROID_NET_SUBDIR);
   return net_path;
 }
 
 const char *get_logs_dir(void) {
   static char logs_path[PATH_MAX];
   snprintf(logs_path, sizeof(logs_path), "%s/%s", get_workspace_dir(),
-           DS_LOGS_SUBDIR);
+           CHDROID_LOGS_SUBDIR);
   return logs_path;
 }
 

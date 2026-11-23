@@ -1,16 +1,16 @@
-# Droidspaces v7 - Build system
+# ChDroid v7 - Build system
 # Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
 # SPDX-License-Identifier: GPL-3.0-or-later
 
-BINARY_NAME = droidspaces
+BINARY_NAME = chdroid
 SRC_DIR     = src
 OUT_DIR     = output
 
 # Default compiler. Do not allow recursive builds to accidentally get empty CC.
 CC ?= cc
 
-# DS_VERSION in droidspaces.h is the one place the version lives; `make bump` rewrites it
-VERSION := $(shell grep "DS_VERSION" $(SRC_DIR)/include/droidspaces.h | awk '{print $$3}' | tr -d '"')
+# CHDROID_VERSION in chdroid.h is the one place the version lives; `make bump` rewrites it
+VERSION := $(shell grep "CHDROID_VERSION" $(SRC_DIR)/include/chdroid.h | awk '{print $$3}' | tr -d '"')
 
 NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)
 
@@ -185,7 +185,7 @@ find-cc = $(shell \
 all: help
 
 help:
-	@echo "Droidspaces v$(VERSION) Build System"
+	@echo "ChDroid v$(VERSION) Build System"
 	@echo ""
 	@echo "Build (static, musl):"
 	@echo "  make native    - Build for this machine's architecture"
@@ -205,15 +205,15 @@ help:
 	@echo "  NO_STRIP=1     - Keep symbols"
 	@echo ""
 	@echo "Other:"
-	@echo "  make bump NEW=x.y.z - Set the version (droidspaces.h)"
+	@echo "  make bump NEW=x.y.z - Set the version (chdroid.h)"
 	@echo "  make clean     - Remove build artifacts"
 	@echo "  make debug-hardened - Build with ASan/UBSan/LSan to find bugs"
 	@echo "  make format    - Run clang-format on all .c/.h/.cpp files"
 	@echo "  make test      - Drive the installed binary through the running daemon (tests/, no sudo)"
 
 # Black-box tests against the installed binary. They need a running daemon and a
-# user in the droidspaces group, so install the build first:
-#   sudo cp output/droidspaces /usr/bin/droidspaces && sudo systemctl restart droidspaces
+# user in the chdroid group, so install the build first:
+#   sudo cp output/chdroid /usr/bin/chdroid && sudo systemctl restart chdroid
 test:
 	python3 -m unittest discover -s tests -v
 
@@ -227,7 +227,7 @@ $(BINARY): $(OBJS)
 	$(Q)$(CC) $(OBJS) -o $@ $(LDFLAGS) $(LIBS)
 	@echo "[+] Built: $@"
 
-# output/droidspaces is always the arch asked for last, built or not, for the
+# output/chdroid is always the arch asked for last, built or not, for the
 # device-test instructions
 native:
 	@if [ -n "$(NATIVE_CC)" ]; then $(MAKE) --no-print-directory -j$(NPROC) $(BINARY) CC="$(NATIVE_CC)" && cp -f $(BINARY) $(OUT_DIR)/$(BINARY_NAME); \
@@ -270,7 +270,7 @@ all-tarball: all-build
 	@COMMIT_HASH=$$(git rev-parse --short HEAD 2>/dev/null || date +%Y-%m-%d); \
 	TARBALL="$(BINARY_NAME)-v$(VERSION)-$$COMMIT_HASH.tar.gz"; \
 	ROOT_DIR="$(BINARY_NAME)-v$(VERSION)"; \
-	TEMP_DIR="/tmp/droidspaces-tarball-$$$$"; \
+	TEMP_DIR="/tmp/chdroid-tarball-$$$$"; \
 	mkdir -p $$TEMP_DIR/$$ROOT_DIR; \
 	for arch in x86_64 aarch64 armhf x86 riscv64; do \
 		mkdir -p $$TEMP_DIR/$$ROOT_DIR/$$arch; \
@@ -283,7 +283,7 @@ all-tarball: all-build
 
 bump:
 	@echo "$(NEW)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$' || { echo "Usage: make bump NEW=x.y.z"; exit 1; }
-	@sed -i 's/define DS_VERSION ".*"/define DS_VERSION "$(NEW)"/' $(SRC_DIR)/include/droidspaces.h
+	@sed -i 's/define CHDROID_VERSION ".*"/define CHDROID_VERSION "$(NEW)"/' $(SRC_DIR)/include/chdroid.h
 	@echo "[+] Version $(VERSION) -> $(NEW). Commit it, then tag v$(NEW) to release."
 
 format:

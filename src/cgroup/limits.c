@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -119,10 +119,10 @@ void ds_cgroup_apply_limits(struct ds_config *cfg) {
     /* The command line refuses a value this low. A config file can still
      * carry one, and a container that cannot boot helps nobody, so raise it
      * here, where it is said once per boot and not on every config load. */
-    if (cfg->pids_limit < DS_MIN_PIDS_LIMIT) {
+    if (cfg->pids_limit < CHDROID_MIN_PICHDROID_LIMIT) {
       ds_warn("[CGROUP] pids_limit %lld is too low to boot under, using %d.",
-              cfg->pids_limit, DS_MIN_PIDS_LIMIT);
-      cfg->pids_limit = DS_MIN_PIDS_LIMIT;
+              cfg->pids_limit, CHDROID_MIN_PICHDROID_LIMIT);
+      cfg->pids_limit = CHDROID_MIN_PICHDROID_LIMIT;
     }
     snprintf(val, sizeof(val), "%lld", cfg->pids_limit);
     if (!apply_limit(

@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* A child user namespace may mount a fresh proc or sysfs only if some
  * instance of it in this mount namespace is "fully visible": the root of the
@@ -13,7 +13,7 @@
  * read-only when the new mount is read-write (mnt_already_visible in
  * fs/namespace.c).  Every jail mask and every vproc bind disqualifies /proc
  * and /sys, so runc and bwrap fail with EPERM.  The kernel accepts any
- * instance anywhere, so give it one under /run/droidspaces, the same trick
+ * instance anywhere, so give it one under /run/chdroid, the same trick
  * as LXC's nesting.conf.
  *
  * Rules that must hold or the check fails again: never bind anything on top
@@ -23,15 +23,15 @@
  * bwrap does not mount it at all.
  *
  * The proc instance is unmasked, so container root can reach the host
- * sysctls through /run/droidspaces/proc.  That is the price of
+ * sysctls through /run/chdroid/proc.  That is the price of
  * --allow-sandboxing and the help text says so. */
 static void mount_pristine_proc_sys(void) {
-  mkdir("run/droidspaces/proc", 0755);
-  mkdir("run/droidspaces/sys", 0755);
-  if (domount("proc", "run/droidspaces/proc", "proc",
+  mkdir("run/chdroid/proc", 0755);
+  mkdir("run/chdroid/sys", 0755);
+  if (domount("proc", "run/chdroid/proc", "proc",
               MS_NOSUID | MS_NODEV | MS_NOEXEC, NULL) < 0)
     ds_warn("[SEC] pristine proc for sandboxing failed: %s", strerror(errno));
-  if (domount("sysfs", "run/droidspaces/sys", "sysfs",
+  if (domount("sysfs", "run/chdroid/sys", "sysfs",
               MS_RDONLY | MS_NOSUID | MS_NODEV | MS_NOEXEC, NULL) < 0)
     ds_warn("[SEC] pristine sysfs for sandboxing failed: %s", strerror(errno));
 }
@@ -63,10 +63,10 @@ int internal_boot(struct ds_config *cfg) {
    *   3. Block on net_done_pipe[0] until monitor finishes veth setup.
    *   4. Call setup_veth_child_side_named() with the received handshake.
    *
-   * For DS_NET_NONE: we still do the pipe exchange (monitor sends an empty
+   * For CHDROID_NET_NONE: we still do the pipe exchange (monitor sends an empty
    * handshake) so loopback is still configured.  No veth is created.
    */
-  if (cfg->net_mode != DS_NET_HOST) {
+  if (cfg->net_mode != CHDROID_NET_HOST) {
     ds_log("[NET] Child: net_mode=%d - starting handshake with monitor",
            cfg->net_mode);
 
@@ -95,7 +95,7 @@ int internal_boot(struct ds_config *cfg) {
       if (nr != (ssize_t)sizeof(hs)) {
         ds_warn("[NET] Child: incomplete handshake (read %zd, expected %zu)",
                 nr, sizeof(hs));
-      } else if (cfg->net_mode != DS_NET_NAT) {
+      } else if (cfg->net_mode != CHDROID_NET_NAT) {
         ds_log("[NET] Child: handshake received");
       } else {
         ds_log("[NET] Child: handshake received: peer=%s ip=%s", hs.peer_name,
@@ -103,8 +103,8 @@ int internal_boot(struct ds_config *cfg) {
       }
     }
 
-    /* Configure our side of the veth (or just loopback for DS_NET_NONE) */
-    if (cfg->net_mode == DS_NET_NAT || cfg->net_mode == DS_NET_GATEWAY) {
+    /* Configure our side of the veth (or just loopback for CHDROID_NET_NONE) */
+    if (cfg->net_mode == CHDROID_NET_NAT || cfg->net_mode == CHDROID_NET_GATEWAY) {
       setup_veth_child_side_named(cfg, hs.peer_name, hs.ip_str);
     } else {
       /* none: just loopback. macvlan: the same, its eth0 is created and
@@ -144,7 +144,7 @@ int internal_boot(struct ds_config *cfg) {
 
   /* Init family was classified before fork in start_rootfs().
    * Boot-time setup only needs to know whether that family is systemd. */
-  int is_systemd = (cfg->init_type == DS_INIT_SYSTEMD);
+  int is_systemd = (cfg->init_type == CHDROID_INIT_SYSTEMD);
 
   /* 3. Setup volatile overlay INSIDE the container's mount namespace.
    * This MUST happen here (not in parent) so the overlay's connection to
@@ -167,7 +167,7 @@ int internal_boot(struct ds_config *cfg) {
    * fresh boot, restart, AND internal reboot.
    *
    * On shutdown/reboot OpenWrt remounts its root read-only, leaving our mount
-   * point under /mnt/Droidspaces/<name> read-only too.  External and internal
+   * point under /mnt/ChDroid/<name> read-only too.  External and internal
    * reboots never unmount the rootfs.img (to keep restarts fast), so the next
    * boot reuses that still-read-only mount and pivot_root fails to create
    * .old_root ("Read-only file system") - the container never boots.
@@ -191,7 +191,7 @@ int internal_boot(struct ds_config *cfg) {
 
   /* 6. Older builds handed the uuid across pivot_root in this file. cfg
    * carries it in memory, so only the leftover goes. */
-  unlink(".droidspaces-uuid");
+  unlink(".chdroid-uuid");
 
   /* 7. pivot_root parks the old root in .old_root, so that one must exist;
    * the rest are mountpoints a rootfs normally ships anyway. */
@@ -242,7 +242,7 @@ int internal_boot(struct ds_config *cfg) {
    * we add to a running gateway later is skipped, and needs nothing: all of
    * it comes from a client's host end, already steered. A cable some other
    * tool plugs in (VirtualAP's vaplan0) has to set its own. */
-  if (cfg->net_mode == DS_NET_NAT || cfg->net_mode == DS_NET_GATEWAY) {
+  if (cfg->net_mode == CHDROID_NET_NAT || cfg->net_mode == CHDROID_NET_GATEWAY) {
     DIR *nd = opendir("sys/class/net");
     if (nd) {
       struct dirent *de;
@@ -376,7 +376,7 @@ int internal_boot(struct ds_config *cfg) {
 
   /* 17b. Apply deferred mount propagation settings.
    * Switch to MS_SHARED only after relocation is complete. */
-  if (cfg->privileged_mask & DS_PRIV_SHARED) {
+  if (cfg->privileged_mask & CHDROID_PRIV_SHARED) {
     if (mount(NULL, "/", NULL, MS_REC | MS_SHARED, NULL) < 0) {
       ds_warn("[SEC] Failed to apply MS_SHARED propagation: %s",
               strerror(errno));
@@ -405,7 +405,7 @@ int internal_boot(struct ds_config *cfg) {
     if (ioctl(STDIN_FILENO, TIOCGWINSZ, &ws) == 0)
       ioctl(con.master, TIOCSWINSZ, &ws);
     fchmod(con.slave, 0620);
-    if (fchown(con.slave, 0, DS_DEFAULT_TTY_GID) < 0) {
+    if (fchown(con.slave, 0, CHDROID_DEFAULT_TTY_GID) < 0) {
       /* best-effort */
     }
     char src[64];
@@ -448,22 +448,22 @@ int internal_boot(struct ds_config *cfg) {
 
   if (!cfg->reboot_cycle)
     ds_log("Booting '%s' (init: %s)...", cfg->container_name,
-           cfg->custom_init[0] ? cfg->custom_init : DS_DEFAULT_INIT);
+           cfg->custom_init[0] ? cfg->custom_init : CHDROID_DEFAULT_INIT);
 
   /* 20b. The config this boot uses, for the guest to read: scripts inside
    * check net_mode= or enable_x11= here. It is information only, read-only,
    * and the host never reads it back. Root in here can rewrite it, so what
    * the container booted with comes from its monitor (container/command.c). */
-  mkdir("run/droidspaces", 0755);
+  mkdir("run/chdroid", 0755);
   if (cfg->sandboxing_allowed)
     mount_pristine_proc_sys();
-  if (ds_config_save("run/droidspaces/container.config", cfg) < 0)
+  if (ds_config_save("run/chdroid/container.config", cfg) < 0)
     ds_warn("Boot: Failed to save internal configuration backup");
   else
-    chmod("run/droidspaces/container.config", 0444);
+    chmod("run/chdroid/container.config", 0444);
 
   /* Legacy compatibility: write version to the marker directory root */
-  write_file("run/droidspaces/version", DS_VERSION);
+  write_file("run/chdroid/version", CHDROID_VERSION);
   if (cfg->foreground) {
     printf(C_BOLD C_WHITE "\r\n(to exit from the foreground mode, press "
                           "CTRL+ALT+Q)\r\n" C_RESET);
@@ -484,19 +484,19 @@ int internal_boot(struct ds_config *cfg) {
   }
 
   /* 22. Set container identity for systemd/openrc */
-  write_file(DS_SYSTEMD_CONTAINER_MARKER, "droidspaces");
+  write_file(CHDROID_SYSTEMD_CONTAINER_MARKER, "chdroid");
 
   /* 23. Clear environment and set container defaults */
   ds_env_boot_setup(cfg);
-  ds_env_save("/run/droidspaces.env", cfg);
+  ds_env_save("/run/chdroid.env", cfg);
 
   /* 23b. Integration with /etc/profile.d for universal sourcing */
   if (access("/etc/profile.d", F_OK) == 0) {
-    const char *profile_link = "/etc/profile.d/droidspaces_env.sh";
+    const char *profile_link = "/etc/profile.d/chdroid_env.sh";
     /* Always recreate - avoids TOCTOU and fixes stale symlinks after rootfs
      * swap */
     unlink(profile_link);
-    if (symlink("/run/droidspaces.env", profile_link) < 0 && errno != EEXIST) {
+    if (symlink("/run/chdroid.env", profile_link) < 0 && errno != EEXIST) {
       ds_warn("Failed to create profile.d symlink: %s", strerror(errno));
     }
   }
@@ -536,7 +536,7 @@ int internal_boot(struct ds_config *cfg) {
       /* Sticky permissions again just in case systemd's TTYReset stripped them
        */
       fchmod(console_fd, 0620);
-      if (fchown(console_fd, 0, DS_DEFAULT_TTY_GID) < 0) {
+      if (fchown(console_fd, 0, CHDROID_DEFAULT_TTY_GID) < 0) {
         /* best-effort, ignore EPERM */
       }
       if (console_fd > 2)
@@ -546,7 +546,7 @@ int internal_boot(struct ds_config *cfg) {
 
   /* 25. EXEC INIT */
   char *init_bin =
-      cfg->custom_init[0] ? cfg->custom_init : (char *)DS_DEFAULT_INIT;
+      cfg->custom_init[0] ? cfg->custom_init : (char *)CHDROID_DEFAULT_INIT;
   char *init_args[16];
   int argc = 0;
   init_args[argc++] = init_bin;

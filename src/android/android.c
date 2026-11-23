@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #define _GNU_SOURCE
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <fcntl.h>
 #include <grp.h>
 

@@ -2,8 +2,8 @@
 title: Android installation
 section: Basics
 order: 1
-desc: Install Droidspaces on a rooted Android device: install the APK, let the app set up the backend, and create a Linux container without typing a terminal command.
-keywords: install, droidspaces, android, rooted, container, apk, backend, sparse, image, linux, kernelsu, magisk, apatch
+desc: Install ChDroid on a rooted Android device: install the APK, let the app set up the backend, and create a Linux container without typing a terminal command.
+keywords: install, chdroid, android, rooted, container, apk, backend, sparse, image, linux, kernelsu, magisk, apatch
 -->
 
 # Android installation
@@ -16,7 +16,7 @@ You need two things.
 
 **Root.** KernelSU is the recommended root method. Magisk and APatch work as well. Their root shells carry a seccomp filter that blocks what a container runtime needs, which is why the backend runs as a daemon started at boot rather than from the shell. That is the default, and the reboot the app asks for after installing is all it takes.
 
-**A kernel with container support.** Most stock kernels are missing options that Droidspaces needs, especially PID and IPC namespaces. The [kernel configuration guide](Kernel-Configuration.md) lists them and explains how to build a kernel with them. If you would rather not build one, the [community-supported devices](community-supported-devices.md) page links to kernels other users have built. The app tells you on first launch whether your kernel is supported.
+**A kernel with container support.** Most stock kernels are missing options that ChDroid needs, especially PID and IPC namespaces. The [kernel configuration guide](Kernel-Configuration.md) lists them and explains how to build a kernel with them. If you would rather not build one, the [community-supported devices](community-supported-devices.md) page links to kernels other users have built. The app tells you on first launch whether your kernel is supported.
 
 > [!CAUTION]
 >
@@ -26,12 +26,12 @@ You need two things.
 
 ## Step 1: Install the app
 
-1. Download the APK from the [latest release](https://github.com/ravindu644/Droidspaces-OSS/releases/latest) and install it.
-2. On KernelSU and APatch, allow root for the Droidspaces app in your root manager first. Magisk asks when the app requests it.
+1. Download the APK from the [latest release](https://github.com/Mafiadan6/ChDroid/releases/latest) and install it.
+2. On KernelSU and APatch, allow root for the ChDroid app in your root manager first. Magisk asks when the app requests it.
 3. Open the app and tap **Get Started**.
 4. Tap **Check Root Access** and, on Magisk, allow the request.
-5. The app installs the backend on its own: the `droidspaces` binary and a static BusyBox go to `/data/local/Droidspaces/bin`, and a small boot module goes to your root manager so the daemon and your containers can start at boot. This takes a few seconds.
-6. Read the result. "Droidspaces backend installed successfully" means your kernel passed the probe. If it says the kernel has no Droidspaces support, go to the [kernel configuration guide](Kernel-Configuration.md) before continuing.
+5. The app installs the backend on its own: the `chdroid` binary and a static BusyBox go to `/data/local/ChDroid/bin`, and a small boot module goes to your root manager so the daemon and your containers can start at boot. This takes a few seconds.
+6. Read the result. "ChDroid backend installed successfully" means your kernel passed the probe. If it says the kernel has no ChDroid support, go to the [kernel configuration guide](Kernel-Configuration.md) before continuing.
 7. Reboot when the app asks. The reboot applies the SELinux rules the backend needs and starts the daemon.
 
 After the reboot, on a supported kernel, the **Home** tab shows "Backend: Installed" with a "DAEMON" chip, and your kernel version, SELinux status and architecture underneath.
@@ -42,7 +42,7 @@ Open the **Containers** tab and tap **+**. You get two choices.
 
 ### From the repository
 
-**Repository** opens a list of distributions built for Droidspaces, filtered to your device's architecture. Ubuntu, Debian, Fedora, Arch, Alpine, OpenWrt and others are there, and some come with a desktop environment already wired up.
+**Repository** opens a list of distributions built for ChDroid, filtered to your device's architecture. Ubuntu, Debian, Fedora, Arch, Alpine, OpenWrt and others are there, and some come with a desktop environment already wired up.
 
 1. Pick a distribution and tap **Download**. The file goes to your Downloads folder, and a notification tells you when it is done.
 2. Tap **Install** on the same card.

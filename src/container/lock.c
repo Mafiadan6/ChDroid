@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <sys/file.h>
 
 #include "internal.h"
@@ -25,8 +25,8 @@
  * as long as it lives. It answers one question for the pidfile pruners in
  * container/: is somebody still responsible for this container's leftovers? */
 
-#define DS_EXT_MONITOR ".monitor"
-#define DS_EXT_HELPERS ".helpers"
+#define CHDROID_EXT_MONITOR ".monitor"
+#define CHDROID_EXT_HELPERS ".helpers"
 
 /* Four is enough: a monitor holds at most supervision, helpers and, while it
  * acts on its container's exit, the lifecycle lock. The path is kept so that
@@ -144,7 +144,7 @@ static void unlock_file(int fd) {
  * Returns an fd for ds_container_unlock(), or -1. */
 int ds_container_lock(const char *name, int wait) {
   char path[PATH_MAX];
-  if (get_lock_path(name, DS_EXT_LOCK, path, sizeof(path)) < 0) {
+  if (get_lock_path(name, CHDROID_EXT_LOCK, path, sizeof(path)) < 0) {
     errno = EINVAL;
     return -1;
   }
@@ -179,7 +179,7 @@ static int g_supervision_fd = -1;
 
 void ds_container_claim_supervision(const char *name) {
   char path[PATH_MAX];
-  if (get_lock_path(name, DS_EXT_MONITOR, path, sizeof(path)) == 0)
+  if (get_lock_path(name, CHDROID_EXT_MONITOR, path, sizeof(path)) == 0)
     g_supervision_fd = lock_file(path, LOCK_SH);
 }
 
@@ -214,7 +214,7 @@ static int probe_free(const char *name, const char *ext) {
  * released its supervision file, and nothing else takes it. A live monitor
  * holds it shared, so this is a no-op while one exists. */
 void ds_container_prune_supervision(const char *name) {
-  probe_free(name, DS_EXT_MONITOR);
+  probe_free(name, CHDROID_EXT_MONITOR);
 }
 
 /* Held by the monitor for exactly the life of its route monitor thread. That
@@ -225,7 +225,7 @@ void ds_container_prune_supervision(const char *name) {
  * hang in its handshake. Returns an fd for ds_container_unlock(), or -1. */
 int ds_container_lock_helpers(const char *name) {
   char path[PATH_MAX];
-  if (get_lock_path(name, DS_EXT_HELPERS, path, sizeof(path)) < 0)
+  if (get_lock_path(name, CHDROID_EXT_HELPERS, path, sizeof(path)) < 0)
     return -1;
   return lock_file(path, LOCK_EX | LOCK_NB);
 }
@@ -236,7 +236,7 @@ int ds_container_lock_helpers(const char *name) {
  * the holder is then a monitor that is wedged, not one winding down. */
 void ds_container_wait_helpers(const char *name, int timeout_ms) {
   for (int waited = 0;; waited += 20) {
-    if (probe_free(name, DS_EXT_HELPERS) == 0)
+    if (probe_free(name, CHDROID_EXT_HELPERS) == 0)
       return;
     if (waited >= timeout_ms) {
       ds_warn("Could not confirm that the monitor for '%s' stopped its "
@@ -259,14 +259,14 @@ int ds_container_lock_orphan(const char *name) {
   if (fd < 0)
     return -1;
 
-  if (probe_free(name, DS_EXT_MONITOR) < 0) {
+  if (probe_free(name, CHDROID_EXT_MONITOR) < 0) {
     ds_container_unlock(fd);
     return -1;
   }
   /* No monitor, so nobody holds the helpers lock either: a monitor killed
    * with -9 while its route monitor ran leaves the file, and only a stop
    * would otherwise ever look at it. */
-  probe_free(name, DS_EXT_HELPERS);
+  probe_free(name, CHDROID_EXT_HELPERS);
   return fd;
 }
 
@@ -279,7 +279,7 @@ int lifecycle_lock_or_complain(struct ds_config *cfg, const char *verb) {
     ds_error("Cannot %s '%s': another operation is in progress on this "
              "container",
              verb, cfg->container_name);
-    ds_error("Wait for it to complete, or use 'droidspaces show' to check "
+    ds_error("Wait for it to complete, or use 'chdroid show' to check "
              "status");
   } else {
     ds_error("Cannot %s '%s': failed to take the container lock: %s", verb,

@@ -2,15 +2,15 @@
 title: Linux CLI
 section: Guides
 order: 3
-desc: droidspaces 命令行参考：每条命令、每个参数，以及配置文件中的键。
-keywords: droidspaces, cli, linux, container, command, line, reference, flags, config, file
+desc: chdroid 命令行参考：每条命令、每个参数，以及配置文件中的键。
+keywords: chdroid, cli, linux, container, command, line, reference, flags, config, file
 -->
 
 # 命令行参考
 
-`droidspaces` 二进制在 Linux 和 Android 上是同一个，命令和参数也一样。在 Android 上，应用会把它安装到 `/data/local/Droidspaces/bin/droidspaces`，**将 Droidspaces 集成到系统路径中** 设置会把它放进 root shell 的 `PATH`。
+`chdroid` 二进制在 Linux 和 Android 上是同一个，命令和参数也一样。在 Android 上，应用会把它安装到 `/data/local/ChDroid/bin/chdroid`，**将 ChDroid 集成到系统路径中** 设置会把它放进 root shell 的 `PATH`。
 
-参数和命令可以以任意顺序出现，短形式和长形式可以互换，`=` 是可选的：`droidspaces -n web start` 和 `droidspaces start --name=web` 等价。`droidspaces docs` 会在分页器中离线显示同一份参考。
+参数和命令可以以任意顺序出现，短形式和长形式可以互换，`=` 是可选的：`chdroid -n web start` 和 `chdroid start --name=web` 等价。`chdroid docs` 会在分页器中离线显示同一份参考。
 
 ## 命令
 
@@ -25,14 +25,14 @@ keywords: droidspaces, cli, linux, container, command, line, reference, flags, c
 | `info` | 显示容器的设置和状态。配合 `--json` 时输出 JSON。 |
 | `pid` | 打印容器 init 的 PID，或 `NONE`。 |
 | `scan` | 找出宿主侧记录丢失的运行中容器，并重新登记。 |
-| `check` | 探测内核是否具备 Droidspaces 使用的一切。配合 `--json` 时输出 JSON，每项探测为 `0` 或 `1`，另有 `requirements_met`。 |
+| `check` | 探测内核是否具备 ChDroid 使用的一切。配合 `--json` 时输出 JSON，每项探测为 `0` 或 `1`，另有 `requirements_met`。 |
 | `daemon` | 启动守护进程。`--foreground` 让它附着在终端上，供服务管理器使用。 |
 | `mode` | 如果有守护进程在应答，打印 `daemon`，否则打印 `direct`。 |
 | `docs`、`help`、`version` | 内置文档、参数摘要和版本。 |
 
 除 `check`、`docs`、`help`、`version` 和 `mode` 外，每个命令都需要 root。当恰好只有一个容器在运行时，`stop`、`restart`、`enter`、`run`、`info` 和 `pid` 可以省略 `--name`。
 
-如果守护进程在运行，CLI 会把命令交给它，因此 `droidspaces` 组的成员无需 `sudo` 即可使用 CLI。在环境中设置 `DS_NO_PROXY=1` 会让二进制自己完成工作。
+如果守护进程在运行，CLI 会把命令交给它，因此 `chdroid` 组的成员无需 `sudo` 即可使用 CLI。在环境中设置 `CHDROID_NO_PROXY=1` 会让二进制自己完成工作。
 
 ## 参数
 
@@ -109,12 +109,12 @@ keywords: droidspaces, cli, linux, container, command, line, reference, flags, c
 
 ## 配置文件
 
-一个普通的 `key=value` 文件，每行一个键，键名来自上面的表格。Droidspaces 按以下顺序查找：`--config` 指定的文件，然后 rootfs 旁边的 `container.config`，最后是工作目录中的 `Containers/<name>/container.config`。工作目录在 Linux 上是 `/var/lib/Droidspaces`，在 Android 上是 `/data/local/Droidspaces`。
+一个普通的 `key=value` 文件，每行一个键，键名来自上面的表格。ChDroid 按以下顺序查找：`--config` 指定的文件，然后 rootfs 旁边的 `container.config`，最后是工作目录中的 `Containers/<name>/container.config`。工作目录在 Linux 上是 `/var/lib/ChDroid`，在 Android 上是 `/data/local/ChDroid`。
 
 ```ini
 name=web
 hostname=web
-rootfs_path=/var/lib/Droidspaces/Containers/web/rootfs.img
+rootfs_path=/var/lib/ChDroid/Containers/web/rootfs.img
 net_mode=nat
 port_forwards=80:80,443:443
 bind_mounts=/srv/www:/var/www:ro
@@ -124,39 +124,39 @@ cpu_period=100000
 allow_sandboxing=1
 ```
 
-布尔键取 `0` 或 `1`。后端不认识的键（例如 App 的 `run_at_boot`）会原样保留。容器运行时，它启动时使用的配置可以在容器内的 `/run/droidspaces/container.config` 看到。这份副本是只读的，供容器内的脚本读取：修改它不会产生任何效果，因为主机从不读取它。
+布尔键取 `0` 或 `1`。后端不认识的键（例如 App 的 `run_at_boot`）会原样保留。容器运行时，它启动时使用的配置可以在容器内的 `/run/chdroid/container.config` 看到。这份副本是只读的，供容器内的脚本读取：修改它不会产生任何效果，因为主机从不读取它。
 
 ## 示例
 
 ```bash
 # 第一次从镜像创建容器，并转发一个端口
-sudo droidspaces --name=web --rootfs-img=/srv/web.img --port=8080:80 start
+sudo chdroid --name=web --rootfs-img=/srv/web.img --port=8080:80 start
 
 # 之后的启动只需要容器名
-sudo droidspaces --name=web start
+sudo chdroid --name=web start
 
 # 在控制台上观察启动过程
-sudo droidspaces --name=web --foreground start
+sudo chdroid --name=web --foreground start
 
 # 以指定用户进入 shell，以及带管道的单次命令
-sudo droidspaces --name=web enter alice
-sudo droidspaces --name=web run sh -c 'ps aux | grep nginx'
+sudo chdroid --name=web enter alice
+sudo chdroid --name=web run sh -c 'ps aux | grep nginx'
 
 # 把脚本通过管道送进容器
-sudo droidspaces --name=web --stdin run sh -s < setup.sh
+sudo chdroid --name=web --stdin run sh -s < setup.sh
 
 # 一台 OpenWrt 路由器，以及一个位于它后面的客户端
-sudo droidspaces --name=openwrt --rootfs=/srv/openwrt --net=nat start
-sudo droidspaces --name=kali --rootfs=/srv/kali --net=gateway --gateway=openwrt start
+sudo chdroid --name=openwrt --rootfs=/srv/openwrt --net=nat start
+sudo chdroid --name=kali --rootfs=/srv/kali --net=gateway --gateway=openwrt start
 
 # 接入有线 LAN 并拥有自己地址的容器
-sudo droidspaces --name=ubuntu --rootfs=/srv/ubuntu --net=macvlan --macvlan-parent=eth0 start
+sudo chdroid --name=ubuntu --rootfs=/srv/ubuntu --net=macvlan --macvlan-parent=eth0 start
 
 # 试用一下，不保留
-sudo droidspaces --name=scratch --rootfs=/srv/ubuntu --volatile start
+sudo chdroid --name=scratch --rootfs=/srv/ubuntu --volatile start
 
 # 以 JSON 查看正在运行的容器
-sudo droidspaces --json show
+sudo chdroid --json show
 ```
 
 ## 文件位置
@@ -165,8 +165,8 @@ sudo droidspaces --json show
 |------|----------|
 | `<workspace>/Containers/<name>/` | 容器的配置；对于由 App 安装的容器，还包括其 rootfs |
 | `<workspace>/Logs/<name>/` | 每次启动、停止和重启的日志 |
-| `<workspace>/Logs/droidspacesd.log` | 守护进程日志 |
-| `/mnt/Droidspaces/<name>` | 容器运行期间镜像 rootfs 的挂载位置 |
+| `<workspace>/Logs/chdroidd.log` | 守护进程日志 |
+| `/mnt/ChDroid/<name>` | 容器运行期间镜像 rootfs 的挂载位置 |
 
 ---
 

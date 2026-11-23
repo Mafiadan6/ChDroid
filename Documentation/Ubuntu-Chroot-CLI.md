@@ -1,6 +1,6 @@
 # Ubuntu-Chroot CLI on any rooted phone
 
-ChDroid turns Droidspaces-OSS into a front end for the **Ubuntu-Chroot v4.4 CLI** release. It runs on any rooted device — Magisk, KernelSU, APatch, a late-loaded `su`, or a plain root shell. There is no root-method detection, no mode toggle, and no branch in the code that behaves differently per root solution.
+ChDroid turns ChDroid-OSS into a front end for the **Ubuntu-Chroot v4.4 CLI** release. It runs on any rooted device — Magisk, KernelSU, APatch, a late-loaded `su`, or a plain root shell. There is no root-method detection, no mode toggle, and no branch in the code that behaves differently per root solution.
 
 Ubuntu-Chroot's own `chroot.sh` owns the namespace, mounts, DNS and login shell. ChDroid is the UI and the terminal in front of it.
 
@@ -8,33 +8,33 @@ Rootfs releases come from ChDroid's own [ChDroid-rootfs](https://github.com/Mafi
 
 ## Design
 
-| Area | Stock Droidspaces | ChDroid |
+| Area | Stock ChDroid | ChDroid |
 |------|-------------------|-----------|
-| App id | `com.droidspaces.app` | `com.chdroid.app` (installs beside stock) |
-| Backend status | requires `/data/adb/modules/droidspaces` | both binaries present and executable is enough |
+| App id | `com.chdroid.app` | `com.chdroid.app` (installs beside stock) |
+| Backend status | requires `/data/adb/modules/chdroid` | both binaries present and executable is enough |
 | Installation | writes boot module, suggests reboot | copies binaries, starts the daemon in-session |
 | Boot module | `post-fs-data.sh`, `service.sh`, `sepolicy.rule` | not shipped, not installed, not needed |
-| Rootfs repo | Droidspaces generic tarballs | ChDroid-rootfs manifest, clean v4.4 CLI release only |
-| Rootfs install | Droidspaces tarball pipeline | `install_ubuntu_chroot_cli.sh` installs the clean release files directly |
-| Shell | Droidspaces container login | `sh /data/local/ubuntu-chroot/chroot.sh start root` |
+| Rootfs repo | ChDroid generic tarballs | ChDroid-rootfs manifest, clean v4.4 CLI release only |
+| Rootfs install | ChDroid tarball pipeline | `install_ubuntu_chroot_cli.sh` installs the clean release files directly |
+| Shell | ChDroid container login | `sh /data/local/ubuntu-chroot/chroot.sh start root` |
 
 Nothing is written to `/data/adb/modules`. Nothing depends on a reboot. Root can come from anywhere.
 
 ## Install flow
 
 1. Install the fork APK. Grant root when prompted.
-2. Open **Installation** and install the backend. Binaries are copied to `/data/local/Droidspaces/bin` and the daemon is started in the current root session. No module is written, no reboot is suggested.
+2. Open **Installation** and install the backend. Binaries are copied to `/data/local/ChDroid/bin` and the daemon is started in the current root session. No module is written, no reboot is suggested.
 3. Open **Containers → + → Get Ubuntu rootfs**. ChDroid fetches the manifest from ChDroid-rootfs. Two built-in entries exist:
    - `Ubuntu 24.04 CLI rootfs (ChDroid)` — 520 MB ZIP (`ChDroid-rootfs-v4.4-20260323.zip`), build `20260323`
    - `Arch Linux Minimal (ChDroid)` — 108 MB ZIP (`ChDroid-arch-rootfs-minimal-20261029.zip`), kernel 5.10+ required
 4. Download it, then install it. `install_ubuntu_chroot_cli.sh` extracts the static busybox, `chroot.sh`, `post_exec.sh`, the helper tools and the rootfs tarball (`.tar.gz` for Ubuntu, `.tar.xz` for Arch) straight from the clean ZIP into `/data/local/ubuntu-chroot`. No module packaging, no `module.prop` — metadata comes from `manifest.json`. Reinstalling the same distro keeps your rootfs data; installing a different one stops the chroot and replaces the old rootfs.
 5. Use **Settings → Start Ubuntu chroot** to set up the namespace and mounts, or **Open Ubuntu terminal** to drop straight into the Ubuntu shell.
 
-The app never creates a Droidspaces `container.config` for this rootfs and never writes an init. That is deliberate: `chroot.sh` does all of it.
+The app never creates a ChDroid `container.config` for this rootfs and never writes an init. That is deliberate: `chroot.sh` does all of it.
 
 ## The in-app terminal
 
-A blank container route (`terminal/`) is the Ubuntu-Chroot shell. `DroidspacesTerminalSession` runs:
+A blank container route (`terminal/`) is the Ubuntu-Chroot shell. `ChDroidTerminalSession` runs:
 
 ```sh
 sh /data/local/ubuntu-chroot/chroot.sh start root

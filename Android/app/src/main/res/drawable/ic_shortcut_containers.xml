@@ -1,4 +1,4 @@
-<!-- Launcher shortcut icon: Containers tab (matches DsIcons.Logo, the app mark) -->
+<!-- Launcher shortcut icon: Containers tab (matches ChDroidIcons.Logo, the app mark) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"

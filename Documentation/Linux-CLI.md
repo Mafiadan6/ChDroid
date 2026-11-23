@@ -2,15 +2,15 @@
 title: Linux CLI
 section: Guides
 order: 3
-desc: Reference for the droidspaces command line: every command, every flag, and the config file keys.
-keywords: droidspaces, cli, linux, container, command, line, reference, flags, config, file
+desc: Reference for the chdroid command line: every command, every flag, and the config file keys.
+keywords: chdroid, cli, linux, container, command, line, reference, flags, config, file
 -->
 
 # Command line reference
 
-The `droidspaces` binary is the same on Linux and Android, and so are its commands and flags. On Android the app installs it at `/data/local/Droidspaces/bin/droidspaces`, and the **Integrate Droidspaces to the system path** setting puts it on the `PATH` of root shells.
+The `chdroid` binary is the same on Linux and Android, and so are its commands and flags. On Android the app installs it at `/data/local/ChDroid/bin/chdroid`, and the **Integrate ChDroid to the system path** setting puts it on the `PATH` of root shells.
 
-Flags and the command can come in any order, short and long forms are interchangeable, and `=` is optional: `droidspaces -n web start` and `droidspaces start --name=web` are the same. `droidspaces docs` shows the same reference in a pager, offline.
+Flags and the command can come in any order, short and long forms are interchangeable, and `=` is optional: `chdroid -n web start` and `chdroid start --name=web` are the same. `chdroid docs` shows the same reference in a pager, offline.
 
 ## Commands
 
@@ -25,14 +25,14 @@ Flags and the command can come in any order, short and long forms are interchang
 | `info` | Shows a container's settings and state. With `--json`, JSON. |
 | `pid` | Prints the PID of the container's init, or `NONE`. |
 | `scan` | Finds running containers whose host-side records were lost and registers them again. |
-| `check` | Probes the kernel for everything Droidspaces uses. With `--json`, JSON with one `0` or `1` per probe and `requirements_met`. |
+| `check` | Probes the kernel for everything ChDroid uses. With `--json`, JSON with one `0` or `1` per probe and `requirements_met`. |
 | `daemon` | Starts the daemon. `--foreground` keeps it attached to the terminal, for a service manager. |
 | `mode` | Prints `daemon` if a daemon is answering, otherwise `direct`. |
 | `docs`, `help`, `version` | The built-in documentation, the flag summary, and the version. |
 
 Every command except `check`, `docs`, `help`, `version` and `mode` needs root. When exactly one container is running, `--name` can be left out of `stop`, `restart`, `enter`, `run`, `info` and `pid`.
 
-If a daemon is running, the CLI hands the command to it, so members of the `droidspaces` group can use the CLI without `sudo`. `DS_NO_PROXY=1` in the environment makes the binary do the work itself.
+If a daemon is running, the CLI hands the command to it, so members of the `chdroid` group can use the CLI without `sudo`. `CHDROID_NO_PROXY=1` in the environment makes the binary do the work itself.
 
 ## Flags
 
@@ -109,12 +109,12 @@ Each flag that configures the container is saved in its config file on `start`, 
 
 ## The config file
 
-A plain `key=value` file, one key per line, with the keys from the tables above. Droidspaces looks for it in this order: the file named by `--config`, then `container.config` next to the rootfs, then `Containers/<name>/container.config` in the workspace. The workspace is `/var/lib/Droidspaces` on Linux and `/data/local/Droidspaces` on Android.
+A plain `key=value` file, one key per line, with the keys from the tables above. ChDroid looks for it in this order: the file named by `--config`, then `container.config` next to the rootfs, then `Containers/<name>/container.config` in the workspace. The workspace is `/var/lib/ChDroid` on Linux and `/data/local/ChDroid` on Android.
 
 ```ini
 name=web
 hostname=web
-rootfs_path=/var/lib/Droidspaces/Containers/web/rootfs.img
+rootfs_path=/var/lib/ChDroid/Containers/web/rootfs.img
 net_mode=nat
 port_forwards=80:80,443:443
 bind_mounts=/srv/www:/var/www:ro
@@ -124,39 +124,39 @@ cpu_period=100000
 allow_sandboxing=1
 ```
 
-Boolean keys take `0` or `1`. Keys the backend does not know, such as the app's `run_at_boot`, are kept in place. While a container runs, the config it booted with is visible inside it at `/run/droidspaces/container.config`. That copy is read-only and there for scripts inside the container: changing it has no effect, since the host never reads it.
+Boolean keys take `0` or `1`. Keys the backend does not know, such as the app's `run_at_boot`, are kept in place. While a container runs, the config it booted with is visible inside it at `/run/chdroid/container.config`. That copy is read-only and there for scripts inside the container: changing it has no effect, since the host never reads it.
 
 ## Examples
 
 ```bash
 # A first container from an image, with a port forwarded
-sudo droidspaces --name=web --rootfs-img=/srv/web.img --port=8080:80 start
+sudo chdroid --name=web --rootfs-img=/srv/web.img --port=8080:80 start
 
 # Later starts need only the name
-sudo droidspaces --name=web start
+sudo chdroid --name=web start
 
 # Watch the boot on the console
-sudo droidspaces --name=web --foreground start
+sudo chdroid --name=web --foreground start
 
 # A shell as a user, and a one-off command with a pipe
-sudo droidspaces --name=web enter alice
-sudo droidspaces --name=web run sh -c 'ps aux | grep nginx'
+sudo chdroid --name=web enter alice
+sudo chdroid --name=web run sh -c 'ps aux | grep nginx'
 
 # A script piped into the container
-sudo droidspaces --name=web --stdin run sh -s < setup.sh
+sudo chdroid --name=web --stdin run sh -s < setup.sh
 
 # An OpenWrt router and a client that lives behind it
-sudo droidspaces --name=openwrt --rootfs=/srv/openwrt --net=nat start
-sudo droidspaces --name=kali --rootfs=/srv/kali --net=gateway --gateway=openwrt start
+sudo chdroid --name=openwrt --rootfs=/srv/openwrt --net=nat start
+sudo chdroid --name=kali --rootfs=/srv/kali --net=gateway --gateway=openwrt start
 
 # A container on the wired LAN with its own address
-sudo droidspaces --name=ubuntu --rootfs=/srv/ubuntu --net=macvlan --macvlan-parent=eth0 start
+sudo chdroid --name=ubuntu --rootfs=/srv/ubuntu --net=macvlan --macvlan-parent=eth0 start
 
 # Try something without keeping it
-sudo droidspaces --name=scratch --rootfs=/srv/ubuntu --volatile start
+sudo chdroid --name=scratch --rootfs=/srv/ubuntu --volatile start
 
 # What is running, as JSON
-sudo droidspaces --json show
+sudo chdroid --json show
 ```
 
 ## Where things are
@@ -165,8 +165,8 @@ sudo droidspaces --json show
 |------|----------|
 | `<workspace>/Containers/<name>/` | the container's config and, for app-installed containers, its rootfs |
 | `<workspace>/Logs/<name>/` | logs of each start, stop and restart |
-| `<workspace>/Logs/droidspacesd.log` | the daemon's log |
-| `/mnt/Droidspaces/<name>` | where an image rootfs is mounted while the container runs |
+| `<workspace>/Logs/chdroidd.log` | the daemon's log |
+| `/mnt/ChDroid/<name>` | where an image rootfs is mounted while the container runs |
 
 ---
 

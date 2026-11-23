@@ -1,12 +1,12 @@
 #!/system/bin/sh
-# Rootfs Tarball Validator for Droidspaces
+# Rootfs Tarball Validator for ChDroid
 # Copyright (c) 2026 ravindu644
 # Inspects a container tarball (WITHOUT extracting) to confirm it actually
 # contains a Linux rootfs, so arbitrary archives cannot be installed.
 
 # Parameters
 TARBALL="$1"
-BUSYBOX_PATH="${BUSYBOX_PATH:-/data/local/Droidspaces/bin/busybox}"
+BUSYBOX_PATH="${BUSYBOX_PATH:-/data/local/ChDroid/bin/busybox}"
 BB="$BUSYBOX_PATH"
 
 log() { $BB echo "$1" >&2; }

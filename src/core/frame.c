@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <sys/socket.h>
 #include <sys/un.h>
 
@@ -48,7 +48,7 @@ int ds_recv_frame_hdr(int fd, uint8_t *type_out, uint32_t *len_out) {
 }
 
 /* An abstract unix address for name. The length is exact, with no trailing
- * NUL, so "droidspaces" and "droidspaces/x/command" never collide. */
+ * NUL, so "chdroid" and "chdroid/x/command" never collide. */
 socklen_t ds_abstract_addr(struct sockaddr_un *addr, const char *name) {
   memset(addr, 0, sizeof(*addr));
   addr->sun_family = AF_UNIX;

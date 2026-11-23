@@ -2,13 +2,13 @@
 title: Linux 安装
 section: Basics
 order: 2
-desc: 在 Linux 桌面或服务器上安装 Droidspaces：安装二进制、获取 rootfs、放进 ext4 镜像，并启动第一个容器。
-keywords: install, droidspaces, linux, container, runtime, rootfs, tarball, deb, ext4, image, namespaces
+desc: 在 Linux 桌面或服务器上安装 ChDroid：安装二进制、获取 rootfs、放进 ext4 镜像，并启动第一个容器。
+keywords: install, chdroid, linux, container, runtime, rootfs, tarball, deb, ext4, image, namespaces
 -->
 
 # Linux 安装
 
-在 Linux 上，Droidspaces 就是一个静态二进制。任何当前发行版都具备它所需的依赖，唯一的要求是 root。
+在 Linux 上，ChDroid 就是一个静态二进制。任何当前发行版都具备它所需的依赖，唯一的要求是 root。
 
 ## 第 1 步：安装二进制
 
@@ -17,20 +17,20 @@ keywords: install, droidspaces, linux, container, runtime, rootfs, tarball, deb,
 在 Debian、Ubuntu 及其衍生版上：
 
 ```bash
-sudo dpkg -i droidspaces_*_amd64.deb
+sudo dpkg -i chdroid_*_amd64.deb
 ```
 
 在其他系统上，解压 tarball，并把对应你 CPU 的二进制复制到 `PATH` 中的某个目录。`uname -m` 会告诉你该用哪一个：`x86_64`、`aarch64`、`armv7l`（用 `armhf`）、`i686`（用 `x86`）或 `riscv64`。
 
 ```bash
-tar -xzf droidspaces-v*.tar.gz
-sudo install -m 755 droidspaces-v*/x86_64/droidspaces /usr/local/bin/droidspaces
+tar -xzf chdroid-v*.tar.gz
+sudo install -m 755 chdroid-v*/x86_64/chdroid /usr/local/bin/chdroid
 ```
 
 ## 第 2 步：检查系统
 
 ```bash
-sudo droidspaces check
+sudo chdroid check
 ```
 
 每一行都应该通过。底部的可选项覆盖网桥、Macvlan、IPv6 NAT 和资源限制等功能；缺少某一项只会禁用对应功能。
@@ -67,29 +67,29 @@ rmdir mnt
 ## 第 4 步：启动、进入、停止
 
 ```bash
-sudo droidspaces --name=ubuntu --rootfs=/path/to/ubuntu start
+sudo chdroid --name=ubuntu --rootfs=/path/to/ubuntu start
 # 或者，使用镜像：
-sudo droidspaces --name=ubuntu --rootfs-img=/path/to/ubuntu.img start
+sudo chdroid --name=ubuntu --rootfs-img=/path/to/ubuntu.img start
 
-sudo droidspaces --name=ubuntu enter
-sudo droidspaces --name=ubuntu stop
+sudo chdroid --name=ubuntu enter
+sudo chdroid --name=ubuntu stop
 ```
 
-第一次 `start` 传入的参数会保存到容器的配置文件中，之后启动只需要 `--name`。`droidspaces show` 会列出正在运行的容器。
+第一次 `start` 传入的参数会保存到容器的配置文件中，之后启动只需要 `--name`。`chdroid show` 会列出正在运行的容器。
 
 ## 可选：运行守护进程
 
-在 Linux 上，CLI 无需守护进程也能工作。运行守护进程后，`droidspaces` 用户组的成员无需 `sudo` 即可使用 CLI，并且它会随系统干净地重启。仓库中有一个 systemd 单元：
+在 Linux 上，CLI 无需守护进程也能工作。运行守护进程后，`chdroid` 用户组的成员无需 `sudo` 即可使用 CLI，并且它会随系统干净地重启。仓库中有一个 systemd 单元：
 
 ```bash
-sudo groupadd droidspaces
-sudo usermod -aG droidspaces "$USER"
-sudo cp init/systemd-service/droidspaces.service /etc/systemd/system/
+sudo groupadd chdroid
+sudo usermod -aG chdroid "$USER"
+sudo cp init/systemd-service/chdroid.service /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now droidspaces
+sudo systemctl enable --now chdroid
 ```
 
-该单元期望二进制位于 `/usr/bin/droidspaces`，也就是 `.deb` 安装的位置。如果你的位置不同，请修改 `ExecStart`。注销并重新登录后用户组才会生效。
+该单元期望二进制位于 `/usr/bin/chdroid`，也就是 `.deb` 安装的位置。如果你的位置不同，请修改 `ExecStart`。注销并重新登录后用户组才会生效。
 
 ---
 

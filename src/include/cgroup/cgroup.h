@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_CGROUP_CGROUP_H
-#define DS_CGROUP_CGROUP_H
+#ifndef CHDROID_CGROUP_CGROUP_H
+#define CHDROID_CGROUP_CGROUP_H
 
 /* discover.c */
 int ds_cgroup_host_is_v2(void);
@@ -19,7 +19,7 @@ int ds_cgroup_ctrl_dir(const char *ctrl, const char *container_name, char *dir,
 /* lifecycle.c */
 int ds_cgroup_attach(const char *container_name);
 
-/* Remove the entire /sys/fs/cgroup/droidspaces/<name>/ subtree on stop. */
+/* Remove the entire /sys/fs/cgroup/chdroid/<name>/ subtree on stop. */
 void ds_cgroup_cleanup_container(const char *container_name);
 void ds_cgroup_setup(struct ds_config *cfg);
 void ds_cgroup_join(const char *container_name);
@@ -42,4 +42,4 @@ int ds_cgroup_get_usage(const char *container_name, long long *mem,
                         long long *file_cache, long long *cpu_us,
                         long long *pids);
 
-#endif /* DS_CGROUP_CGROUP_H */
+#endif /* CHDROID_CGROUP_CGROUP_H */

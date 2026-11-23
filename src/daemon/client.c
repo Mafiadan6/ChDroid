@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <grp.h>
 #include <pwd.h>
@@ -81,7 +81,7 @@ int ds_client_run(int argc, char **argv, const char *cmd, int want_stdin) {
    * connect */
   int sock = -1;
   struct sockaddr_un addr;
-  socklen_t alen = ds_abstract_addr(&addr, DS_SOCK_NAME);
+  socklen_t alen = ds_abstract_addr(&addr, CHDROID_SOCK_NAME);
 
   int s = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (s < 0) {
@@ -161,7 +161,7 @@ int ds_client_run(int argc, char **argv, const char *cmd, int want_stdin) {
   epoll_ctl(epfd, EPOLL_CTL_ADD, sock, &ev);
 
   int exit_code = 0;
-  char buf[DS_IOBUF];
+  char buf[CHDROID_IOBUF];
 
   for (;;) {
     int nfds = epoll_wait(epfd, events, 4, (stdin_file && !wait_out) ? 0 : -1);

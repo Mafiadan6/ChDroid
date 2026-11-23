@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -60,7 +60,7 @@ static int setup_gpu_groups(void) {
     /* name:password:GID:users; only the GID matters here */
     const char *gid = strchr(line, ':');
     gid = gid ? strchr(gid + 1, ':') : NULL;
-    if (gid && atoi(gid + 1) == DS_GPU_UNIFIED_GID)
+    if (gid && atoi(gid + 1) == CHDROID_GPU_UNIFIED_GID)
       unified_group_found = 1;
     fputs(line, fout);
   }
@@ -68,9 +68,9 @@ static int setup_gpu_groups(void) {
   /* No members: the nodes are owned by root, and anyone else is added by hand.
    */
   if (!unified_group_found) {
-    fprintf(fout, DS_GPU_GROUP_NAME ":x:%d:\n", DS_GPU_UNIFIED_GID);
-    ds_log("[GPU] Created unified group " DS_GPU_GROUP_NAME " (GID %d)",
-           DS_GPU_UNIFIED_GID);
+    fprintf(fout, CHDROID_GPU_GROUP_NAME ":x:%d:\n", CHDROID_GPU_UNIFIED_GID);
+    ds_log("[GPU] Created unified group " CHDROID_GPU_GROUP_NAME " (GID %d)",
+           CHDROID_GPU_UNIFIED_GID);
   }
 
   fclose(fin);
@@ -101,7 +101,7 @@ int setup_hardware_access(struct ds_config *cfg) {
   /* 1. Create GPU groups inside the container.
    *    hw_access: full hardware passthrough - always set up GPU groups.
    *    gpu_mode:  isolated tmpfs with GPU nodes mirrored in - also needs the
-   *               unified droidspaces-gpu group so the container user can
+   *               unified chdroid-gpu group so the container user can
    *               actually open those nodes. */
   if (cfg->hw_access || cfg->gpu_mode)
     setup_gpu_groups();

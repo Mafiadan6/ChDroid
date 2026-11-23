@@ -2,13 +2,13 @@
 title: 实用配方
 section: Recipes
 order: 1
-desc: 在手机上用 Droidspaces 搭建的东西：通过 Tailscale 让手机成为随处可访问的家庭服务器，并用 UFW 和 Fail2Ban 加固；在容器里运行 Docker；以及让 Wi-Fi 保持唤醒的看门狗。
-keywords: droidspaces, recipes, android, server, tailscale, ufw, fail2ban, docker, nested, container, wifi, power, save
+desc: 在手机上用 ChDroid 搭建的东西：通过 Tailscale 让手机成为随处可访问的家庭服务器，并用 UFW 和 Fail2Ban 加固；在容器里运行 Docker；以及让 Wi-Fi 保持唤醒的看门狗。
+keywords: chdroid, recipes, android, server, tailscale, ufw, fail2ban, docker, nested, container, wifi, power, save
 -->
 
 # 实用配方
 
-三样人们会在手机上用 Droidspaces 搭建的东西。每一项都假设容器已经能启动并能上网，[安装指南](./Installation-Android.md)可以带你走到这一步。命令针对 Debian 和 Ubuntu；其他发行版也有相同的软件包，只是名称不同。
+三样人们会在手机上用 ChDroid 搭建的东西。每一项都假设容器已经能启动并能上网，[安装指南](./Installation-Android.md)可以带你走到这一步。命令针对 Debian 和 Ubuntu；其他发行版也有相同的软件包，只是名称不同。
 
 ## 把手机变成随处可访问的家庭服务器
 
@@ -81,7 +81,7 @@ fail2ban-client status sshd
 
 ## 在容器里运行 Docker
 
-在每个受支持的内核上，Docker 都能运行在 Droidspaces 容器里，因此 Portainer、Home Assistant、Pi-hole 或任何为 Docker 打包的软件都能跑在手机上。
+在每个受支持的内核上，Docker 都能运行在 ChDroid 容器里，因此 Portainer、Home Assistant、Pi-hole 或任何为 Docker 打包的软件都能跑在手机上。
 
 仓库中的 Base 和桌面镜像（名为 Base、XFCE 或 bspwm 的那些）已经安装并配置好 Docker。安装一个、启动它，下面这条命令立刻就能用：
 
@@ -111,7 +111,7 @@ usermod -aG docker alice
 docker run --rm hello-world
 ```
 
-**3. 可选：用户命名空间重映射：** 在容器设置中打开 **允许沙箱** 后，Docker 可以在重映射的用户范围内运行它的容器，这样 Docker 容器内的 root 就不再是 Droidspaces 容器内的 root。把下面的内容放进 `/etc/docker/daemon.json` 并重启 Docker：
+**3. 可选：用户命名空间重映射：** 在容器设置中打开 **允许沙箱** 后，Docker 可以在重映射的用户范围内运行它的容器，这样 Docker 容器内的 root 就不再是 ChDroid 容器内的 root。把下面的内容放进 `/etc/docker/daemon.json` 并重启 Docker：
 
 ```json
 { "userns-remap": "default" }

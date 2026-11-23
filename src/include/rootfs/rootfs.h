@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_ROOTFS_ROOTFS_H
-#define DS_ROOTFS_ROOTFS_H
+#ifndef CHDROID_ROOTFS_ROOTFS_H
+#define CHDROID_ROOTFS_ROOTFS_H
 
 /* binds.c */
 int setup_custom_binds(struct ds_config *cfg, const char *rootfs);
@@ -28,4 +28,4 @@ int setup_volatile_overlay(struct ds_config *cfg);
 int cleanup_volatile_overlay(struct ds_config *cfg);
 int check_volatile_mode(struct ds_config *cfg);
 
-#endif /* DS_ROOTFS_ROOTFS_H */
+#endif /* CHDROID_ROOTFS_ROOTFS_H */

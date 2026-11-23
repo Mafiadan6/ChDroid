@@ -44,7 +44,7 @@
     <string name="dynamic_color">Usa el Default Color Palette del System</string>
     <string name="dynamic_color_description">Usa el Android 12+ Monet theming (Material You)</string>
     <string name="about_section">Acerca de</string>
-    <string name="about_droidspaces">Acerca de ChDroid</string>
+    <string name="about_chdroid">Acerca de ChDroid</string>
     <string name="about_description">LXC-Style container manager para na Android</string>
     <string name="developers">(Maga) Developer</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -122,7 +122,7 @@
     <string name="next_storage">Siguiente: Storage</string>
     <string name="installation_complete">Completo el Instalacion</string>
     <string name="installation_failed">Fallo el Instalacion</string>
-    <string name="installing_droidspaces">Ta instala el ChDroid</string>
+    <string name="installing_chdroid">Ta instala el ChDroid</string>
     <string name="backend_installed_success">Ya instala con exito el backend</string>
     <string name="binary_installation_failed">Fallo el instalacion del binary</string>
     <string name="no_containers_running">No hay container ta anda</string>
@@ -199,7 +199,7 @@
     <string name="error_hostname_invalid">El hostname puede lang tene maga letra, numero, y dash (-)</string>
     <string name="check_requirements">Chequea maga Requisito</string>
     <string name="requirements_check_title">Chequeo de maga Requisito</string>
-    <string name="requirements_for_droidspaces">Maga Requisito para na ChDroid</string>
+    <string name="requirements_for_chdroid">Maga Requisito para na ChDroid</string>
     <string name="requirements_check_completed_successfully">Chequeo de maga requisito completo con exito</string>
     <string name="requirements_check_completed_with_errors">Chequeo de maga requisito completo con maga error</string>
     <string name="kernel_requirements_copied">Maga requisito del kernel ya copia na clipboard</string>

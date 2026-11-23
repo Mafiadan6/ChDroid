@@ -1,8 +1,8 @@
 From 50cb2ccbef7d84852f2600bb4d3e69f6bd736561 Mon Sep 17 00:00:00 2001
 From: ravindu644 <droidcasts@protonmail.com>
 Date: Sun, 22 Feb 2026 22:27:15 +0530
-Subject: [PATCH] [PATCH 2/2] Droidspaces/LXC: fix: restore cgroup file prefix
- handling for Droidspaces/LXC compatibility
+Subject: [PATCH] [PATCH 2/2] ChDroid/LXC: fix: restore cgroup file prefix
+ handling for ChDroid/LXC compatibility
 
 Signed-off-by: ravindu644 <droidcasts@protonmail.com>
 ---

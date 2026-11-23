@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * The network layer's shared state and helpers, for net/, nat/, route/ and
  * gateway/.
@@ -13,18 +13,18 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_NET_INTERNAL_H
-#define DS_NET_INTERNAL_H
+#ifndef CHDROID_NET_INTERNAL_H
+#define CHDROID_NET_INTERNAL_H
 
-#define DS_RESOLV_CONF "/run/droidspaces/resolv.conf"
+#define CHDROID_RESOLV_CONF "/run/chdroid/resolv.conf"
 
 extern int g_current_gw_table;
 extern pthread_mutex_t g_gw_mutex;
-extern char g_upstream_ifaces[DS_MAX_UPSTREAM_IFACES][IFNAMSIZ];
+extern char g_upstream_ifaces[CHDROID_MAX_UPSTREAM_IFACES][IFNAMSIZ];
 extern int g_upstream_count;
 extern int g_host_bridgeless;
 extern char g_host_veth[IFNAMSIZ];
-extern struct ds_port_forward g_host_port_forwards[DS_MAX_PORT_FORWARDS];
+extern struct ds_port_forward g_host_port_forwards[CHDROID_MAX_PORT_FORWARDS];
 extern int g_host_port_forward_count;
 extern char g_host_container_ip[INET_ADDRSTRLEN];
 extern int g_host_nat6;
@@ -62,4 +62,4 @@ pid_t gateway_pid_of(const char *name);
 int gateway_wire_client(struct ds_config *cfg, pid_t client_pid,
                         pid_t gateway_pid);
 
-#endif /* DS_NET_INTERNAL_H */
+#endif /* CHDROID_NET_INTERNAL_H */

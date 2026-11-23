@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <arpa/inet.h>
 #include <linux/netfilter.h>
 #include <linux/netfilter/nf_nat.h>
@@ -460,7 +460,7 @@ int ds_ipt_remove_portforwards(struct ds_config *cfg) {
   /* Pass 3: iptables-save shell sweep (fallback)
    */
   /* Only runs when no state file existed - i.e., the container was started by
-   * an older version of Droidspaces that did not write state files, or the
+   * an older version of ChDroid that did not write state files, or the
    * process crashed before the file could be written.
    * We intentionally avoid this path in the normal case: parsing iptables-save
    * output through a shell is slower and depends on the host having sh(1). */

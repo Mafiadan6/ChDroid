@@ -2,13 +2,13 @@
 title: Kernel configuration
 section: Guides
 order: 6
-desc: How to build an Android kernel with Droidspaces support: the config options and patches for non-GKI and GKI kernels, and how to check the result.
-keywords: kernel, configuration, droidspaces, android, compile, gki, nongki, patches, compatibility, kabi
+desc: How to build an Android kernel with ChDroid support: the config options and patches for non-GKI and GKI kernels, and how to check the result.
+keywords: kernel, configuration, chdroid, android, compile, gki, nongki, patches, compatibility, kabi
 -->
 
 # Kernel configuration
 
-Droidspaces needs kernel features that most stock Android kernels leave out: PID and IPC namespaces, a few networking pieces and devtmpfs. This page is the list of options and patches for building a kernel that has them. The oldest supported kernel is 3.10.
+ChDroid needs kernel features that most stock Android kernels leave out: PID and IPC namespaces, a few networking pieces and devtmpfs. This page is the list of options and patches for building a kernel that has them. The oldest supported kernel is 3.10.
 
 If you have never built an Android kernel, start with the [Android kernel tutorials](https://github.com/ravindu644/Android-Kernel-Tutorials), and check the [community-supported devices](community-supported-devices.md) page first: someone may have built a kernel for your phone already.
 
@@ -23,7 +23,7 @@ These kernels take the options as they are, with no ABI to protect. Four steps.
 Add these to your device's defconfig, or keep them as a fragment and merge it at build time:
 
 ```makefile
-# Kernel configurations for full DroidSpaces support
+# Kernel configurations for full ChDroid support
 # Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
 
 # IPC mechanisms
@@ -76,7 +76,7 @@ CONFIG_FW_LOADER=y
 CONFIG_FW_LOADER_USER_HELPER=y
 CONFIG_FW_LOADER_COMPRESS=y
 
-# Droidspaces Network Isolation Support - NAT/none modes
+# ChDroid Network Isolation Support - NAT/none modes
 CONFIG_NET_NS=y
 CONFIG_VETH=y
 CONFIG_BRIDGE=y
@@ -167,11 +167,11 @@ patch -p1 < /path/to/patchfile.patch
 
 ### Step 4: Build, flash, check
 
-Build and flash as usual for your device, then open the Droidspaces app and run **Settings**, **Requirements**, **Check Requirements**. Everything under "must have" and "recommended" should pass.
+Build and flash as usual for your device, then open the ChDroid app and run **Settings**, **Requirements**, **Check Requirements**. Everything under "must have" and "recommended" should pass.
 
 ## GKI kernels (5.4 and newer)
 
-Google's Generic Kernel Image keeps a fixed kernel ABI so that vendor modules built against the stock kernel keep loading. Several options Droidspaces needs, `CONFIG_SYSVIPC`, `CONFIG_IPC_NS` and `CONFIG_POSIX_MQUEUE`, add fields to core structures and shift the ABI. Turned on as they are, the phone bootloops when the vendor's modules refuse to load. The patches below move those fields into padding the ABI already reserves, so the options can go on without changing any offset.
+Google's Generic Kernel Image keeps a fixed kernel ABI so that vendor modules built against the stock kernel keep loading. Several options ChDroid needs, `CONFIG_SYSVIPC`, `CONFIG_IPC_NS` and `CONFIG_POSIX_MQUEUE`, add fields to core structures and shift the ABI. Turned on as they are, the phone bootloops when the vendor's modules refuse to load. The patches below move those fields into padding the ABI already reserves, so the options can go on without changing any offset.
 
 ### Step 1: The kABI patches
 
@@ -196,7 +196,7 @@ Edit `arch/arm64/configs/gki_defconfig` in place rather than adding a fragment. 
 > These options are ABI-safe together with the Step 1 patches. Do not turn on anything beyond them. The two resource limit options at the end are commented out on purpose; see [CPU and process limits on GKI](#cpu-and-process-limits-on-gki) before touching them.
 
 ```makefile
-# Kernel configurations for full DroidSpaces support for GKI
+# Kernel configurations for full ChDroid support for GKI
 # Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
 
 # IPC
@@ -256,7 +256,7 @@ CONFIG_TMPFS_XATTR=y
 
 ### Step 3: Build, flash, check
 
-Build with Bazel, the AOSP build scripts or plain `make`, whichever your tree uses, and flash the result. Your stock vendor modules keep working because the ABI did not move. Then open the Droidspaces app and run **Settings**, **Requirements**, **Check Requirements**.
+Build with Bazel, the AOSP build scripts or plain `make`, whichever your tree uses, and flash the result. Your stock vendor modules keep working because the ABI did not move. Then open the ChDroid app and run **Settings**, **Requirements**, **Check Requirements**.
 
 ### CPU and process limits on GKI
 
@@ -268,7 +268,7 @@ Without these two options everything else works. `--cpus` and `--pids-limit` are
 
 ## What the check looks for
 
-`droidspaces check`, and the app's Requirements screen, probe the running kernel rather than its config. What each probe needs, and what you lose without it:
+`chdroid check`, and the app's Requirements screen, probe the running kernel rather than its config. What each probe needs, and what you lose without it:
 
 | Probe | Option | Without it |
 |-------|--------|------------|
@@ -277,7 +277,7 @@ Without these two options everything else works. `--cpus` and `--pids-limit` are
 | Seccomp | `CONFIG_SECCOMP`, `CONFIG_SECCOMP_FILTER` | Containers cannot start. |
 | devtmpfs | `CONFIG_DEVTMPFS` | Hardware access is unavailable. |
 | Cgroup namespace, cgroup v2 | `CONFIG_CGROUPS`, cgroup v2 | systemd containers misbehave. |
-| New mount API | kernel 5.2, `fsopen()` and friends | systemd 259 and newer keep service credentials in a plain directory and `ProtectProc=` does nothing. On such a container Droidspaces answers EPERM for these calls so systemd takes those fallbacks instead of failing, and gives every unit and login shell `LIBMOUNT_FORCE_MOUNT2=always` so `mount` keeps using the classic call. A `mount` run behind an environment reset, `sudo` for one, needs that variable passed along. Older systemd is left alone. |
+| New mount API | kernel 5.2, `fsopen()` and friends | systemd 259 and newer keep service credentials in a plain directory and `ProtectProc=` does nothing. On such a container ChDroid answers EPERM for these calls so systemd takes those fallbacks instead of failing, and gives every unit and login shell `LIBMOUNT_FORCE_MOUNT2=always` so `mount` keeps using the classic call. A `mount` run behind an environment reset, `sudo` for one, needs that variable passed along. Older systemd is left alone. |
 | Loop device, ext4 | `CONFIG_BLK_DEV_LOOP`, `CONFIG_EXT4_FS` | Sparse image containers cannot mount. |
 | PTY, devpts, epoll, signalfd | always present on Android | Interactive sessions fail. |
 | Network namespace, veth, bridge | `CONFIG_NET_NS`, `CONFIG_VETH`, `CONFIG_BRIDGE` | Only host mode works. Without the bridge alone, NAT uses a direct veth. |
@@ -301,7 +301,7 @@ Without these two options everything else works. `--cpus` and `--pids-limit` are
 
 ## Where to ask
 
-Kernel questions get answered in the [Telegram channel](https://t.me/Droidspaces). The kernel's own option reference is the [kernel documentation](https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html).
+Kernel questions get answered in the [Telegram channel](https://t.me/chdroid). The kernel's own option reference is the [kernel documentation](https://www.kernel.org/doc/html/latest/admin-guide/kernel-parameters.html).
 
 ---
 

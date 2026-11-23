@@ -1,18 +1,18 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Status reporting */
 
 int show_containers(struct ds_config *cfg) {
   char container_dir[1024];
   snprintf(container_dir, sizeof(container_dir), "%s/%s", get_workspace_dir(),
-           DS_CONTAINERS_DIR);
+           CHDROID_CONTAINERS_DIR);
   int totalcount = count_folders(container_dir);
 
   int count = 0;

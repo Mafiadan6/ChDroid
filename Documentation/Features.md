@@ -2,8 +2,8 @@
 title: Container settings
 section: Guides
 order: 2
-desc: Every container setting in Droidspaces, in the order the app shows them: what each toggle or flag does, when to turn it on, and what it needs from the kernel.
-keywords: droidspaces, settings, features, network, mode, hardware, access, gpu, volatile, bind, mount, resource, limits, privileged, sandboxing, run, at, boot
+desc: Every container setting in ChDroid, in the order the app shows them: what each toggle or flag does, when to turn it on, and what it needs from the kernel.
+keywords: chdroid, settings, features, network, mode, hardware, access, gpu, volatile, bind, mount, resource, limits, privileged, sandboxing, run, at, boot
 -->
 
 # Container settings
@@ -74,7 +74,7 @@ The six host virtual terminals, `tty1` to `tty6`, stay hidden even with hardware
 
 ### GPU Access
 
-`--gpu`, key `enable_gpu_mode`. The middle ground. The container keeps its private `/dev` and only the GPU render nodes are mirrored into it, so programs can use the GPU and nothing else on the host is exposed. Mirrored nodes are owned by root and a `droidspaces-gpu` group; add other users to that group with `usermod`. Hardware Access turns this on as well.
+`--gpu`, key `enable_gpu_mode`. The middle ground. The container keeps its private `/dev` and only the GPU render nodes are mirrored into it, so programs can use the GPU and nothing else on the host is exposed. Mirrored nodes are owned by root and a `chdroid-gpu` group; add other users to that group with `usermod`. Hardware Access turns this on as well.
 
 Known GPU families: Mesa DRI render nodes on Intel, AMD and most ARM SoCs, Qualcomm Adreno (`kgsl`), ARM Mali, NVIDIA, PowerVR and the DMA heaps these drivers need.
 
@@ -99,11 +99,11 @@ Known GPU families: Mesa DRI render nodes on Intel, AMD and most ARM SoCs, Qualc
 `--memory=SIZE`, `--cpus=COUNT` and `--pids-limit=N`, keys `memory_limit`, `cpu_quota` with `cpu_period`, and `pids_limit`. Off by default; a container shares everything the device has.
 
 - **Limit memory**: `--memory=512M` or `--memory=2G`. The container cannot grow past it into the device's swap, so at the limit its own OOM killer ends a process inside it instead of the phone slowing down as zram fills. Everything inside the container, `free` and fastfetch included, reports usage against this limit and no swap.
-- **Allow swap**: `--allow-swap`, key `allow_swap`. Lets a memory-limited container use the device's swap past its limit, as it could before the cap, and shows it the device's swap. `droidspaces info` and `show --json` say whether a running container may swap.
+- **Allow swap**: `--allow-swap`, key `allow_swap`. Lets a memory-limited container use the device's swap past its limit, as it could before the cap, and shows it the device's swap. `chdroid info` and `show --json` say whether a running container may swap.
 - **Limit CPU**: `--cpus=1.5` gives the container one and a half cores' worth of time, spread over all cores.
 - **Limit processes**: the most processes and threads the container may have at once, minimum 16. A systemd distribution needs a few hundred.
 
-Each limit needs its cgroup controller in the kernel: `CONFIG_MEMCG`, `CONFIG_CFS_BANDWIDTH` and `CONFIG_CGROUP_PIDS`. The app greys out a limit the kernel cannot enforce and names the missing option; the CLI skips it at start with a warning. Stock Android kernels often lack the CPU and process ones. `droidspaces info` prints the limits in force and current usage.
+Each limit needs its cgroup controller in the kernel: `CONFIG_MEMCG`, `CONFIG_CFS_BANDWIDTH` and `CONFIG_CGROUP_PIDS`. The app greys out a limit the kernel cannot enforce and names the missing option; the CLI skips it at start with a warning. Stock Android kernels often lack the CPU and process ones. `chdroid info` prints the limits in force and current usage.
 
 One gap: a program that asks the kernel directly through `sysinfo()` rather than reading `/proc` still sees the host's memory and load. OpenWrt's LuCI does this. The limit is enforced all the same.
 
@@ -115,9 +115,9 @@ One gap: a program that asks the kernel directly through `sysinfo()` rather than
 
 ### Allow Sandboxing
 
-`--allow-sandboxing`, key `allow_sandboxing`. Off by default. Turn it on when something inside the container builds its own sandbox: rootless Docker or Podman, Flatpak, bwrap, Firefox, Chromium. They all create a user namespace and mount their own `/proc` inside it, and a stock container blocks both. With the toggle on, user namespaces are allowed and the container gets the pristine `/proc` and read-only `/sys` instances the kernel requires for that, under `/run/droidspaces/`.
+`--allow-sandboxing`, key `allow_sandboxing`. Off by default. Turn it on when something inside the container builds its own sandbox: rootless Docker or Podman, Flatpak, bwrap, Firefox, Chromium. They all create a user namespace and mount their own `/proc` inside it, and a stock container blocks both. With the toggle on, user namespaces are allowed and the container gets the pristine `/proc` and read-only `/sys` instances the kernel requires for that, under `/run/chdroid/`.
 
-The cost is that root in the container can reach the host's live sysctl tree through that pristine `/proc`, so this is a statement of trust in the container's root user. Needs `CONFIG_USER_NS`, reported by `droidspaces check` as user namespace support. For Docker inside the container, put `{"userns-remap": "default"}` in `/etc/docker/daemon.json` and restart it.
+The cost is that root in the container can reach the host's live sysctl tree through that pristine `/proc`, so this is a statement of trust in the container's root user. Needs `CONFIG_USER_NS`, reported by `chdroid check` as user namespace support. For Docker inside the container, put `{"userns-remap": "default"}` in `/etc/docker/daemon.json` and restart it.
 
 ### Volatile Mode
 
@@ -159,13 +159,13 @@ Key `run_at_boot`, with `run_at_boot_priority`. App only. Starts the container w
 
 ### Termux:X11 Extra Flags and VirGL Extra Flags
 
-`--tx11-flags="..."`, key `tx11_extra_flags`, and `--virgl-flags="..."`, key `virgl_extra_flags`. Extra arguments for the Termux:X11 and VirGL servers Droidspaces starts. Shown in the app only when the matching toggle is on.
+`--tx11-flags="..."`, key `tx11_extra_flags`, and `--virgl-flags="..."`, key `virgl_extra_flags`. Extra arguments for the Termux:X11 and VirGL servers ChDroid starts. Shown in the app only when the matching toggle is on.
 
 ## Storage
 
 Chosen once, when the container is installed.
 
-**Sparse image**: the rootfs lives in one ext4 image file that Droidspaces loop-mounts at start. The CLI equivalent is `--rootfs-img=PATH`, which also accepts a block device. The image behaves the same whatever filesystem the host uses, which matters on Android's f2fs, and it is one file to copy when you move the container. Images are checked with `e2fsck` when their superblock says they need it. The size you pick is a ceiling; the file grows as the container uses space. The app can **Resize the sparse image** later, and **Migrate to a sparse image** converts a directory container.
+**Sparse image**: the rootfs lives in one ext4 image file that ChDroid loop-mounts at start. The CLI equivalent is `--rootfs-img=PATH`, which also accepts a block device. The image behaves the same whatever filesystem the host uses, which matters on Android's f2fs, and it is one file to copy when you move the container. Images are checked with `e2fsck` when their superblock says they need it. The size you pick is a ceiling; the file grows as the container uses space. The app can **Resize the sparse image** later, and **Migrate to a sparse image** converts a directory container.
 
 **Directory**: the rootfs is a plain directory, `--rootfs=PATH` on the CLI. Simpler to look into from the host. On Android, use it only if the image path is not possible.
 

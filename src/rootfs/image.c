@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <linux/loop.h>
 
 /* Forward declarations for loop helpers used in find_available_mountpoint */
@@ -22,17 +22,17 @@ int ds_img_mount_point(const char *name, char *buf, size_t size) {
     return -1;
   char safe_name[256];
   sanitize_container_name(name, safe_name, sizeof(safe_name));
-  int r = snprintf(buf, size, "%s/%s", DS_IMG_MOUNT_ROOT_UNIVERSAL, safe_name);
+  int r = snprintf(buf, size, "%s/%s", CHDROID_IMG_MOUNT_ROOT_UNIVERSAL, safe_name);
   return (r > 0 && (size_t)r < size) ? 0 : -1;
 }
 
-/* Find available mount point in /mnt/Droidspaces/ using container name.
+/* Find available mount point in /mnt/ChDroid/ using container name.
  * If a mount point already exists for this name but is not associated
  * with an active container (stale), it will be cleaned up. */
 static int find_available_mountpoint(const char *name, char *mount_path,
                                      size_t size) {
   /* Create base directory if it doesn't exist */
-  mkdir(DS_IMG_MOUNT_ROOT_UNIVERSAL, 0755);
+  mkdir(CHDROID_IMG_MOUNT_ROOT_UNIVERSAL, 0755);
 
   if (ds_img_mount_point(name, mount_path, size) < 0)
     return -1;
@@ -335,7 +335,7 @@ int mount_rootfs_img(const char *img_path, char *mount_point, size_t mp_size,
 
   /* Set SELinux context via xattr directly instead of spawning chcon */
   if (is_android())
-    set_selinux_context(img_path, DS_ANDROID_VOLD_CONTEXT);
+    set_selinux_context(img_path, CHDROID_ANDROID_VOLD_CONTEXT);
 
   /*
    * Build mount flags: base VFS flags + any fstype-specific extras.
@@ -404,7 +404,7 @@ int mount_rootfs_img(const char *img_path, char *mount_point, size_t mp_size,
     if (attempt < 2) {
       ds_log("Retrying in 1s...");
       sync();
-      usleep(DS_RETRY_DELAY_US * 5);
+      usleep(CHDROID_RETRY_DELAY_US * 5);
     }
   }
 
@@ -434,9 +434,9 @@ int unmount_rootfs_img(const char *mount_point, int silent) {
    * settle and a forced detach. The usual case pays nothing. */
   if (is_mountpoint(mount_point)) {
     sync();
-    usleep(DS_RETRY_DELAY_US);
+    usleep(CHDROID_RETRY_DELAY_US);
     umount2(mount_point, MNT_DETACH | MNT_FORCE);
-    usleep(DS_RETRY_DELAY_US / 2);
+    usleep(CHDROID_RETRY_DELAY_US / 2);
   }
 
   /* 4. Cleanup and log */

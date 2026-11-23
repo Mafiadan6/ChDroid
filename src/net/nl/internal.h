@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_NET_NL_INTERNAL_H
-#define DS_NET_NL_INTERNAL_H
+#ifndef CHDROID_NET_NL_INTERNAL_H
+#define CHDROID_NET_NL_INTERNAL_H
 
 /* Netlink rule attributes, not always present in the Android sysroot */
 #ifndef FRA_DST
@@ -43,4 +43,4 @@ void nl_nest_end(struct nlmsghdr *n, struct rtattr *nest);
 uint32_t nl_rta_u32(struct rtattr *rta);
 int ds_nl_talk(ds_nl_ctx_t *ctx, struct nlmsghdr *req);
 
-#endif /* DS_NET_NL_INTERNAL_H */
+#endif /* CHDROID_NET_NL_INTERNAL_H */

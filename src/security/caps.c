@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <linux/capability.h>
 #include <sys/prctl.h>
 
@@ -21,7 +21,7 @@
  */
 void ds_apply_capability_hardening(int hw_access, int privileged_mask,
                                    int sandboxing) {
-  if (privileged_mask & DS_PRIV_NOCAPS) {
+  if (privileged_mask & CHDROID_PRIV_NOCAPS) {
     ds_log("[SEC] --privileged=nocaps: skipping capability drops.");
     return;
   }

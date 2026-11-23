@@ -49,7 +49,7 @@
     <string name="symlink_integration">ChDroid\'i terminale entegre edin</string>
     <string name="symlink_integration_description">Android root shellde chdroid komutuna erişmek için /system/bin dizininde bir symlink oluşturun. UYARI: Mount sisteminiz overlayfs meta modülleri ise, bu seçeneği etkinleştirmek bootloopa neden olur. Bu seçeneği yalnızca Magic Mount tabanlı mount sistemi kullanırken kullanın (Yeniden başlatma gereklidir)</string>
     <string name="about_section">Hakkında</string>
-    <string name="about_droidspaces">ChDroid Hakkında</string>
+    <string name="about_chdroid">ChDroid Hakkında</string>
     <string name="about_description">Android için LXC benzeri konteyner yöneticisi</string>
     <string name="developers">Geliştirici(ler)</string>
     <string name="developer_ravindu644" translatable="false">ravindu644</string>
@@ -183,7 +183,7 @@
     <string name="next_storage">Sonraki: Depolama</string>
     <string name="installation_complete">Kurulum Tamamlandı</string>
     <string name="installation_failed">Kurulum Başarısız</string>
-    <string name="installing_droidspaces">ChDroid Kuruluyor</string>
+    <string name="installing_chdroid">ChDroid Kuruluyor</string>
     <string name="backend_installed_success">ChDroid backendi başarıyla kuruldu</string>
     <string name="binary_installation_failed">Binary yüklemesi başarısız oldu</string>
     <string name="no_containers_running">Çalışan konteyner yok</string>
@@ -260,7 +260,7 @@
     <string name="error_hostname_invalid">Host adı yalnızca harfler, rakamlar ve tire (-) içerebilir</string>
     <string name="check_requirements">Gereksinimleri Kontrol Edin</string>
     <string name="requirements_check_title">Gereksinim Kontrolü</string>
-    <string name="requirements_for_droidspaces">ChDroid için Gereksinimler</string>
+    <string name="requirements_for_chdroid">ChDroid için Gereksinimler</string>
     <string name="requirements_check_completed_successfully">Gereksinim kontrolü başarıyla tamamlandı</string>
     <string name="requirements_check_completed_with_errors">Gereksinim kontrolü hatalar ile tamamlandı</string>
     <string name="kernel_requirements_copied">Kernel gereksinimleri panoya kopyalandı</string>
@@ -282,6 +282,6 @@
     <string name="starting_resizing">Boyut değiştirme işlemi başlatılıyor...</string>
     <string name="help_card_title">ChDroid\'e yeni misiniz?</string>
     <string name="help_card_message">İlk Linux konteynerinizi nasıl kuracağınızı öğrenmek için buraya dokunun!</string>
-    <string name="help_card_url" translatable="false">https://github.com/ravindu644/Droidspaces-OSS/blob/main/Documentation/Installation-Android.md</string>
+    <string name="help_card_url" translatable="false">https://github.com/Mafiadan6/ChDroid/blob/main/Documentation/Installation-Android.md</string>
     <string name="failure_in_operation">Failure in %1$sing container %2$s</string>
 </resources>

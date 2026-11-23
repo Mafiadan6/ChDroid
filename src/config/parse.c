@@ -1,36 +1,36 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
 int ds_parse_net_mode(const char *s) {
   if (strcmp(s, "nat") == 0)
-    return DS_NET_NAT;
+    return CHDROID_NET_NAT;
   if (strcmp(s, "none") == 0)
-    return DS_NET_NONE;
+    return CHDROID_NET_NONE;
   if (strcmp(s, "host") == 0)
-    return DS_NET_HOST;
+    return CHDROID_NET_HOST;
   if (strcmp(s, "gateway") == 0 || strcmp(s, "delegated-gateway") == 0)
-    return DS_NET_GATEWAY;
+    return CHDROID_NET_GATEWAY;
   if (strcmp(s, "macvlan") == 0)
-    return DS_NET_MACVLAN;
+    return CHDROID_NET_MACVLAN;
   return -1;
 }
 
 /* The config-file spelling of a mode, the inverse of ds_parse_net_mode. */
 const char *ds_net_mode_name(enum ds_net_mode mode) {
   static const char *const names[] = {
-      [DS_NET_NAT] = "nat",         [DS_NET_HOST] = "host",
-      [DS_NET_NONE] = "none",       [DS_NET_GATEWAY] = "gateway",
-      [DS_NET_MACVLAN] = "macvlan",
+      [CHDROID_NET_NAT] = "nat",         [CHDROID_NET_HOST] = "host",
+      [CHDROID_NET_NONE] = "none",       [CHDROID_NET_GATEWAY] = "gateway",
+      [CHDROID_NET_MACVLAN] = "macvlan",
   };
-  return mode >= DS_NET_NAT && mode <= DS_NET_MACVLAN ? names[mode] : "host";
+  return mode >= CHDROID_NET_NAT && mode <= CHDROID_NET_MACVLAN ? names[mode] : "host";
 }
 
 static const struct {
@@ -77,9 +77,9 @@ static const struct {
   int bit;
   const char *name;
 } priv_bits[] = {
-    {DS_PRIV_NOMASK, "nomask"},   {DS_PRIV_NOCAPS, "nocaps"},
-    {DS_PRIV_NOSEC, "noseccomp"}, {DS_PRIV_SHARED, "shared"},
-    {DS_PRIV_FULL, "full"},
+    {CHDROID_PRIV_NOMASK, "nomask"},   {CHDROID_PRIV_NOCAPS, "nocaps"},
+    {CHDROID_PRIV_NOSEC, "noseccomp"}, {CHDROID_PRIV_SHARED, "shared"},
+    {CHDROID_PRIV_FULL, "full"},
 };
 
 /* 0 with the mask filled, or -1 with it empty when a tag is not one of ours:
@@ -120,13 +120,13 @@ int parse_privileged(const char *value, struct ds_config *cfg) {
 void ds_privileged_names(int mask, char *buf, size_t size, const char *sep) {
   size_t pos = 0;
   buf[0] = '\0';
-  if (mask == DS_PRIV_FULL) {
+  if (mask == CHDROID_PRIV_FULL) {
     safe_strncpy(buf, "full", size);
     return;
   }
   for (size_t i = 0; i < sizeof(priv_bits) / sizeof(priv_bits[0]) && pos < size;
        i++)
-    if (priv_bits[i].bit != DS_PRIV_FULL && (mask & priv_bits[i].bit))
+    if (priv_bits[i].bit != CHDROID_PRIV_FULL && (mask & priv_bits[i].bit))
       pos += (size_t)snprintf(buf + pos, size - pos, "%s%s", pos ? sep : "",
                               priv_bits[i].name);
 }
@@ -191,7 +191,7 @@ int ds_config_add_bind(struct ds_config *cfg, const char *src, const char *dest,
     int new_cap;
 
     if (old_cap == 0) {
-      new_cap = DS_BIND_INITIAL_CAP;
+      new_cap = CHDROID_BIND_INITIAL_CAP;
     } else {
       /* Check for integer overflow */
       if (old_cap > INT_MAX / 2)
@@ -513,9 +513,9 @@ int ds_parse_port_forward(char *spec, struct ds_config *cfg, char *err,
   }
   /* After the duplicate scan: restart's second argv pass resubmits every
    * saved rule, and that has to pass on a full table. */
-  if (cfg->port_forward_count >= DS_MAX_PORT_FORWARDS) {
+  if (cfg->port_forward_count >= CHDROID_MAX_PORT_FORWARDS) {
     snprintf(err, err_size, "Too many port forwards (max %d)",
-             DS_MAX_PORT_FORWARDS);
+             CHDROID_MAX_PORT_FORWARDS);
     return -1;
   }
   cfg->port_forwards[cfg->port_forward_count++] = rule;

@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <ftw.h>
 #include <sys/random.h>
 
@@ -160,10 +160,10 @@ int read_file(const char *path, char *buf, size_t size) {
 /* UUID generation  - 32 hex chars from /dev/urandom */
 
 int generate_uuid(char *buf, size_t size) {
-  if (!buf || size < DS_UUID_LEN + 1)
+  if (!buf || size < CHDROID_UUID_LEN + 1)
     return -1;
 
-  unsigned char raw[DS_UUID_LEN / 2];
+  unsigned char raw[CHDROID_UUID_LEN / 2];
 
   /* Primary path: /dev/urandom */
   int fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC);
@@ -175,7 +175,7 @@ int generate_uuid(char *buf, size_t size) {
       for (int i = 0; i < (int)sizeof(raw); i++)
         snprintf(buf + i * 2, 3, "%02x", raw[i]);
 
-      buf[DS_UUID_LEN] = '\0';
+      buf[CHDROID_UUID_LEN] = '\0';
       return 0;
     }
   }
@@ -188,7 +188,7 @@ int generate_uuid(char *buf, size_t size) {
     for (int i = 0; i < (int)sizeof(raw); i++)
       snprintf(buf + i * 2, 3, "%02x", raw[i]);
 
-    buf[DS_UUID_LEN] = '\0';
+    buf[CHDROID_UUID_LEN] = '\0';
     return 0;
   }
 

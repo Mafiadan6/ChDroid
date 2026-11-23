@@ -5,22 +5,22 @@ import re
 import subprocess
 import unittest
 
-from dstest import DS, Container, DsTest, ds, ds_json, require_daemon, tree_version
+from dstest import DS, Container, ChDroidTest, ds, ds_json, require_daemon, tree_version
 
 
 def setUpModule():
     require_daemon()
 
 
-class Cli(DsTest):
+class Cli(ChDroidTest):
     def test_version_matches_tree(self):
         # The daemon serves every command with the installed binary, so a stale install fails here first.
         self.assertEqual(ds("version", check=True).stdout.strip(), "v" + tree_version())
 
     def test_help_lists_every_command(self):
         out = ds("help", check=True).stdout
-        self.assertTrue(out.startswith("Droidspaces v"), out[:80])
-        self.assertIn("Usage: droidspaces [options] <command> [args]", out)
+        self.assertTrue(out.startswith("ChDroid v"), out[:80])
+        self.assertIn("Usage: chdroid [options] <command> [args]", out)
         for cmd in ("start", "stop", "restart", "enter", "run", "info", "pid", "show", "scan", "check", "docs", "help", "version", "daemon"):
             self.assertRegex(out, re.compile(rf"^\s+{cmd}\b", re.M), f"{cmd} missing from help")
         for flag in ("--rootfs", "--rootfs-img", "--name", "--hostname", "--conf", "--net", "--gateway", "--macvlan-parent",
@@ -78,16 +78,16 @@ class Cli(DsTest):
         self.assertIn("Root privileges required", p.stdout + p.stderr)
 
     def test_direct_mode_check_works_without_daemon(self):
-        env = dict(os.environ, DS_NO_PROXY="1")
+        env = dict(os.environ, CHDROID_NO_PROXY="1")
         p = subprocess.run([DS, "check"], capture_output=True, text=True, env=env, timeout=60)
         self.assertEqual(p.returncode, 0, p.stderr)
 
     def test_scan_runs_without_containers(self):
         p = ds("scan", check=True)
-        self.assertIn("Scanning system for untracked Droidspaces containers", p.stdout)
+        self.assertIn("Scanning system for untracked ChDroid containers", p.stdout)
 
 
-class StartValidation(DsTest):
+class StartValidation(ChDroidTest):
     """start must refuse bad input before anything is created."""
 
     def setUp(self):

@@ -1,12 +1,12 @@
 English | [简体中文](./Documentation/zh-CN/CONTRIBUTING.md)
 
-# Contributing to Droidspaces
+# Contributing to ChDroid
 
 ## Philosophy
 
 > A feature that doesn't exist is better than a broken implementation.
 
-Droidspaces runs on two distinct platforms: Android, on hardware ranging from ancient
+ChDroid runs on two distinct platforms: Android, on hardware ranging from ancient
 vendor-frozen 3.10 kernels to modern GKI devices across dozens of SoCs and OEMs, and Linux
 desktop environments. A patch that works on your setup and breaks on someone else's is not a
 contribution, it is a regression. Every change introduced into core must uphold this
@@ -21,7 +21,7 @@ something already exists.
 
 ## Platform Scope
 
-Droidspaces core must work correctly on both Android and Linux. These are not
+ChDroid core must work correctly on both Android and Linux. These are not
 interchangeable environments and must be treated as separate targets.
 
 ### Platform Detection
@@ -82,7 +82,7 @@ are not sufficient validation.
 
 ## SoC and OEM Coverage (Android)
 
-Droidspaces runs on Qualcomm, Exynos, MediaTek, and Unisoc silicon, under OEM kernels that
+ChDroid runs on Qualcomm, Exynos, MediaTek, and Unisoc silicon, under OEM kernels that
 deviate significantly from mainline. Your patch must be tested across a representative
 spread of this landscape before submission.
 
@@ -90,7 +90,7 @@ State explicitly in your PR which devices and kernel versions you have tested on
 claims of compatibility will be treated as untested.
 
 Patches that address a quirk specific to one SoC family or OEM kernel are acceptable **only
-if Droidspaces can adapt to the quirk at runtime**, via detection, a conditional code path,
+if ChDroid can adapt to the quirk at runtime**, via detection, a conditional code path,
 or a graceful fallback, without regressing behavior on unaffected hardware. If the fix
 cannot be generalized in this way, it belongs in a downstream fork, not in core.
 
@@ -112,7 +112,7 @@ make aarch64           # cross builds: aarch64, x86_64, armhf, x86, riscv64
 make debug-hardened    # ASan, UBSan, LSan build for chasing memory bugs
 make all-build         # every architecture
 make all-tarball       # all-build plus a release tarball
-make bump NEW=x.y.z    # set DS_VERSION in droidspaces.h
+make bump NEW=x.y.z    # set CHDROID_VERSION in chdroid.h
 make format            # clang-format over src/, using the repo .clang-format
 make clean
 ```
@@ -133,7 +133,7 @@ warnings. A warning is a build failure, not a review comment.
 
 Adding a new `.c` file means adding it to `SRCS` in the Makefile. There is no wildcard.
 
-The version string is scraped from `DS_VERSION` in `src/include/droidspaces.h`. `make bump
+The version string is scraped from `CHDROID_VERSION` in `src/include/chdroid.h`. `make bump
 NEW=x.y.z` rewrites it; nothing else carries the version.
 
 ### Android app
@@ -146,7 +146,7 @@ From `Android/`:
 ```
 
 Use the script rather than calling gradle directly. The APK build runs `make` for the four
-phone arches and packages `output/droidspaces-<arch>` as a generated asset, so it needs the
+phone arches and packages `output/chdroid-<arch>` as a generated asset, so it needs the
 musl toolchains and never reads a binary you copied by hand.
 
 ### CI
@@ -156,7 +156,7 @@ release build on every push and pull request. It does **not** check formatting, 
 `make format` is your responsibility.
 
 A release is a tag: `make bump NEW=x.y.z`, commit, then push the tag `vx.y.z`. CI refuses a
-tag that does not match `DS_VERSION`, and publishes the APK, tarball, Debian packages and a
+tag that does not match `CHDROID_VERSION`, and publishes the APK, tarball, Debian packages and a
 `SHA256SUMS` file with a changelog of every commit since the previous tag.
 
 ## Code Style
@@ -206,16 +206,16 @@ change in the wrong place is a second bug.
   `internal.h` next to the folder's sources (`src/<folder>/internal.h`).
 - A new constant or type goes in the header of the folder that owns it (`net/net.h`,
   `config/config.h` for `struct ds_config` and the types it embeds), even when other folders
-  use it. `src/include/droidspaces.h` is for project-wide ones.
+  use it. `src/include/chdroid.h` is for project-wide ones.
 - New cross-module functions take the `ds_` prefix. Legacy un-prefixed names (`read_file`,
   `mkdir_p`, `run_command_quiet`, `domount`) stay as they are; do not rename them and do not
   imitate them for new work.
 - `is_*` for predicates, `check_*` for probes that may print, `setup_*` and `cleanup_*` for
   paired lifecycle, `print_*` for pure output, `free_*` for teardown.
-- Constants are `DS_` plus SCREAMING_SNAKE. Structs are `struct ds_*`. The `_t` suffix is
+- Constants are `CHDROID_` plus SCREAMING_SNAKE. Structs are `struct ds_*`. The `_t` suffix is
   only for typedefs.
-- Header guards are named `#ifndef DROIDSPACES_H` style with a matching
-  `#endif /* DROIDSPACES_H */`. No `#pragma once`.
+- Header guards are named `#ifndef CHDROID_H` style with a matching
+  `#endif /* CHDROID_H */`. No `#pragma once`.
 - There is no `xmalloc` family. Use plain `malloc` with an explicit NULL check, and prefer
   fixed-size buffers wherever the size is bounded. `struct ds_config` is almost entirely
   fixed-size for this reason.
@@ -253,7 +253,7 @@ change in the wrong place is a second bug.
 
 Grep this list before you write anything new. If something close already exists, extend it
 rather than adding a sibling. Android paths are relative to
-`Android/app/src/main/java/com/droidspaces/app/`, C paths to the repository root.
+`Android/app/src/main/java/com/chdroid/app/`, C paths to the repository root.
 
 This list answers "what do I call". [DESIGN.md](./DESIGN.md) answers "what should it look like",
 for the case where nothing here fits and you have to build something new.
@@ -272,9 +272,9 @@ for the case where nothing here fits and you have to build something new.
 | `NetworkModePage(...)` | `ui/component/NetworkModePage.kt` | The network mode list and each mode's settings (NAT, gateway, macvlan). Add a mode's settings here |
 | `UpstreamPickerSheet`, `HostInterfaceSheet`, `AddPortForwardSheet` | `ui/component/NetworkSheets.kt` | Adding to the network page's lists |
 | `EnvironmentVariablesPage`, `PrivilegedModePage`, `BindMountsPage` | `ui/component/` | The config pages that hold a draft |
-| `DsDropdown(label, selected, options, displayName, onSelect, ...)` | `ui/component/DsDropdown.kt` | Any select field. Never hand-roll `ExposedDropdownMenuBox` |
-| `DsMenuTheme { }` + `Modifier.dsMenuBorder()` | `ui/component/DsMenuTheme.kt` | Any `DropdownMenu` that needs the opaque menu surface. `DsDropdown` already applies it |
-| `DsTextFieldDefaults.colors()` / `.surfaceColors()` | `ui/component/DsTextFieldDefaults.kt` | Every `OutlinedTextField`. `colors()` on screens, `surfaceColors()` inside dialogs |
+| `ChDroidDropdown(label, selected, options, displayName, onSelect, ...)` | `ui/component/ChDroidDropdown.kt` | Any select field. Never hand-roll `ExposedDropdownMenuBox` |
+| `ChDroidMenuTheme { }` + `Modifier.dsMenuBorder()` | `ui/component/ChDroidMenuTheme.kt` | Any `DropdownMenu` that needs the opaque menu surface. `ChDroidDropdown` already applies it |
+| `ChDroidTextFieldDefaults.colors()` / `.surfaceColors()` | `ui/component/ChDroidTextFieldDefaults.kt` | Every `OutlinedTextField`. `colors()` on screens, `surfaceColors()` inside dialogs |
 | `MonoField(value, onValueChange, label, ...)` | `ui/component/MonoField.kt` | Every single-line field for a value the backend reads verbatim: paths, interface names, flags, DNS. Number fields and the env editor are their own |
 | `FocusUtils`, `rememberClearFocus()`, `ClearFocusOnClickOutside` | `ui/util/FocusUtils.kt` | IME actions and dismissing the keyboard. `MainActivity` already clears focus on an unconsumed tap on every screen; `ClearFocusOnClickOutside` is only for a sheet that is its own window |
 
@@ -282,13 +282,13 @@ for the case where nothing here fits and you have to build something new.
 
 | Symbol | Path | Use it when |
 | --- | --- | --- |
-| `DsDialog(onDismiss, modifier, borderColor, scrollableContent, footer) { }` | `ui/component/DsDialog.kt` | Every dialog. Actions go in `footer`, never in the content, or they get squeezed off a short screen. Never set a width, padding or scroll |
+| `ChDroidDialog(onDismiss, modifier, borderColor, scrollableContent, footer) { }` | `ui/component/ChDroidDialog.kt` | Every dialog. Actions go in `footer`, never in the content, or they get squeezed off a short screen. Never set a width, padding or scroll |
 | `DialogDismissButton(label, onDismiss)` | `ui/component/DialogFooterRow.kt` | The `footer` of a dialog whose only action is close |
 | `DialogCloseButton(onClick, enabled)` | `ui/component/DialogCloseButton.kt` | The 36.dp close square in a dialog's header row, for info pages that close from the top (terminal log viewer, About) |
 | `DialogFooterRow(dismissLabel, confirmLabel, onDismiss, onConfirm, confirmEnabled, destructive)` | `ui/component/DialogFooterRow.kt` | Every dialog's cancel and confirm row, thirteen call sites. Pass `destructive = true` for a delete or a wipe, never a colour |
 | `FilePickerDialog(onDismiss, onConfirm, title, showFiles)` | `ui/component/FilePickerDialog.kt` | Picking a host path or file |
 | `HardwareAccessDialog(onConfirm, onDismiss)` | `ui/component/HardwareAccessDialog.kt` | Opt-in flow that needs a typed confirmation phrase |
-| `DsBottomSheet(onDismiss, title, footer, titleAction) { }` | `ui/component/DsBottomSheet.kt` | A short "add" form over the page it adds to. Same footer rule as `DsDialog` |
+| `ChDroidBottomSheet(onDismiss, title, footer, titleAction) { }` | `ui/component/ChDroidBottomSheet.kt` | A short "add" form over the page it adds to. Same footer rule as `ChDroidDialog` |
 | `DiscardEditsDialog(onDiscard, onKeepEditing)` | `ui/component/ContainerConfigHost.kt` | Leaving a page with unapplied edits. `rememberDraftBack` shows it for you |
 | `DangerousWarningCard(title, text)` + `ConfirmPhraseField(value, onValueChange, isError)` | `ui/component/DangerousActionConfirm.kt` | Building a destructive confirmation. Compose these two with `DialogFooterRow` |
 | `TerminalDialog(title, logs, onDismiss, onClear, isBlocking)` | `ui/component/TerminalDialog.kt` | Showing live or streaming command output |
@@ -317,18 +317,18 @@ the language and about dialogs in `ui/screen/SettingsScreen.kt`). Do not import 
 | `SettingsGroup { }` + `GroupHeader`, `GroupIntro`, `GroupDivider` | `ui/component/SettingsGroup.kt` | Any settings-style screen: one surface per section, rows flat inside, a header above |
 | `NavRow(title, onClick, icon, value, summary, danger, error)` | `ui/component/SettingsGroup.kt` | A row in a group that opens a page, showing the current value |
 | `RadioRow(title, description, selected, onClick)` | `ui/component/NetworkModePage.kt` | One option of a radio list in a group |
-| `DsRadioRow(label, selected, onClick, fontFamily, delete)` | `ui/component/DsRadioRow.kt` | One option of a single-select list in a dialog: the font and user pickers |
-| `DsSearchBar(query, onQueryChange, placeholder, ...)` | `ui/component/DsSearchBar.kt` | The search field above a filterable list |
+| `ChDroidRadioRow(label, selected, onClick, fontFamily, delete)` | `ui/component/ChDroidRadioRow.kt` | One option of a single-select list in a dialog: the font and user pickers |
+| `ChDroidSearchBar(query, onQueryChange, placeholder, ...)` | `ui/component/ChDroidSearchBar.kt` | The search field above a filterable list |
 | `EntryRow(text, onDelete, ...)` / `AddEntryButton(label, onClick)` | `ui/component/ListEntryCards.kt` | Editable lists: the entries inside a group, the add button under it |
 | `GroupField { }` / `InlineWarning(text)` | `ui/component/ContainerConfigForm.kt` | A text field inside a group, padded like the rows; an error-tinted note inside one |
 | `screenGutter()`, `isCompactWidth()`, `isShortHeight()` | `ui/component/SettingsGroup.kt` | Margins and layout switches for narrow and short windows. See DESIGN.md "Small screens" |
 | `SettingsCard(title, onClick, icon, subtitleContent, trailing, ...)` | `ui/component/SettingsCard.kt` | A standalone card row outside a group |
 | `ToggleCard` | `ui/component/ToggleCard.kt` | A standalone switch card. Inside a group use `SwitchItem` |
-| `DsSlider(value, onValueChange, valueRange, ...)` | `ui/component/DsSlider.kt` | Any slider. Never restyle a raw `Slider` at the call site |
+| `ChDroidSlider(value, onValueChange, valueRange, ...)` | `ui/component/ChDroidSlider.kt` | Any slider. Never restyle a raw `Slider` at the call site |
 | `SwitchItem` | `ui/component/SwitchItem.kt` | The switch row inside a `SettingsGroup`. See the duplicates note below |
 | `ContainerCard(container, actions, ...)` + `ContainerCardActions` | `ui/component/ContainerCard.kt` | The expandable container row. Add new actions to `ContainerCardActions`, not as new parameters |
 | `RunningContainerCard(container, onEnter, onTerminalClick, osInfo)` | `ui/component/RunningContainerCard.kt` | Compact running container card on the control panel |
-| `DroidspacesStatusCard(status, version, ...)` + `DroidspacesStatus` | `ui/component/DroidspacesStatusCard.kt` | Backend or module status hero card |
+| `ChDroidStatusCard(status, version, ...)` + `ChDroidStatus` | `ui/component/ChDroidStatusCard.kt` | Backend or module status hero card |
 | `SystemInfoCard`, `ContainerUsersCard`, `HelpCard` | `ui/component/` | Host resource card, container user management, getting started block |
 | `EmptyState(icon, title, description)`, `ErrorState`, `RootUnavailableState` | `ui/component/EmptyState.kt` | Any empty list, backend unavailable state, or missing root state |
 
@@ -349,13 +349,13 @@ the language and about dialogs in `ui/screen/SettingsScreen.kt`). Do not import 
 
 | Symbol | Path | Use it when |
 | --- | --- | --- |
-| `DroidspacesTheme(darkTheme, dynamicColor, amoledMode, themePalette)` | `ui/theme/Theme.kt` | The single theme root, applied in `MainActivity` |
+| `ChDroidTheme(darkTheme, dynamicColor, amoledMode, themePalette)` | `ui/theme/Theme.kt` | The single theme root, applied in `MainActivity` |
 | `rememberThemeState()` + `ThemeState` | `ui/theme/ThemeStateHolder.kt` | Reading live theme preferences |
 | `ThemePalette` | `ui/theme/Color.kt` | Adding an accent palette. Here and nowhere else |
 | `MaterialTheme.colorScheme.*` | | All colors. `ui/theme/Color.kt` holds `AMOLED_BLACK`, the palettes, the warning pair and `ColorScheme.isDark` |
 | `ColorScheme.isDark`, `warningContainer`, `onWarningContainer` | `ui/theme/Color.kt` | Dark-mode branches and the amber warning pair. Never re-derive from `luminance()` |
 | `MaterialTheme.typography.*`, `JetBrainsMono` | `ui/theme/Type.kt` | All text styles, and the mono font for terminal, log, and code text |
-| `DsIcons.Logo` | `ui/theme/DsIcons.kt` | The app mark as a tintable icon, wherever the UI means a container or its storage. Never `Icons.Default.Storage` |
+| `ChDroidIcons.Logo` | `ui/theme/ChDroidIcons.kt` | The app mark as a tintable icon, wherever the UI means a container or its storage. Never `Icons.Default.Storage` |
 | Corner radii, spacing, type roles | [DESIGN.md](./DESIGN.md) | Every visual value. There is no shape token object, the numbers live in DESIGN.md |
 | `AnimationUtils` | `util/AnimationUtils.kt` | Durations, easing, and tween specs. Never a literal `tween(300)` |
 | `AccentColorPicker`, `ColorPaletteSwatch` | `ui/component/` | The palette picker in settings |
@@ -368,9 +368,9 @@ conventions: 24.dp for dialog and screen horizontal padding, 16.dp for card inne
 
 | Symbol | Path | Use it when |
 | --- | --- | --- |
-| `Screen` sealed class | `ui/navigation/DroidspacesNavigation.kt` | Adding a destination. Never a raw route string |
+| `Screen` sealed class | `ui/navigation/ChDroidNavigation.kt` | Adding a destination. Never a raw route string |
 | `Screen.X.createRoute(...)` | same | Building a route. Arguments are URI encoded for you |
-| `DroidspacesNavigation(navController, ...)` | same | The single `NavHost`. Register new screens here |
+| `ChDroidNavigation(navController, ...)` | same | The single `NavHost`. Register new screens here |
 
 ### Android: shell and root execution
 
@@ -383,9 +383,9 @@ conventions: 24.dp for dialog and screen horizontal padding, 16.dp for card inne
 | `ContainerOperationExecutor.checkCommandSuccess(command)` | same | Fire and check, no logging |
 | `ContainerLogger` / `ViewModelLogger(onLog)` | `util/ContainerLogger.kt` | The log sink every installer and executor takes |
 | `ContainerRuntime.scan()` | `util/ContainerRuntime.kt` | Reconciling on-disk containers. The intended gateway to the backend binary |
-| `Constants.getDroidspacesCommand()` | `util/Constants.kt` | Resolving the binary in PATH versus its full path |
+| `Constants.getChDroidCommand()` | `util/Constants.kt` | Resolving the binary in PATH versus its full path |
 
-The global libsu configuration lives in `DroidspacesApplication.kt`. That is the only place
+The global libsu configuration lives in `ChDroidApplication.kt`. That is the only place
 it should be set.
 
 ### Android: validation and security
@@ -428,7 +428,7 @@ boundary.
 | `RootChecker` / `RootStatus` | `util/RootChecker.kt` | Root availability |
 | `StorageChecker` | `util/StorageChecker.kt` | Free space checks |
 | `ResourceLimits` + `LimitSupport` | `util/ResourceLimits.kt` | Device RAM and core totals, which limits the running kernel can enforce (`probe()`), and the display strings for memory, cores and PIDs. Format a limit through it, never by hand |
-| `DroidspacesChecker` / `DroidspacesBackendStatus` | `util/DroidspacesChecker.kt` | Backend install state and update availability |
+| `ChDroidChecker` / `ChDroidBackendStatus` | `util/ChDroidChecker.kt` | Backend install state and update availability |
 | `LocaleHelper` | `util/LocaleHelper.kt` | Language listing and switching |
 | `SELinuxChecker` | `util/SELinuxChecker.kt` | Overlaps `SystemInfoManager.getSELinuxStatus()`. Prefer the latter, it caches |
 
@@ -471,7 +471,7 @@ validation. Prefer the wrappers.
 | --- | --- | --- |
 | `TerminalSessionService` + `SessionBinder` | `service/TerminalSessionService.kt` | Creating, fetching, and terminating terminal sessions. Call `detachAllClients()` on screen disposal so the Activity is not retained |
 | `TerminalSessionService.globalSessionList` | same | The process-scoped, Compose-observable session registry |
-| `DroidspacesTerminalSession.create(client, containerName, containerUser)` | `ui/terminal/DroidspacesTerminalSession.kt` | The only place a container shell is spawned. It re-validates the container name and user |
+| `ChDroidTerminalSession.create(client, containerName, containerUser)` | `ui/terminal/ChDroidTerminalSession.kt` | The only place a container shell is spawned. It re-validates the container name and user |
 | `TerminalBackEnd`, `TerminalScreenState`, `NoOpTerminalSessionClient` | `ui/terminal/` | Terminal view plumbing |
 | `AnsiColorParser.parseAnsi/stripAnsi` | `util/AnsiColorParser.kt` | Rendering or cleaning ANSI output |
 
@@ -556,14 +556,14 @@ influenced, copy the `ds_bind_mount_socket` pattern: open with `O_NOFOLLOW|O_CLO
 | `ds_container_lock(name, wait)` / `ds_container_unlock(fd)` | The per-container lifecycle lock, a `flock`. **Anything** that changes a container's on-disk state (pidfile, mount, cgroup) must hold it, the monitor included. Commands pass `wait=0` and report busy; the monitor passes `wait=1`. Decide what to do from the state you find while holding it |
 | `ds_container_lock_orphan(name)` | Same lock, but only granted when no monitor is alive for the name. For pruning leftovers. On -1, leave the container alone |
 | `ds_container_claim_supervision(name)` | Called once by a monitor. It is what `ds_container_lock_orphan` checks |
-| `DS_SIG_STOP`, `ds_init_type_t`, `detect_container_init()` | Graceful stop. Each init family has its own stop and reboot signal, and under procd `SIGTERM` means reboot |
+| `CHDROID_SIG_STOP`, `ds_init_type_t`, `detect_container_init()` | Graceful stop. Each init family has its own stop and reboot signal, and under procd `SIGTERM` means reboot |
 
 ### C backend: platform gates
 
 | Symbol | Use it when |
 | --- | --- |
 | `is_android()` | The mandatory gate for every Android-only or Linux-only path, both directions |
-| `get_kernel_version`, `check_kernel_recommendation` | Version gating against `DS_MIN_KERNEL_MAJOR` and `DS_MIN_KERNEL_MINOR` |
+| `get_kernel_version`, `check_kernel_recommendation` | Version gating against `CHDROID_MIN_KERNEL_MAJOR` and `CHDROID_MIN_KERNEL_MINOR` |
 | `check_ns(flag, name)` | Probing whether a `CLONE_NEW*` namespace is usable. The network namespace is answered from `/proc/self/ns/net` alone: creating one to test it stalls the real `unshare` behind its teardown on kernels before 4.17 |
 | `ds_cgroup_host_is_v2` | cgroup generation gate |
 | `ds_nl_probe_nat_capability(reason, size)` | Kernel bridge, veth, and NAT capability. Fork free. Run before any NAT setup. A full pass is remembered for the boot in `Net/nat_caps`, keyed by boot_id; anything less is probed again |
@@ -581,7 +581,7 @@ whole tree. It is almost entirely fixed-size, with three heap-owned lists.
 | `ds_config_add_bind(cfg, src, dest, ro)` | The only way to add a bind mount. Grows, de-dups, validates |
 | `ds_config_free` | Teardown. It calls the three per-list free functions |
 | `sort_bind_mounts(cfg)` | Before applying binds, so parents mount before children |
-| `parse_privileged(value, cfg)` | Parsing `--privileged` into the `DS_PRIV_*` bitmask |
+| `parse_privileged(value, cfg)` | Parsing `--privileged` into the `CHDROID_PRIV_*` bitmask |
 | `ds_config_auto_path`, `apply_reset_config` | Deriving the default config path, and resetting |
 | `load_etc_environment`, `ds_env_boot_setup`, `ds_env_save`, `parse_env_file_to_config` | Environment file handling |
 
@@ -626,13 +626,13 @@ shell-out on the fast path. The netfilter helpers take an address family (`AF_IN
 | `ds_nl_create_bridge`, `ds_nl_create_veth`, `ds_nl_set_master`, `ds_nl_link_up/down`, `ds_nl_del_link`, `ds_nl_rename`, `ds_nl_set_mac` | Link operations |
 | `ds_nl_add_addr4`, `ds_nl_add_route4`, `ds_nl_add_addr6`, `ds_nl_add_route6` | Addresses and routes. The IPv6 route is link scope only |
 | `ds_nl_create_veth_in(ctx, host, peer, netns_fd, mac)` | Creating a veth pair with the peer born inside a namespace under its final name. The only way an interface enters a container: moving one in and renaming it there is a race the guest's netifd loses |
-| `ds_nl_add_rule4`, `ds_nl_del_rule4`, `ds_nl_rule6` | FIB policy rules. Priorities come from `DS_RULE_PRIO_TO_SUBNET`, `DS_RULE_PRIO_TETHER`, `DS_RULE_PRIO_FROM_SUBNET`, which must sit above the OEM reserved range and below Android's VPN range |
+| `ds_nl_add_rule4`, `ds_nl_del_rule4`, `ds_nl_rule6` | FIB policy rules. Priorities come from `CHDROID_RULE_PRIO_TO_SUBNET`, `CHDROID_RULE_PRIO_TETHER`, `CHDROID_RULE_PRIO_FROM_SUBNET`, which must sit above the OEM reserved range and below Android's VPN range |
 | `ds_nl_get_iface_table`, `ds_nl_get_table_default_oif`, `ds_nl_get_android_default` | Routing table introspection. All three take the address family |
 | `ds_nl_flush_stale_veths`, `ds_nl_list_ifaces`, `ds_nl_count_ifaces_with_prefix` | Enumeration and garbage collection |
 | `ds_ipt_ensure_masquerade`, `ds_ipt_ensure_forward_accept`, `ds_ipt_ensure_input_accept`, `ds_ipt_ensure_mss_clamp` | Installing netfilter rules |
 | `ds_ipt_host_rules_present(family, iface, src_cidr, expect_dnat)` | The fork-free probe for one family's host rule set. The route monitor gates reinstallation on it |
 | `ds_ipt_remove_iface_rules`, `ds_ipt_remove_ds_rules` | Teardown |
-| `ds_ipt6_available` | Whether the kernel can do NAT66 at all: the ip6 nat table and the MASQUERADE target. Shared by the runtime and `droidspaces check` |
+| `ds_ipt6_available` | Whether the kernel can do NAT66 at all: the ip6 nat table and the MASQUERADE target. Shared by the runtime and `chdroid check` |
 | `ds_ipt_add_portforwards`, `ds_ipt_remove_portforwards` | Port forwarding |
 | `parse_cidr(cidr, ip_out, mask_out)` | The shared CIDR splitter |
 | `fix_networking_host`, `fix_networking_rootfs`, `setup_veth_host_side`, `setup_veth_child_side_named`, `setup_gateway_veth_side` | Network bring-up |
@@ -648,7 +648,7 @@ shell-out on the fast path. The netfilter helpers take an address family (`AF_IN
 | Symbol | Contract |
 | --- | --- |
 | `ds_peer_authorized(fd, group_name)` | The only authorization gate in the tree. Allows root or a member of the group, but only when the peer shares our PID namespace. Every failure path denies. The callers are `src/daemon/server.c` and `src/container/command.c`, which checks the clients of a monitor's command socket (its clients prove the server with `server_is_monitor` there) |
-| `ds_cmd_get_config(name, cfg, pid)`, `ds_cmd_get_pid(name)`, `ds_cmd_for_each(visit, arg)` | What a running container booted with and its init pid, from its monitor's command socket `@droidspaces/<name>/command`. The only source for either: the host never reads the guest's own copy |
+| `ds_cmd_get_config(name, cfg, pid)`, `ds_cmd_get_pid(name)`, `ds_cmd_for_each(visit, arg)` | What a running container booted with and its init pid, from its monitor's command socket `@chdroid/<name>/command`. The only source for either: the host never reads the guest's own copy |
 | `ds_peer_in_pidns(peer_pid)` | Must fail closed. A pid of zero is not translatable into our namespace, and a failed readlink means we cannot prove membership. Both deny. Failing open here let a caller recycle a dead pid and escape to host root |
 | `ds_bind_mount_socket(src, dst, uid, label)` | The symlink-race-safe write pattern for anything landing in a container-controlled directory |
 | `set_selinux_context`, `get_selinux_context`, `ds_selinux_dyntransition`, `ds_selinux_enter_domain`, `ds_drop_privileges`, `ds_resolve_termux_uid` | SELinux and privilege handling. `ds_selinux_dyntransition`, `ds_drop_privileges` and `ds_resolve_termux_uid` are `android/` only, from its `internal.h` |
@@ -671,7 +671,7 @@ another.
 - `ToggleCard` and `SwitchItem` are two shapes of the same switch row.
 - `ContainersScreen` has an inline copy of the typed-confirmation gate that
   `ConfirmPhraseField` already provides. It also inlines error-tinted field colors, because
-  `DsTextFieldDefaults` has no error variant. Add the variant rather than a third copy.
+  `ChDroidTextFieldDefaults` has no error variant. Add the variant rather than a third copy.
 - `SummaryItem` exists as three private overloads in `InstallationSummaryScreen.kt`. Promote
   it to `ui/component/` before a second screen wants it.
 - `labelFontSize` on `PrimaryActionBottomBar` has one caller, `RootCheckScreen`, pushing its

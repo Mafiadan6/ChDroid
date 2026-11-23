@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - Resource Visibility Virtualization
+ * ChDroid v7 - Resource Visibility Virtualization
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "internal.h"
 
@@ -55,7 +55,7 @@ void ds_virtualize_affinity(struct ds_config *cfg) {
  */
 static int task_cpus_allowed(pid_t pid, cpu_set_t *mask) {
   char path[64], line[1024];
-  snprintf(path, sizeof(path), DS_PROC_STATUS_FMT, (int)pid);
+  snprintf(path, sizeof(path), CHDROID_PROC_STATUS_FMT, (int)pid);
   FILE *f = fopen(path, "re");
   if (!f)
     return -1;

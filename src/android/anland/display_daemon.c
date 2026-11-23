@@ -2,7 +2,7 @@
  * Anland 5.x display broker.
  *
  * Vendored from https://github.com/superturtlee/anland, branch legacy,
- * libdisplay_daemon/display_daemon.c, and adapted for Droidspaces:
+ * libdisplay_daemon/display_daemon.c, and adapted for ChDroid:
  *
  *   - the two roles are authenticated. The consumer must be root: the Anland
  *     app connects through its su helper, which hands the fd over and exits,
@@ -24,7 +24,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 #include "display_daemon.h"
 #include "protocol.h"
@@ -159,7 +159,7 @@ static void try_deliver_fds(daemon_ctx *ctx) {
     ctx->producer_waiting_fds = 1;
     return;
   }
-  struct ctrl_msg msg = {.type = CTRL_MSG_FDS_READY, .size = 0};
+  struct ctrl_msg msg = {.type = CTRL_MSG_FCHDROID_READY, .size = 0};
   if (ds_send_fds(ctx->producer->fd, &msg, sizeof(msg), ctx->fds,
                   ctx->fd_count) < 0) {
     dlog("failed to send fds to producer\n");
@@ -167,7 +167,7 @@ static void try_deliver_fds(daemon_ctx *ctx) {
     return;
   }
   if (ctx->consumer)
-    send_ctrl(ctx->consumer->fd, CTRL_MSG_FDS_READY);
+    send_ctrl(ctx->consumer->fd, CTRL_MSG_FCHDROID_READY);
   clear_deposit(ctx);
   ctx->producer_waiting_fds = 0;
   dlog("fds delivered to producer\n");

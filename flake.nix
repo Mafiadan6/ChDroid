@@ -1,5 +1,5 @@
 {
-  description = "Droidspaces - High-performance Container Runtime";
+  description = "ChDroid - High-performance Container Runtime";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/c6e5ca3c836a5f4dd9af9f2c1fc1c38f0fac988a";
@@ -13,7 +13,7 @@
     import-tree.url = "github:vic/import-tree";
 
     artifacts = {
-      url = "github:loystonpais/Droidspaces-OSS/artifacts";
+      url = "github:loystonpais/ChDroid-OSS/artifacts";
       flake = false;
     };
 
@@ -29,8 +29,8 @@
       inherit inputs;
       specialArgs = rec {
         version = let
-          header = builtins.readFile ./src/include/droidspaces.h;
-          match = builtins.match ".*#define DS_VERSION \"([^\"]+)\".*" (lib.replaceStrings ["\n"] [" "] header);
+          header = builtins.readFile ./src/include/chdroid.h;
+          match = builtins.match ".*#define CHDROID_VERSION \"([^\"]+)\".*" (lib.replaceStrings ["\n"] [" "] header);
         in
           if match == null
           then "0.0.0"

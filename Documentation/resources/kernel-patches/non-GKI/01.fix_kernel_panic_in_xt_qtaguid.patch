@@ -1,7 +1,7 @@
 From 5011f9b440c8c4144473d9a26171fc8ecf59d059 Mon Sep 17 00:00:00 2001
 From: ravindu644 <droidcasts@protonmail.com>
 Date: Sun, 22 Feb 2026 22:24:27 +0530
-Subject: [PATCH] [PATCH 1/2] Droidspaces/LXC: fix: avoid kernel panic in
+Subject: [PATCH] [PATCH 1/2] ChDroid/LXC: fix: avoid kernel panic in
  xt_qtaguid by removing unsafe dev_get_stats usage on inactive interfaces
 
 Signed-off-by: ravindu644 <droidcasts@protonmail.com>

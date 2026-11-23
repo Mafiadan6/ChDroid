@@ -1,21 +1,21 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <sys/socket.h>
 
 /* FD Passing (SCM_RIGHTS) */
 
 int ds_send_fds(int sock, const void *data, size_t len, const int *fds,
                 int count) {
-  if (count < 1 || count > DS_MAX_PASSED_FDS)
+  if (count < 1 || count > CHDROID_MAX_PASSED_FDS)
     return -1;
   struct msghdr msg = {0};
-  char buf[CMSG_SPACE(sizeof(int) * DS_MAX_PASSED_FDS)];
+  char buf[CMSG_SPACE(sizeof(int) * CHDROID_MAX_PASSED_FDS)];
   memset(buf, 0, sizeof(buf));
 
   struct iovec io = {.iov_base = (void *)(uintptr_t)data, .iov_len = len};
@@ -41,7 +41,7 @@ int ds_send_fds(int sock, const void *data, size_t len, const int *fds,
 ssize_t ds_recv_fds(int sock, void *data, size_t len, int *fds, int max,
                     int *count) {
   struct msghdr msg = {0};
-  char buf[CMSG_SPACE(sizeof(int) * DS_MAX_PASSED_FDS)];
+  char buf[CMSG_SPACE(sizeof(int) * CHDROID_MAX_PASSED_FDS)];
   memset(buf, 0, sizeof(buf));
 
   struct iovec io = {.iov_base = data, .iov_len = len};

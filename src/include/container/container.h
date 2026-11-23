@@ -1,12 +1,12 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#ifndef DS_CONTAINER_CONTAINER_H
-#define DS_CONTAINER_CONTAINER_H
+#ifndef CHDROID_CONTAINER_CONTAINER_H
+#define CHDROID_CONTAINER_CONTAINER_H
 
 /* cleanup.c */
 void cleanup_container_resources(struct ds_config *cfg, pid_t pid,
@@ -18,7 +18,7 @@ void cleanup_container_resources(struct ds_config *cfg, pid_t pid,
  * under the guest's /run, which root inside the container controls. */
 /* reply: the init pid (u32 big-endian, 0 if none), then the config as its
  * file holds it, so both come from the same boot cycle */
-#define DS_CMD_CONFIG ((uint8_t)'C')
+#define CHDROID_CMD_CONFIG ((uint8_t)'C')
 
 /* Monitor side. serve_start starts the thread that answers on the
  * container's command socket; a forked child never keeps its listener.
@@ -98,4 +98,4 @@ int stop_rootfs(struct ds_config *cfg, int skip_unmount);
 int stop_rootfs_with_timeout(struct ds_config *cfg, int skip_unmount,
                              int timeout_seconds);
 
-#endif /* DS_CONTAINER_CONTAINER_H */
+#endif /* CHDROID_CONTAINER_CONTAINER_H */

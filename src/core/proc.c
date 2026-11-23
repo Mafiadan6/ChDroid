@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <sys/auxv.h>
 #include <time.h>
 
@@ -72,9 +72,9 @@ int build_proc_root_path(pid_t pid, const char *suffix, char *buf,
                          size_t size) {
   int r;
   if (suffix && suffix[0])
-    r = snprintf(buf, size, DS_PROC_ROOT_FMT "%s", pid, suffix);
+    r = snprintf(buf, size, CHDROID_PROC_ROOT_FMT "%s", pid, suffix);
   else
-    r = snprintf(buf, size, DS_PROC_ROOT_FMT, pid);
+    r = snprintf(buf, size, CHDROID_PROC_ROOT_FMT, pid);
   return (r > 0 && (size_t)r < size) ? 0 : -1;
 }
 
@@ -90,7 +90,7 @@ int ds_open_in_root(pid_t pid, const char *path, int flags) {
     errno = ENAMETOOLONG;
     return -1;
   }
-  snprintf(root, sizeof(root), DS_PROC_ROOT_FMT, pid);
+  snprintf(root, sizeof(root), CHDROID_PROC_ROOT_FMT, pid);
   int dir = open(root, O_PATH | O_DIRECTORY | O_CLOEXEC);
   char *save, *part = strtok_r(buf, "/", &save);
   errno = dir < 0 ? errno : EINVAL;
@@ -134,13 +134,13 @@ void check_kernel_recommendation(void) {
   if (get_kernel_version(&major, &minor) < 0)
     return;
 
-  if (major < DS_RECOMMENDED_KERNEL_MAJOR ||
-      (major == DS_RECOMMENDED_KERNEL_MAJOR &&
-       minor < DS_RECOMMENDED_KERNEL_MINOR)) {
+  if (major < CHDROID_RECOMMENDED_KERNEL_MAJOR ||
+      (major == CHDROID_RECOMMENDED_KERNEL_MAJOR &&
+       minor < CHDROID_RECOMMENDED_KERNEL_MINOR)) {
     ds_warn("Your kernel (%d.%d) is below recommended %d.%d - "
             "some functions might be unstable.",
-            major, minor, DS_RECOMMENDED_KERNEL_MAJOR,
-            DS_RECOMMENDED_KERNEL_MINOR);
+            major, minor, CHDROID_RECOMMENDED_KERNEL_MAJOR,
+            CHDROID_RECOMMENDED_KERNEL_MINOR);
     fflush(stdout);
   }
 }

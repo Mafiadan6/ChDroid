@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Mask a sensitive path by self-binding and remounting read-only.
  * Silently skips if the path doesn't exist.  The resulting mount entry
@@ -30,7 +30,7 @@ static void ds_mask_path(const char *path) {
  * "everything possible" requirement for low-level hardware tools.
  */
 int ds_apply_jail_mask(int hw_access, int privileged_mask, int sandboxing) {
-  if (privileged_mask & DS_PRIV_NOMASK) {
+  if (privileged_mask & CHDROID_PRIV_NOMASK) {
     ds_log(
         "[SEC] --privileged=nomask: skipping jail masks for /proc and /sys.");
     return 0;
@@ -120,7 +120,7 @@ int ds_apply_jail_mask(int hw_access, int privileged_mask, int sandboxing) {
      * host's, so it only opens with sandboxing: bwrap --disable-userns writes
      * user.max_user_namespaces through the container's own /proc before it
      * unshares its second user namespace, and the pristine copy under
-     * /run/droidspaces already exposes the same tree read-write. */
+     * /run/chdroid already exposes the same tree read-write. */
     const char *rw_holes[] = {"/proc/sys/net", "/proc/sys/kernel/hostname",
                               "/proc/sys/kernel/domainname",
                               sandboxing ? "/proc/sys/user" : NULL, NULL};

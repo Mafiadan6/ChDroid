@@ -19,7 +19,7 @@
 #define CTRL_MSG_PRODUCER_HELLO 2
 #define CTRL_MSG_SCREEN_INFO 7
 #define CTRL_MSG_PICKUP_FDS 9
-#define CTRL_MSG_FDS_READY 10
+#define CTRL_MSG_FCHDROID_READY 10
 
 struct ctrl_msg {
   uint32_t type;

@@ -9,9 +9,9 @@
         android:shortcutShortLabel="@string/containers"
         android:shortcutLongLabel="@string/containers">
         <intent
-            android:action="com.droidspaces.app.action.SHORTCUT_CONTAINERS"
-            android:targetPackage="com.droidspaces.app"
-            android:targetClass="com.droidspaces.app.MainActivity" />
+            android:action="com.chdroid.app.action.SHORTCUT_CONTAINERS"
+            android:targetPackage="com.chdroid.app"
+            android:targetClass="com.chdroid.app.MainActivity" />
     </shortcut>
 
     <!-- Panel tab -->
@@ -22,9 +22,9 @@
         android:shortcutShortLabel="@string/panel"
         android:shortcutLongLabel="@string/panel">
         <intent
-            android:action="com.droidspaces.app.action.SHORTCUT_PANEL"
-            android:targetPackage="com.droidspaces.app"
-            android:targetClass="com.droidspaces.app.MainActivity" />
+            android:action="com.chdroid.app.action.SHORTCUT_PANEL"
+            android:targetPackage="com.chdroid.app"
+            android:targetClass="com.chdroid.app.MainActivity" />
     </shortcut>
 
     <!-- Settings -->
@@ -35,9 +35,9 @@
         android:shortcutShortLabel="@string/settings"
         android:shortcutLongLabel="@string/settings">
         <intent
-            android:action="com.droidspaces.app.action.SHORTCUT_SETTINGS"
-            android:targetPackage="com.droidspaces.app"
-            android:targetClass="com.droidspaces.app.MainActivity" />
+            android:action="com.chdroid.app.action.SHORTCUT_SETTINGS"
+            android:targetPackage="com.chdroid.app"
+            android:targetClass="com.chdroid.app.MainActivity" />
     </shortcut>
 
 </shortcuts>

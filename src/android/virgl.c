@@ -1,5 +1,5 @@
 /*
- * Droidspaces v7 - VirGL Server and Socket Manager
+ * ChDroid v7 - VirGL Server and Socket Manager
  *
  * Manages the virgl_test_server_android daemon lifecycle on Android
  * (spawning, logging, and stopping) and host-to-container socket bridging.
@@ -9,7 +9,7 @@
  */
 
 #define _GNU_SOURCE
-#include "droidspaces.h"
+#include "chdroid.h"
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +35,7 @@ static void virgl_child_wrapper(int ready_fd, void *user_data) {
 
   ds_daemon_child_preamble();
 
-  /* Enter droidspacesd domain -- best-effort, fallback on pre-reboot */
+  /* Enter chdroidd domain -- best-effort, fallback on pre-reboot */
   ds_selinux_enter_domain();
 
   fprintf(stdout, "[VirGL] uid=%d starting server\n", (int)getuid());
@@ -141,8 +141,8 @@ int ds_setup_virgl_socket(struct ds_config *cfg) {
   if (!is_android() || !cfg->virgl)
     return 0;
 
-  /* Post-pivot_root: the host socket lives under DS_TERMUX_TMP_OLDROOT.  Bridge
+  /* Post-pivot_root: the host socket lives under CHDROID_TERMUX_TMP_OLDROOT.  Bridge
    * it in and set GALLIUM_DRIVER so mesa uses the virpipe backend. */
-  return ds_bridge_termux_socket(".virgl_test", DS_VIRGL_SOCKET,
+  return ds_bridge_termux_socket(".virgl_test", CHDROID_VIRGL_SOCKET,
                                  "GALLIUM_DRIVER", "virpipe", "VirGL");
 }

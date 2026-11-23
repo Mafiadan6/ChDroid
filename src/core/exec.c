@@ -1,11 +1,11 @@
 /*
- * Droidspaces v7 - High-performance Container Runtime
+ * ChDroid v7 - High-performance Container Runtime
  *
  * Copyright (C) 2026 ravindu644 <droidcasts@protonmail.com>
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "droidspaces.h"
+#include "chdroid.h"
 
 /* Safe Command Execution (fork + execvp) */
 
@@ -39,7 +39,7 @@ static int internal_run(char *const argv[], int quiet) {
 int run_command_quiet(char *const argv[]) { return internal_run(argv, 1); }
 
 /* run_command_log: runs argv, captures stderr and emits it via ds_log so
- * iptables error messages are visible in the droidspaces log on failure. */
+ * iptables error messages are visible in the chdroid log on failure. */
 int run_command_log(char *const argv[]) {
   int pipefd[2];
   if (pipe(pipefd) < 0)
