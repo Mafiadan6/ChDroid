@@ -30,7 +30,12 @@ case "$distro" in
     *[Uu]buntu*) family=ubuntu ;;
     *[Aa]rch*)   family=arch ;;
     *[Dd]ebian*) family=debian ;;
+    *[Ff]edora*) family=fedora ;;
     *[Aa]lpine*) family=alpine ;;
+    *[Aa]rtix*)  family=artix ;;
+    *[Aa]zure*)  family=azurelinux ;;
+    *[Kk]ali*)   family=kali ;;
+    *[Oo]pen[Ww]rt*) family=openwrt ;;
 esac
 rm -f "$CACHE/manifest.json"
 
@@ -93,7 +98,12 @@ if [ -x "$ROOTFS/bin/sh" ] || [ -x "$ROOTFS/bin/busybox" ]; then
         *[Uu]buntu*) existing=ubuntu ;;
         *[Aa]rch*)   existing=arch ;;
         *[Dd]ebian*) existing=debian ;;
+        *[Ff]edora*) existing=fedora ;;
         *[Aa]lpine*) existing=alpine ;;
+        *[Aa]rtix*)  existing=artix ;;
+        *[Aa]zure*)  existing=azurelinux ;;
+        *[Kk]ali*)   existing=kali ;;
+        *[Oo]pen[Ww]rt*) existing=openwrt ;;
     esac
     if [ "$existing" = "$family" ]; then
         say "rootfs $family already installed at $BASE - keeping existing data"
