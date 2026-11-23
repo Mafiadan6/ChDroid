@@ -35,7 +35,7 @@ object ChDroidRootfsManager {
     private const val LOG_KEY = "chdroid-rootfs"
     // Keep in sync with PATCH_VERSION in chdroid_identity.sh. A launch only
     // re-patches the installed script when this revision changes.
-    private const val PATCH_VERSION = 8
+    private const val PATCH_VERSION = 9
     private val logBuffer = mutableStateListOf<Pair<Int, String>>()
     private var appContext: Context? = null
     private val startupPatchRunning = java.util.concurrent.atomic.AtomicBoolean(false)
@@ -77,7 +77,6 @@ object ChDroidRootfsManager {
                         return@runCatching
                     }
                     CrashLogger.log("chroot startup patch: begin (was $marker)")
-                    val host = hostname()
                     val name = containerName()
                     val q = ContainerCommandBuilder::quote
                     val identity = ContainerInstaller.deployAsset(appContext!!, "chdroid_identity.sh")
@@ -85,7 +84,6 @@ object ChDroidRootfsManager {
                         val result = Shell.cmd(
                             "${q(identity.absolutePath)} " +
                                 "${q(ChDroidPaths.base)} " +
-                                "${q(host)} " +
                                 "${q(name)} 2>&1"
                         ).exec()
                         CrashLogger.log(
@@ -159,16 +157,12 @@ object ChDroidRootfsManager {
             // The wizard's container.config is the source of truth for the name and
             // hostname; the plain files are downstream copies that older installs
             // left at the release's baked values.
-            "  n=''; h=''",
+            "  n=''",
             "  while IFS='=' read -r k v; do",
-            "    case \"\$k\" in name) n=\"\$v\" ;; hostname) h=\"\$v\" ;; esac;",
+            "    case \"\$k\" in name) n=\"\$v\" ;; esac;",
             "  done < \"\$base/container.config\" 2>/dev/null",
             "  [ -n \"\$n\" ] || n=\$(head -n 1 \"\$base/container-name\" 2>/dev/null)",
             "  echo \"name=\$n\"",
-            "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/hostname\" 2>/dev/null)",
-            "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/rootfs/etc/hostname\" 2>/dev/null)",
-            "  [ -n \"\$h\" ] || h=\$(head -n 1 \"\$base/distro-id\" 2>/dev/null)",
-            "  echo \"hostname=\$h\"",
             "  p=\$(cat \"\$base/holder.pid\" 2>/dev/null)",
             "  if [ -n \"\$p\" ] && kill -0 \"\$p\" 2>/dev/null; then echo 'running=1'; else echo 'running=0'; fi",
             "else",
@@ -176,7 +170,6 @@ object ChDroidRootfsManager {
             "  echo \"base=\$base\"",
             "  echo 'distro='",
             "  echo 'name='",
-            "  echo 'hostname='",
             "  echo 'running=0'",
             "fi",
         ).joinToString("\n")
@@ -198,7 +191,7 @@ object ChDroidRootfsManager {
             base = base,
             distro = values["distro"].orEmpty(),
             name = values["name"].orEmpty(),
-            hostname = values["hostname"].orEmpty(),
+            hostname = values["name"].orEmpty(),
             running = values["running"] == "1",
         )
     }
@@ -227,23 +220,6 @@ object ChDroidRootfsManager {
         persistedConfig()["name"]?.takeIf { it.isNotBlank() }
             ?: Shell.cmd("cat '${ChDroidPaths.base}/container-name' 2>/dev/null").exec()
                 .out.firstOrNull()?.trim().orEmpty()
-    }
-
-    /**
-     * Hostname the user typed in the setup wizard. container.config is the source
-     * of truth; the plain base/hostname file is the fallback for installs made
-     * before that config existed. /etc/hostname inside the rootfs is only a
-     * downstream copy, and the release's baked value must never win over either.
-     */
-    suspend fun hostname(): String = withContext(Dispatchers.IO) {
-        persistedConfig()["hostname"]?.takeIf { it.isNotBlank() }?.let { return@withContext it }
-        val q = ContainerCommandBuilder::quote
-        val saved = Shell.cmd("head -n 1 ${q("${ChDroidPaths.base}/hostname")} 2>/dev/null").exec()
-            .out.firstOrNull()?.trim().orEmpty()
-        if (saved.isNotBlank()) return@withContext saved
-        val baked = Shell.cmd("head -n 1 '${ChDroidPaths.rootfs}/etc/hostname' 2>/dev/null").exec()
-            .out.firstOrNull()?.trim().orEmpty()
-        baked.ifEmpty { distro().ifEmpty { "localhost" } }
     }
 
     /**
@@ -366,7 +342,7 @@ object ChDroidRootfsManager {
     /** Path of the rootfs's persisted setup-wizard configuration. */
     private val configPath: String get() = "${ChDroidPaths.base}/container.config"
 
-    /** Key/values the setup wizard wrote at install time; the source of truth for name and hostname. */
+    /** Key/values the setup wizard wrote at install time; the source of truth for the name. */
     private suspend fun persistedConfig(): Map<String, String> = withContext(Dispatchers.IO) {
         val q = ContainerCommandBuilder::quote
         val raw = Shell.cmd("cat ${q(configPath)} 2>/dev/null").exec().out.joinToString("\n")
@@ -376,7 +352,7 @@ object ChDroidRootfsManager {
     /**
      * Rebuild the exact field set the install wizard offered, from the config
      * file written at install time. Installs made before that file existed fall
-     * back to defaults plus the live name/hostname, so Edit still opens full.
+     * back to defaults plus the live name, so Edit still opens full.
      */
     suspend fun loadEditableConfig(): ContainerInfo = withContext(Dispatchers.IO) {
         val snap = snapshot()
@@ -420,7 +396,7 @@ object ChDroidRootfsManager {
         val base = q(ChDroidPaths.base)
         Shell.cmd(
             "mkdir -p $base && " +
-                "printf '%s\\n' ${q(info.hostname)} > $base/hostname && " +
+                "rm -f $base/hostname 2>/dev/null; " +
                 "printf '%s\\n' ${q(info.name)} > $base/container-name"
         ).exec()
     }
@@ -433,7 +409,7 @@ object ChDroidRootfsManager {
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             persistConfig(context, info)
-            applyIdentity(context, info.hostname, info.name, logger).getOrThrow()
+            applyIdentity(context, info.name, logger).getOrThrow()
             val q = ContainerCommandBuilder::quote
             val flag = if (info.mountAndroidRoot) {
                 "mkdir -p ${q(ChDroidPaths.base)} && printf '1\\n' > ${q(ChDroidPaths.mountFlag)}"
@@ -441,7 +417,7 @@ object ChDroidRootfsManager {
                 "rm -f ${q(ChDroidPaths.mountFlag)}"
             }
             Shell.cmd(flag).exec()
-            CrashLogger.log("chroot config saved: name='${info.name}' hostname='${info.hostname}'")
+            CrashLogger.log("chroot config saved: name='${info.name}'")
         }
     }
 
@@ -479,11 +455,10 @@ object ChDroidRootfsManager {
     /**
      * Re-apply the setup identity to an installed rootfs. Used by the Containers
      * edit action: same script the installer and app start use, so container name,
-     * hostname, prompt and the installed chroot.sh all stay in sync.
+     * prompt and the installed chroot.sh all stay in sync.
      */
     suspend fun applyIdentity(
         context: Context,
-        hostname: String,
         containerName: String,
         logger: ViewModelLogger
     ): Result<Unit> = withContext(Dispatchers.IO) {
@@ -494,7 +469,6 @@ object ChDroidRootfsManager {
                 val result = Shell.cmd(
                     "${q(identity.absolutePath)} " +
                         "${q(ChDroidPaths.base)} " +
-                        "${q(hostname)} " +
                         "${q(containerName)} 2>&1"
                 ).exec()
                 result.out.map { it.trim() }.filter { it.isNotEmpty() }.forEach { line ->
@@ -582,7 +556,6 @@ object ChDroidRootfsManager {
         context: Context,
         zipUri: Uri,
         containerName: String,
-        hostname: String,
         mountAndroidRoot: Boolean,
         logger: ViewModelLogger,
         config: ContainerInfo? = null,
@@ -627,17 +600,15 @@ object ChDroidRootfsManager {
                 check(isInstalled()) { "installer finished but rootfs is not usable" }
 
                 // Apply the setup screen's identity to the installed rootfs. The
-                // release ZIP's chroot.sh hardcodes C_HOSTNAME="ubuntu" and rewrites
-                // /proc/sys/kernel/hostname on every start, so the old inline
-                // /etc/hostname write was silently overridden. This script patches
-                // that constant and derives a clean distro id from /etc/os-release.
+                // The release script carries the old hostname machinery. This
+                // patch strips the hostname write, bakes the name into the prompt
+                // and derives a clean distro id from /etc/os-release.
                 val q = ContainerCommandBuilder::quote
                 val identity = ContainerInstaller.deployAsset(context, "chdroid_identity.sh")
                 try {
                     val apply = Shell.cmd(
                         "${q(identity.absolutePath)} " +
                             "${q(ChDroidPaths.base)} " +
-                            "${q(hostname)} " +
                             "${q(containerName)} 2>&1"
                     ).exec()
                     apply.out.map { it.trim() }.filter { it.isNotEmpty() }.forEach { line ->
@@ -751,8 +722,8 @@ object ChDroidRootfsManager {
         val script = """
             PID=''; IFS= read -r PID < '$base/holder.pid' 2>/dev/null
             DISTRO=''; IFS= read -r DISTRO < '$base/distro-id' 2>/dev/null
-            HOST=''; IFS= read -r HOST < '$base/hostname' 2>/dev/null
-            [ -n "~HOST" ] || IFS= read -r HOST < '$rootfs/etc/hostname' 2>/dev/null
+            HOST=''; IFS= read -r HOST < '$base/container-name' 2>/dev/null
+            [ -n "~HOST" ] || IFS= read -r HOST < '$base/distro-id' 2>/dev/null
             # PRETTY_NAME via the read builtin - no grep/head/sed on this device.
             PRETTY=''
             while IFS= read -r line; do

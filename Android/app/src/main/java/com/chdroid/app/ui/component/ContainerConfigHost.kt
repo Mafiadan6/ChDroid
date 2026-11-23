@@ -57,7 +57,7 @@ import com.chdroid.app.util.ContainerInfo
 import com.chdroid.app.util.GatewayErrors
 import com.chdroid.app.util.MacvlanErrors
 
-enum class ConfigPage { Root, Network, Env, Privileged, Mounts }
+enum class ConfigPage { Root, Network, Env, Privileged }
 
 /**
  * The container config screen and the pages it opens, shared by the create
@@ -145,11 +145,6 @@ fun ContainerConfigHost(
                 ConfigPage.Privileged -> PrivilegedModePage(
                     initial = state.privileged,
                     onApply = { onStateChange(state.copy(privileged = it)); close() },
-                    onClose = close
-                )
-                ConfigPage.Mounts -> BindMountsPage(
-                    mounts = state.bindMounts,
-                    onSave = { onStateChange(state.copy(bindMounts = it)); close() },
                     onClose = close
                 )
             }

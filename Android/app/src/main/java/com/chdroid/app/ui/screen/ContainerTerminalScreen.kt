@@ -129,9 +129,9 @@ fun ContainerTerminalScreen(
     // Tab whose X was tapped while Confirm Before Closing is on
     var tabPendingClose by remember { mutableStateOf<TerminalTab?>(null) }
 
-    // Resolve hostname reactively; picker is shown only after binder+hostname are both ready
-    // A blank container name is the ChDroid CLI rootfs: chroot.sh owns the
-    // environment, and the hostname is read from the installed rootfs itself.
+    // Resolve the tab label reactively; picker is shown only after binder+label
+    // are both ready. A blank container name is the ChDroid CLI rootfs, whose
+    // label comes from the saved container name instead of a hostname setting.
     val isHostShell = containerName.isBlank()
     var hostname by remember(containerName) {
         mutableStateOf(
@@ -140,13 +140,13 @@ fun ContainerTerminalScreen(
                 ?: containerName.take(12)
         )
     }
-    // Tab creation must never wait on a shell call. For the CLI rootfs the
-    // hostname is a cosmetic label resolved in the background below; gating the
-    // tab on it left a blank terminal whenever that lookup stalled.
+    // Tab creation must never wait on a shell call. For the CLI rootfs this is a
+    // cosmetic label resolved in the background below; gating the tab on it left
+    // a blank terminal whenever that lookup stalled.
     var hostnameReady by remember { mutableStateOf(true) }
     LaunchedEffect(containerName) {
         if (isHostShell) {
-            hostname = ChDroidRootfsManager.hostname()
+            hostname = ChDroidRootfsManager.snapshot().name.ifBlank { "chdroid" }
         } else {
             val resolved = ContainerOSInfoManager.getCachedOSInfo(containerName, context)?.hostname
                 ?: ContainerOSInfoManager.fetchAll(context)[containerName]?.hostname

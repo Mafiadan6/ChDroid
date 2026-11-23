@@ -4,8 +4,8 @@
 # No boot scripts, no module flashing, no reboot. Run this after  has
 # granted root, from any shell that can call su:
 #
-#   su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh all /sdcard/Download/ChDroid-rootfs-v4.4-20260323.zip'
-#   su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh install /sdcard/Download/ChDroid-rootfs-v4.4-20260323.zip'
+#   su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh all /sdcard/Download/ChDroid-ubuntu-rootfs-20261029.zip'
+#   su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh install /sdcard/Download/ChDroid-ubuntu-rootfs-20261029.zip'
 #   su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh start'
 #   su -c 'sh /sdcard/Download/ubuntu-chroot-bootstrap.sh shell'
 #

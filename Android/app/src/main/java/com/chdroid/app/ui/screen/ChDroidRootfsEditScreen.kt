@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 /**
  * Edit screen for the CLI rootfs. It is the same form the install wizard uses
  * (ContainerConfigHost plus its Network/Env/Privileged/Mounts pages), so every
- * field shown during setup is editable here. The container name, hostname and
+ * field shown during setup is editable here. The container name and
  * Android-root flag live in the leading block; the ~34 config fields and the
  * sparse-image settings come from the persisted container.config.
  */
@@ -75,8 +75,6 @@ fun ChDroidRootfsEditScreen(
 
     var name by remember(original) { mutableStateOf(original.name) }
     var savedName by remember(original) { mutableStateOf(original.name) }
-    var hostname by remember(original) { mutableStateOf(original.hostname) }
-    var savedHostname by remember(original) { mutableStateOf(original.hostname) }
     var state by remember(original) { mutableStateOf(original.toConfigState()) }
     var savedState by remember(original) { mutableStateOf(original.toConfigState()) }
     var sparseSize by remember(original) { mutableStateOf(original.sparseImageSizeGB ?: 8) }
@@ -86,14 +84,6 @@ fun ChDroidRootfsEditScreen(
     var mountAndroidRoot by remember(original) { mutableStateOf(original.mountAndroidRoot) }
     var savedMountAndroidRoot by remember(original) { mutableStateOf(original.mountAndroidRoot) }
 
-    val hostnameError by remember(hostname, name) {
-        derivedStateOf {
-            ValidationUtils.validateHostname(
-                hostname.ifEmpty { ValidationUtils.sanitizeHostname(name) },
-                context
-            ).errorMessage
-        }
-    }
     val nameError by remember(name) {
         derivedStateOf {
             if (name.isBlank()) context.getString(R.string.chdroid_edit_name) else null
@@ -124,7 +114,7 @@ fun ChDroidRootfsEditScreen(
 
     val hasChanges by remember {
         derivedStateOf {
-            name != savedName || hostname != savedHostname || state != savedState ||
+            name != savedName || state != savedState ||
                 sparseSize != savedSparseSize || useSparse != savedUseSparse ||
                 mountAndroidRoot != savedMountAndroidRoot
         }
@@ -139,7 +129,7 @@ fun ChDroidRootfsEditScreen(
             isSaved = false
             errorMessage = null
             val finalName = name.trim()
-            val finalHost = hostname.ifEmpty { ValidationUtils.sanitizeHostname(finalName) }
+            val finalHost = ValidationUtils.sanitizeHostname(finalName)
             val updated = original.withConfig(state).copy(
                 name = finalName,
                 hostname = finalHost,
@@ -157,7 +147,6 @@ fun ChDroidRootfsEditScreen(
             result.fold(
                 onSuccess = {
                     name = finalName; savedName = finalName
-                    hostname = finalHost; savedHostname = finalHost
                     savedState = state
                     savedSparseSize = sparseSize; savedUseSparse = useSparse
                     savedMountAndroidRoot = mountAndroidRoot
@@ -169,7 +158,7 @@ fun ChDroidRootfsEditScreen(
         }
     }
 
-    val canSave = !isSaving && !isSaved && hasChanges && hostnameError == null && nameError == null &&
+    val canSave = !isSaving && !isSaved && hasChanges && nameError == null &&
         (state.netMode != "gateway" || gatewayErrors.isValid) &&
         macvlanErrors.isValid && collisionContainer == null &&
         ResourceLimits.isValidPidsLimit(state.pidsLimit)
@@ -210,19 +199,6 @@ fun ChDroidRootfsEditScreen(
                         shape = RoundedCornerShape(16.dp),
                         colors = ChDroidTextFieldDefaults.colors(),
                         isError = nameError != null
-                    )
-                }
-                GroupField {
-                    OutlinedTextField(
-                        value = hostname,
-                        onValueChange = { hostname = it },
-                        label = { Text(context.getString(R.string.hostname)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ChDroidTextFieldDefaults.colors(),
-                        isError = hostnameError != null,
-                        supportingText = { Text(hostnameError ?: context.getString(R.string.hostname_hint)) }
                     )
                 }
                 GroupField {

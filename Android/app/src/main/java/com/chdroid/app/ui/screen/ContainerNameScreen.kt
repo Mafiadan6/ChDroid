@@ -32,20 +32,16 @@ import com.chdroid.app.R
 @Composable
 fun ContainerNameScreen(
     initialName: String = "",
-    initialHostname: String = "",
     existingContainerNames: List<String> = emptyList(),
     recommendationNotice: String? = null,
-    onNext: (String, String) -> Unit,
+    onNext: (String) -> Unit,
     onClose: () -> Unit
 ) {
     var containerName by remember { mutableStateOf(initialName) }
-    var hostname by remember { mutableStateOf(initialHostname) }
     var nameError by remember { mutableStateOf<String?>(null) }
-    var hostnameError by remember { mutableStateOf<String?>(null) }
 
     val context = LocalContext.current
     val nameFocusRequester = remember { FocusRequester() }
-    val hostnameFocusRequester = remember { FocusRequester() }
     val clearFocus = rememberClearFocus()
 
     // Request focus on container name field when screen appears
@@ -98,7 +94,7 @@ fun ContainerNameScreen(
             )
         },
         bottomBar = {
-            val isNextValid = containerName.isNotBlank() && nameError == null && hostnameError == null
+            val isNextValid = containerName.isNotBlank() && nameError == null
             PrimaryActionBottomBar(
                 label = context.getString(R.string.next_configuration),
                 icon = Icons.AutoMirrored.Filled.ArrowForward,
@@ -106,12 +102,10 @@ fun ContainerNameScreen(
                     clearFocus()
                     val normalizedName = ValidationUtils.normalizeContainerName(containerName)
                     val nameResult = ValidationUtils.validateContainerName(normalizedName, context)
-                    val hostnameResult = ValidationUtils.validateHostname(hostname.ifEmpty { ValidationUtils.sanitizeHostname(normalizedName) }, context)
-                    if (!nameResult.isError && !hostnameResult.isError) {
-                        onNext(normalizedName, hostname.ifEmpty { ValidationUtils.sanitizeHostname(normalizedName) })
+                    if (!nameResult.isError) {
+                        onNext(normalizedName)
                     } else {
                         nameError = nameResult.errorMessage
-                        hostnameError = hostnameResult.errorMessage
                     }
                 },
                 enabled = isNextValid
@@ -166,33 +160,6 @@ fun ContainerNameScreen(
                     imeAction = ImeAction.Next,
                     keyboardType = KeyboardType.Text
                 ),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        if (nameError == null) {
-                            hostnameFocusRequester.requestFocus()
-                        }
-                    }
-                )
-            )
-
-            // Hostname
-            OutlinedTextField(
-                value = hostname,
-                onValueChange = {
-                    hostname = it
-                    hostnameError = ValidationUtils.validateHostname(it, context).errorMessage
-                },
-                label = { Text(context.getString(R.string.hostname)) },
-                placeholder = { Text(context.getString(R.string.hostname_placeholder)) },
-                isError = hostnameError != null,
-                supportingText = hostnameError?.let { { Text(it) } } ?: {
-                    Text(context.getString(R.string.hostname_hint))
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(hostnameFocusRequester),
-                singleLine = true,
-                keyboardOptions = FocusUtils.doneKeyboardOptions,
                 keyboardActions = FocusUtils.clearFocusKeyboardActions()
             )
 

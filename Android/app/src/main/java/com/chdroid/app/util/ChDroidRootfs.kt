@@ -17,14 +17,14 @@ object ChDroidRootfs {
     /** Offline fallback: the release this fork targets, matching the manifest. */
     val BUILTIN = RootfsAsset(
         name = "Ubuntu 24.04 CLI rootfs (ChDroid)",
-        description = "Clean Ubuntu 24.04 chroot for ChDroid. Plain rootfs tarball and " +
-            "chroot tools - no Magisk, KernelSU or APatch module, no boot scripts, " +
-            "no root-method detection. Installs to /data/local/ubuntu-chroot.",
+        description = "Clean Ubuntu 24.04 base CLI rootfs for ChDroid. Rebuilt from " +
+            "upstream Droidspaces rootfs. Plain rootfs tarball and chroot tools - no " +
+            "Magisk, KernelSU or APatch module, no boot scripts, no root-method detection.",
         architecture = "aarch64",
         downloadUrl = "https://github.com/Mafiadan6/ChDroid-rootfs/releases/download/" +
-            "v4.4/ChDroid-rootfs-v4.4-20260323.zip",
-        sizeBytes = 544_309_102L,
-        buildDate = "20260323",
+            "v4.4/ChDroid-ubuntu-rootfs-20261029.zip",
+        sizeBytes = 561_967_118L,
+        buildDate = "20261029",
         author = "ChDroid",
         sourceRepoName = "ChDroid rootfs"
     )

@@ -122,10 +122,8 @@ fun ContainersScreen(
 
     // ChDroid rootfs edit/uninstall, mirroring the upstream container actions.
     var chdroidName by remember { mutableStateOf("") }
-    var chdroidHostname by remember { mutableStateOf("") }
     var showChdroidEdit by remember { mutableStateOf(false) }
     var chdroidEditName by remember { mutableStateOf("") }
-    var chdroidEditHostname by remember { mutableStateOf("") }
     var showChdroidUninstall by remember { mutableStateOf(false) }
     var chdroidConfirmName by remember { mutableStateOf("") }
     var chdroidActionBusy by remember { mutableStateOf(false) }
@@ -143,7 +141,6 @@ fun ContainersScreen(
         val s = ChDroidRootfsManager.snapshot()
         chdroidInstalled = s.installed
         chdroidName = s.name
-        chdroidHostname = s.hostname
         chdroidDistro = s.name.ifBlank { s.distro }
             .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
         chdroidRunning = s.running
@@ -191,7 +188,6 @@ fun ContainersScreen(
         val logger = ViewModelLogger { _, _ -> }
         val result = ChDroidRootfsManager.applyIdentity(
             context = context,
-            hostname = chdroidEditHostname.trim(),
             containerName = chdroidEditName.trim(),
             logger = logger
         )
@@ -525,7 +521,7 @@ fun ContainersScreen(
         }
 
         // ChDroid rootfs edit - same identity script the installer uses, so the
-        // card name, /etc/hostname and chroot.sh's C_HOSTNAME all move together.
+        // card name and the baked prompt label move together.
         if (showChdroidEdit) {
             ChDroidDialog(
                 onDismiss = { showChdroidEdit = false },
@@ -535,7 +531,7 @@ fun ContainersScreen(
                         confirmLabel = context.getString(R.string.save_changes),
                         onDismiss = { showChdroidEdit = false },
                         onConfirm = { chdroidSaveIdentity() },
-                        confirmEnabled = chdroidEditName.isNotBlank() && chdroidEditHostname.isNotBlank() && !chdroidActionBusy
+                        confirmEnabled = chdroidEditName.isNotBlank() && !chdroidActionBusy
                     )
                 }
             ) {
@@ -553,15 +549,6 @@ fun ContainersScreen(
                     value = chdroidEditName,
                     onValueChange = { chdroidEditName = it },
                     label = { Text(context.getString(R.string.chdroid_edit_name)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ChDroidTextFieldDefaults.colors()
-                )
-                OutlinedTextField(
-                    value = chdroidEditHostname,
-                    onValueChange = { chdroidEditHostname = it },
-                    label = { Text(context.getString(R.string.hostname)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),

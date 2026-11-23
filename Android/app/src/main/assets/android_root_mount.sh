@@ -1,8 +1,8 @@
 #!/system/bin/sh
-# ChDroid: bind the full Android filesystem into the running chroot.
-# Runs only when the setup screen's "Mount Android root" option was chosen.
-# The mount happens inside the chroot's own mount namespace via the release
-# busybox nsenter, so it is visible to the chroot but not to the host.
+# ChDroid: expose the Android filesystem inside the chroot's mount namespace.
+# The whole point of this helper is write access to the phone's root from inside
+# the guest, so the bind is deliberately read/write. It runs through the release
+# busybox nsenter, which puts the mount in the chroot's namespace only.
 
 POINTER=/data/local/chdroid-active-rootfs
 BASE=$(cat "$POINTER" 2>/dev/null)
@@ -21,7 +21,15 @@ BB=/data/local/ChDroid/bin/busybox-release
 TARGET=$BASE/rootfs/android-root
 mkdir -p "$TARGET" 2>/dev/null || exit 0
 
-# -m enters only the mount namespace; host paths stay addressable.
+# Skip when the namespace already has the bind. Reading /proc/mounts with the
+# shell avoids depending on grep or mountpoint in the minimal release busybox.
+already=0
+while read -r dev mp rest; do
+  [ "$mp" = "$TARGET" ] && already=1
+done < /proc/mounts
+[ "$already" -eq 1 ] && exit 0
+
+# Read/write bind. No remount to read-only: the guest needs to touch Android's
+# /data and /sdcard, and a ro remount defeated that.
 "$BB" nsenter --target "$PID" -m -- mount --bind / "$TARGET" 2>/dev/null
-"$BB" nsenter --target "$PID" -m -- mount -o remount,bind,ro "$TARGET" 2>/dev/null
 exit 0

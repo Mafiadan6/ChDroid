@@ -697,7 +697,7 @@
     <string name="guide_terminal_title">5. The terminal</string>
     <string name="guide_terminal_body">Only the Terminal pill opens a shell. Typing exit or pressing X closes the terminal tab and leaves the rootfs running. Reopen it from the same card any time. Use Stop when you actually want to shut it down.</string>
     <string name="guide_know_title">Good to know</string>
-    <string name="guide_know_body">Arch uses pacman, Ubuntu uses apt. The prompt shows the hostname saved in the rootfs editor, change it from Containers, then Edit. Edit and uninstall live in the rootfs card action drawer, and uninstall asks you to type the name to confirm. If something breaks, the crash log is at /storage/emulated/0/Android/data/com.chdroid.app/files/chdroid-crash.txt.</string>
+    <string name="guide_know_body">Arch uses pacman, Ubuntu uses apt. The prompt uses the container name; there is no hostname setting. Edit and uninstall live in the rootfs card action drawer, and uninstall asks you to type the name to confirm. If something breaks, the crash log is at /storage/emulated/0/Android/data/com.chdroid.app/files/chdroid-crash.txt.</string>
     <string name="privileged_mode">Privileged Mode</string>
     <string name="privileged_nomask_desc">Disable jail masks to allow write access to /proc and /sys. Note: /sys remains read-only unless Hardware Access is also enabled.</string>
     <string name="privileged_nocaps_desc">Do not drop any Linux capabilities (full root power).</string>
@@ -847,11 +847,11 @@
     <string name="chdroid_rootfs_card_stopped">Stopped</string>
     <string name="chdroid_rootfs_actions">More actions</string>
     <string name="chdroid_edit_title">Edit rootfs</string>
-    <string name="chdroid_edit_message">Rename the card and set the hostname baked into the guest. Applied immediately, no reinstall.</string>
+    <string name="chdroid_edit_message">Rename the card and the label baked into the guest prompt. Applied immediately, no reinstall.</string>
     <string name="chdroid_edit_name">Container name</string>
     <string name="chdroid_identity_saved">Configuration saved</string>
     <string name="chdroid_uninstall_title">Uninstall rootfs?</string>
     <string name="chdroid_uninstalled">Rootfs uninstalled</string>
     <string name="chdroid_mount_android_root">Mount Android root</string>
-    <string name="chdroid_mount_android_root_description">Bind the full Android filesystem into the chroot at /android-root (read-only).</string>
+    <string name="chdroid_mount_android_root_description">Bind the full Android filesystem into the chroot at /android-root with read/write access to /data and /sdcard.</string>
 </resources>

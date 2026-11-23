@@ -400,14 +400,6 @@ fun ContainerConfigForm(
     GroupHeader(context.getString(R.string.cat_security))
     SettingsGroup {
         SwitchItem(
-            icon = Icons.Default.Security,
-            title = context.getString(R.string.selinux_permissive),
-            summary = context.getString(R.string.selinux_permissive_description),
-            checked = state.selinuxPermissive,
-            onCheckedChange = { clearFocus(); onStateChange(state.copy(selinuxPermissive = it)) }
-        )
-        GroupDivider()
-        SwitchItem(
             icon = Icons.Default.Groups,
             title = context.getString(R.string.allow_userns),
             summary = if (usernsSupported) context.getString(R.string.allow_userns_description)
@@ -464,16 +456,6 @@ fun ContainerConfigForm(
             value = if (envCount > 0) context.getString(R.string.environment_variables_configured, envCount) else null,
             summary = if (envCount > 0) null else context.getString(R.string.not_configured),
             onClick = { onOpenPage(ConfigPage.Env) }
-        )
-        GroupDivider()
-        NavRow(
-            icon = Icons.Default.FolderOpen,
-            title = context.getString(R.string.bind_mounts),
-            value = if (state.bindMounts.isNotEmpty())
-                context.resources.getQuantityString(R.plurals.bind_mount_count, state.bindMounts.size, state.bindMounts.size)
-                else null,
-            summary = if (state.bindMounts.isEmpty()) context.getString(R.string.not_configured) else null,
-            onClick = { onOpenPage(ConfigPage.Mounts) }
         )
         GroupDivider()
         GroupField {

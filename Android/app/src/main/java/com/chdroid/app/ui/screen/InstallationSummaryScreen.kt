@@ -149,7 +149,6 @@ fun InstallationSummaryScreen(
                     Option(config.enableAnland, stringResource(R.string.enable_anland), stringResource(R.string.enabled_legend), Icons.Default.DesktopWindows)
                     Option(config.enableVirgl, stringResource(R.string.enable_virgl), stringResource(R.string.enabled_legend), Icons.Default.Layers)
                     Option(config.enablePulseaudio, stringResource(R.string.enable_pulseaudio), stringResource(R.string.enabled_legend), Icons.AutoMirrored.Filled.VolumeUp)
-                    Option(config.selinuxPermissive, stringResource(R.string.selinux_permissive), stringResource(R.string.enabled_legend), Icons.Default.Security)
                     Option(config.allowSandboxing, stringResource(R.string.allow_userns), stringResource(R.string.enabled_legend), Icons.Default.Groups)
                     Option(config.volatileMode, stringResource(R.string.volatile_mode), stringResource(R.string.enabled_legend), Icons.Default.AutoDelete)
                     Option(config.runAtBoot, stringResource(R.string.run_at_boot), stringResource(R.string.enabled_legend), Icons.Default.PowerSettingsNew)

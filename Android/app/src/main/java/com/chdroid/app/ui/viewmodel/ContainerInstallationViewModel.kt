@@ -40,9 +40,6 @@ class ContainerInstallationViewModel : ViewModel() {
     var containerName: String by mutableStateOf("")
         private set
 
-    var hostname: String by mutableStateOf("")
-        private set
-
     var useSparseImage: Boolean by mutableStateOf(true)
         private set
 
@@ -77,7 +74,6 @@ class ContainerInstallationViewModel : ViewModel() {
                 val recommended = withContext(Dispatchers.IO) { RootfsConfig.read(appContext, uri) }
                 if (recommended != null) {
                     containerName = ValidationUtils.normalizeContainerName(recommended.name)
-                    hostname = recommended.hostname
                     useSparseImage = recommended.useSparseImage
                     sparseImageSizeGB = recommended.sparseImageSizeGB ?: 8
                     // Applied whole, hardware access and privileged mode included. The
@@ -95,9 +91,8 @@ class ContainerInstallationViewModel : ViewModel() {
         }
     }
 
-    fun setName(name: String, hostname: String) {
+    fun setName(name: String) {
         this.containerName = name
-        this.hostname = hostname
     }
 
     fun setSparseImageConfig(useSparseImage: Boolean, sizeGB: Int, storageDir: String? = null) {
@@ -120,7 +115,7 @@ class ContainerInstallationViewModel : ViewModel() {
 
         return ContainerInfo(
             name = containerName,
-            hostname = hostname.ifEmpty { ValidationUtils.sanitizeHostname(containerName) },
+            hostname = ValidationUtils.sanitizeHostname(containerName),
             rootfsPath = if (useSparseImage) {
                 ContainerManager.getSparseImagePath(containerName, storageDir)
             } else {
@@ -139,7 +134,6 @@ class ContainerInstallationViewModel : ViewModel() {
         recommendationNotice = null
         recommendationLoaded = false
         containerName = ""
-        hostname = ""
         useSparseImage = true
         sparseImageSizeGB = 8
         storageDir = null

@@ -47,7 +47,6 @@ private fun rootfsLabel(fileName: String): String {
 fun ChDroidInstallScreen(
     zipUri: Uri,
     containerName: String = "",
-    hostname: String = "",
     mountAndroidRoot: Boolean = false,
     onBack: () -> Unit,
 ) {
@@ -69,8 +68,8 @@ fun ChDroidInstallScreen(
         val fileName = path?.substringAfterLast('/')?.takeIf { it.isNotBlank() }
             ?: zipUri.lastPathSegment.orEmpty()
         label.value = rootfsLabel(fileName)
-        logger.i("Installing ${label.value} from $fileName as $containerName ($hostname)")
-        val result = ChDroidRootfsManager.install(context, zipUri, containerName, hostname, mountAndroidRoot, logger)
+        logger.i("Installing ${label.value} from $fileName as $containerName")
+        val result = ChDroidRootfsManager.install(context, zipUri, containerName, mountAndroidRoot, logger)
         if (result.isSuccess) {
             logger.i("${label.value} ready")
             phase.value = ChDroidInstallPhase.DONE

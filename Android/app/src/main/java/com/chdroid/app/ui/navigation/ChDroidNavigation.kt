@@ -404,11 +404,10 @@ fun ChDroidNavigation(
             } else {
                 ContainerNameScreen(
                     initialName = viewModel.containerName,
-                    initialHostname = viewModel.hostname,
                     recommendationNotice = viewModel.recommendationNotice,
                     existingContainerNames = sharedContainerViewModel.containerList.map { it.name },
-                    onNext = { name, hostname ->
-                        viewModel.setName(name, hostname)
+                    onNext = { name ->
+                        viewModel.setName(name)
                         navController.navigate(
                             if (viewModel.recommendationLoaded) Screen.RecommendedConfig.route
                             else Screen.ContainerConfig.route

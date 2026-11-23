@@ -63,18 +63,6 @@ fun EditContainerScreen(
     var state by remember { mutableStateOf(container.toConfigState()) }
     var savedState by remember { mutableStateOf(container.toConfigState()) }
 
-    // Hostname is edited here (the create wizard collects it on a separate screen).
-    var hostname by remember { mutableStateOf(container.hostname) }
-    var savedHostname by remember { mutableStateOf(container.hostname) }
-    var hostnameError by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(hostname) {
-        hostnameError = ValidationUtils.validateHostname(
-            hostname.ifEmpty { ValidationUtils.sanitizeHostname(container.name) },
-            context
-        ).errorMessage
-    }
-
     val macvlanErrors = ValidationUtils.validateMacvlanConfig(
         selfName = container.name,
         netMode = state.netMode,
@@ -99,7 +87,7 @@ fun EditContainerScreen(
         else containerViewModel.containerList.find { it.name != container.name && it.staticNatIp == state.staticNatIp }
     }
 
-    val hasChanges by remember { derivedStateOf { state != savedState || hostname != savedHostname } }
+    val hasChanges by remember { derivedStateOf { state != savedState } }
 
     var isSaving by remember { mutableStateOf(false) }
     var isSaved by remember { mutableStateOf(false) }
@@ -132,15 +120,13 @@ fun EditContainerScreen(
             isSaved = false
             errorMessage = null
             try {
-                val finalHostname = hostname.ifEmpty { ValidationUtils.sanitizeHostname(container.name) }
+                val finalHostname = ValidationUtils.sanitizeHostname(container.name)
                 val updatedConfig = container.withConfig(state).copy(hostname = finalHostname)
                 val result = withContext(Dispatchers.IO) {
                     ContainerManager.updateContainerConfig(context, container.name, updatedConfig)
                 }
                 result.fold(
                     onSuccess = {
-                        hostname = finalHostname
-                        savedHostname = finalHostname
                         savedState = state
                         containerViewModel.refresh()
                         SystemInfoManager.refreshSELinuxStatus()
@@ -161,7 +147,7 @@ fun EditContainerScreen(
         }
     }
 
-    val isReadyToSave = !isSaving && !isSaved && hasChanges && hostnameError == null &&
+    val isReadyToSave = !isSaving && !isSaved && hasChanges &&
         (state.netMode != "gateway" || gatewayErrors.isValid) &&
         macvlanErrors.isValid && collisionContainer == null &&
         ResourceLimits.isValidPidsLimit(state.pidsLimit)
@@ -195,26 +181,6 @@ fun EditContainerScreen(
                 InlineWarning(context.getString(R.string.changes_take_effect_after_restart), gutter, title = context.getString(R.string.container_is_running))
             }
 
-            GroupHeader(context.getString(R.string.config_general))
-            SettingsGroup {
-                GroupField {
-                    OutlinedTextField(
-                        value = hostname,
-                        onValueChange = { hostname = it },
-                        label = { Text(context.getString(R.string.hostname)) },
-                        placeholder = { Text(ValidationUtils.sanitizeHostname(container.name), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        isError = hostnameError != null,
-                        supportingText = { Text(hostnameError ?: context.getString(R.string.hostname_hint)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        shape = RoundedCornerShape(16.dp),
-                        colors = ChDroidTextFieldDefaults.colors(),
-                        leadingIcon = { Icon(Icons.Default.Computer, contentDescription = null) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done, autoCorrectEnabled = false),
-                        keyboardActions = FocusUtils.clearFocusKeyboardActions()
-                    )
-                }
-            }
         }
     )
 }
