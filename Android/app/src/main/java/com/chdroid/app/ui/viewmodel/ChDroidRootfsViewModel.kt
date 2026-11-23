@@ -20,8 +20,8 @@ class ChDroidRootfsViewModel(application: Application) : AndroidViewModel(applic
     var downloadStates by mutableStateOf<Map<String, AssetDownloadState>>(emptyMap())
         private set
 
-    /** Assets from the ChDroid-rootfs manifest. Falls back to the built-in release. */
-    var assets by mutableStateOf<List<RootfsAsset>>(listOf(ChDroidRootfs.BUILTIN))
+    /** Assets from the ChDroid-rootfs manifest. Falls back to both built-in releases. */
+    var assets by mutableStateOf<List<RootfsAsset>>(ChDroidRootfs.BUILTINS)
         private set
 
     /** Links added in this session, newest first. */

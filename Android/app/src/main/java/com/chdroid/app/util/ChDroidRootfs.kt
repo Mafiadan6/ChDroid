@@ -14,24 +14,39 @@ object ChDroidRootfs {
     const val MANIFEST_URL =
         "https://raw.githubusercontent.com/Mafiadan6/ChDroid-rootfs/main/manifest.json"
 
-    /** Offline fallback: the release this fork targets, matching the manifest. */
-    val BUILTIN = RootfsAsset(
-        name = "Ubuntu 24.04 CLI rootfs (ChDroid)",
-        description = "Clean Ubuntu 24.04 base CLI rootfs for ChDroid. Rebuilt from " +
-            "upstream Droidspaces rootfs. Plain rootfs tarball and chroot tools - no " +
-            "Magisk, KernelSU or APatch module, no boot scripts, no root-method detection.",
-        architecture = "aarch64",
-        downloadUrl = "https://github.com/Mafiadan6/ChDroid-rootfs/releases/download/" +
-            "v4.4/ChDroid-ubuntu-rootfs-20261029.zip",
-        sizeBytes = 561_967_118L,
-        buildDate = "20261029",
-        author = "ChDroid",
-        sourceRepoName = "ChDroid rootfs"
+    /** Offline fallback: both releases in the manifest, so neither vanishes without a network. */
+    val BUILTINS = listOf(
+        RootfsAsset(
+            name = "Ubuntu 24.04 CLI rootfs (ChDroid)",
+            description = "Clean Ubuntu 24.04 base CLI rootfs for ChDroid. Rebuilt from " +
+                "upstream Droidspaces rootfs. Plain rootfs tarball and chroot tools - no " +
+                "Magisk, KernelSU or APatch module, no boot scripts, no root-method detection.",
+            architecture = "aarch64",
+            downloadUrl = "https://github.com/Mafiadan6/ChDroid-rootfs/releases/download/" +
+                "v4.4/ChDroid-ubuntu-rootfs-20261029.zip",
+            sizeBytes = 561_967_118L,
+            buildDate = "20261029",
+            author = "ChDroid",
+            sourceRepoName = "ChDroid rootfs"
+        ),
+        RootfsAsset(
+            name = "Arch Linux Minimal (ChDroid)",
+            description = "Minimal Arch Linux aarch64 rootfs for ChDroid. Kernel 5.10+ " +
+                "required. Clean tarball and chroot tools - no Magisk, KernelSU or APatch " +
+                "module, no boot scripts, no root-method detection.",
+            architecture = "aarch64",
+            downloadUrl = "https://github.com/Mafiadan6/ChDroid-rootfs/releases/download/" +
+                "v4.4/ChDroid-arch-rootfs-minimal-20261029.zip",
+            sizeBytes = 112_393_075L,
+            buildDate = "20261029",
+            author = "ChDroid",
+            sourceRepoName = "ChDroid rootfs"
+        )
     )
 
     /** Fetch the manifest; returns the offline fallback if unreachable or empty. */
     suspend fun fetchAssets(): List<RootfsAsset> = withContext(Dispatchers.IO) {
-        val json = RootfsRepository.httpGet(MANIFEST_URL) ?: return@withContext listOf(BUILTIN)
+        val json = RootfsRepository.httpGet(MANIFEST_URL) ?: return@withContext BUILTINS
         runCatching {
             val arr = JSONArray(json)
             buildList {
@@ -51,7 +66,7 @@ object ChDroidRootfs {
                     )
                 }
             }.filter { it.downloadUrl.startsWith("https://") }
-        }.getOrDefault(listOf(BUILTIN)).ifEmpty { listOf(BUILTIN) }
+        }.getOrDefault(BUILTINS).ifEmpty { BUILTINS }
     }
 
     /** A user-supplied download link, given a stable identity for the downloader. */
