@@ -24,7 +24,7 @@
 # Bump when the patch rules change. The app checks this marker at launch so an
 # unchanged APK does not rewrite chroot.sh on every start (that root-shell
 # contention was implicated in the launch crash reports).
-PATCH_VERSION=6
+PATCH_VERSION=7
 
 BASE="$1"
 HOST="$2"
@@ -97,7 +97,8 @@ if [ -f "$PATCH" ]; then
       case "$line" in
         'CHDROID_T0='*) continue ;;
         *'# ChDroid: pacman'*)
-          printf '%s\n' "$line"
+          # Upgrade an earlier build's inline mtab symlink to the helper call.
+          printf '%s\n' "    run_in_ns sh '$BASE/chdroid-mtab.sh' \"\$CHROOT_PATH\" 2>/dev/null # ChDroid: pacman"
           continue
           ;;
       esac
@@ -145,7 +146,7 @@ if [ -f "$PATCH" ]; then
           # Do this at every start, not only at patch time: a sparse/image rootfs
           # is empty while unmounted, so host-side writes made by this script can
           # vanish once the image is loop-mounted.
-          printf '%s\n' '    mkdir -p "$CHROOT_PATH/var/cache/pacman/pkg" 2>/dev/null; ln -sfn /proc/self/mounts "$CHROOT_PATH/etc/mtab" 2>/dev/null # ChDroid: pacman'
+          printf '%s\n' "    run_in_ns sh '$BASE/chdroid-mtab.sh' \"\$CHROOT_PATH\" 2>/dev/null # ChDroid: pacman"
           ;;
         *'log "Chroot environment setup completed successfully!"'*)
           printf '%s\n' '    log "Chroot environment setup completed successfully! +$(( $(date +%s) - CHDROID_T0 ))s"'
@@ -265,6 +266,34 @@ if [ -f "$BASHRC" ]; then
   fi
 fi
 
+# Arch has no /root/.bashrc: its login shell sets PS1 in /etc/bash.bashrc with
+# \h, which resolves to the phone's "localhost". Patch that line too so the
+# prompt carries the wizard hostname on every distro.
+GLOBALRC="$ROOTFS/etc/bash.bashrc"
+if [ -f "$GLOBALRC" ]; then
+  TMP="$GLOBALRC.chdroid.$$"
+  if : > "$TMP" 2>/dev/null; then
+    while IFS= read -r line || [ -n "$line" ]; do
+      case "$line" in
+        *PS1=*)
+          printf '%s\n' "PS1='[\\u@${HOST} \\W]\\\$ '"
+          ;;
+        *)
+          printf '%s\n' "$line"
+          ;;
+      esac
+    done < "$GLOBALRC" >> "$TMP"
+    if mv_f -f "$TMP" "$GLOBALRC"; then
+      say "arch root prompt restored"
+    else
+      rm_f -f "$TMP" 2>/dev/null
+      say "WARNING: could not patch arch root prompt"
+    fi
+  else
+    say "WARNING: could not patch arch root prompt"
+  fi
+fi
+
 # 5. Container name and hostname for the UI and the terminal label. These plain
 #    files are the fallback when container.config was written by an older build.
 [ -n "$CNAME" ] || CNAME="$HOST"
@@ -279,17 +308,35 @@ SE=/system/bin/setenforce
 "$SE" 1 2>/dev/null && say "SELinux enforcing" || say "SELinux already enforcing or unsupported"
 rm_f -f "$BASE/selinux-original" 2>/dev/null
 
-# 7. pacman needs its cache directory to exist and /etc/mtab to point at the
-#    namespace's live mount table. Minimal Arch images ship without the cache
-#    dir and with a stale regular mtab, which makes pacman report "could not
-#    determine cachedir mount point" and refuse every install.
+# 7. pacman resolves the cachedir's mount point through getmntent(/etc/mtab).
+#    Arch ships mtab as a symlink to /proc/self/mounts, whose entries carry host
+#    paths (/data/local/...), so nothing matches /var/cache/pacman/pkg and every
+#    transaction fails. Generate a chroot-relative mtab instead, at patch time
+#    and again on every start through the helper injected into chroot.sh.
 mkdir -p "$ROOTFS/var/cache/pacman/pkg" 2>/dev/null
 MTAB="$ROOTFS/etc/mtab"
-if [ ! -L "$MTAB" ]; then
-  rm_f -f "$MTAB" 2>/dev/null
-  ln -sfn /proc/self/mounts "$MTAB" 2>/dev/null
-  say "pacman mtab linked"
-fi
+rm_f -f "$MTAB" 2>/dev/null
+printf '%s\n' '/dev/root / ext4 rw,relatime 0 0' > "$MTAB" 2>/dev/null
+
+HELPER="$BASE/chdroid-mtab.sh"
+cat > "$HELPER" <<'CHDROID_MTAB'
+#!/system/bin/sh
+# Regenerate a chroot-relative /etc/mtab from this namespace's mount table.
+ROOT="$1"
+[ -n "$ROOT" ] || exit 0
+mkdir -p "$ROOT/var/cache/pacman/pkg" 2>/dev/null
+MT="$ROOT/etc/mtab"
+rm -f "$MT" 2>/dev/null
+printf '%s\n' '/dev/root / ext4 rw,relatime 0 0' > "$MT" || exit 0
+while read -r dev mp type opts rest; do
+  case "$mp" in
+    "$ROOT") ;;
+    "$ROOT"/*) printf '%s %s %s %s 0 0\n' "$dev" "${mp#$ROOT}" "$type" "$opts" >> "$MT" ;;
+  esac
+done < /proc/self/mounts
+CHDROID_MTAB
+chmod_f 755 "$HELPER" 2>/dev/null
+say "pacman mtab generated"
 
 # 8. Patch revision marker. The app reads this at launch and skips the whole
 #    re-patch when the installed chroot.sh is already at this revision.
