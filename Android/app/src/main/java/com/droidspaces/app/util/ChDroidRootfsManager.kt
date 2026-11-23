@@ -801,19 +801,39 @@ object ChDroidRootfsManager {
             fi
 
             # One `ls -l` over the proc roots finds every PID rooted in the rootfs.
-            # The old code did a readlink fork per PID three times over, which made
-            # CPU take seconds to first appear. Re-read only these PIDs for the delta.
-            PIDS=~(ls -l /proc/[0-9]*/root 2>/dev/null | while read -r _a _b _c _d _e _f _g _h link arrow target; do
-              [ "~target" = '$rootfs' ] && printf '%s\n' "~{link##*/}"
+            # Match the arrow + target as a suffix, not positional fields: toybox ls
+            # prints an ISO date (`2026-11-23 00:10`) while GNU prints month/day/time,
+            # so counting fields shift depending on the device's ls. The PID comes
+            # from the /proc/<pid>/root path before the arrow, never from the date.
+            PIDS=~(ls -l /proc/[0-9]*/root 2>/dev/null | while read -r line; do
+              case "~line" in
+                *" -> ~rootfs"|*" -> ~rootfs/")
+                  p=~{line#*/proc/}
+                  p=~{p%%/*}
+                  [ -n "~p" ] && printf '%s\n' "~p"
+                  ;;
+              esac
             done)
             # The namespace holder is not chrooted, so add it explicitly as the
             # baseline - CPU/RAM are never blank while the container is up.
             case " ~PIDS " in *" ~PID "*) ;; *) [ -n "~PID" ] && PIDS="~PIDS ~PID" ;; esac
 
+            # Pages are 4 KB on most devices but 16 KB on newer ARM64 kernels. Derive
+            # the real size from this shell's own VmRSS / statm resident instead of
+            # hardcoding it, so RAM tracks the guest instead of a fixed multiplier.
+            PG=4
+            read -r _ rss0 _ < /proc/self/statm 2>/dev/null
+            if [ -n "~rss0" ] && [ ~rss0 -gt 0 ]; then
+              while read -r k v u; do
+                if [ "~k" = 'VmRSS:' ]; then PG=~((v / rss0)); break; fi
+              done < /proc/self/status 2>/dev/null
+            fi
+            [ ~PG -gt 0 ] || PG=4
+
             RSS_KB=0
             for p in ~PIDS; do
               read -r _ rss _ < /proc/~p/statm 2>/dev/null || continue
-              RSS_KB=~((RSS_KB + rss * 4))
+              RSS_KB=~((RSS_KB + rss * PG))
             done
 
             ticks() {
@@ -827,8 +847,12 @@ object ChDroidRootfsManager {
               echo "~t"
             }
             host_ticks() {
-              read -r _ u n s i w q r _ < /proc/stat
-              echo ~((u+n+s+w+q+r))
+              # Total jiffies across every core, INCLUDING idle. Dividing a process
+              # delta by non-idle host ticks made idle phones report 0.0% no matter
+              # what the guest was doing. With all cores counted, DT * NCPU / DH is
+              # the standard one-core-normalised utilisation.
+              read -r _ u n s i w q r st _ < /proc/stat
+              echo ~((u+n+s+i+w+q+r+st))
             }
             CPU=''
             T1=~(ticks); H1=~(host_ticks)
