@@ -35,7 +35,7 @@ object ChDroidRootfsManager {
     private const val LOG_KEY = "chdroid-rootfs"
     // Keep in sync with PATCH_VERSION in chdroid_identity.sh. A launch only
     // re-patches the installed script when this revision changes.
-    private const val PATCH_VERSION = 7
+    private const val PATCH_VERSION = 8
     private val logBuffer = mutableStateListOf<Pair<Int, String>>()
     private var appContext: Context? = null
     private val startupPatchRunning = java.util.concurrent.atomic.AtomicBoolean(false)

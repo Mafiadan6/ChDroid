@@ -5,8 +5,11 @@
 #
 # Patches:
 #   - distro-id: clean ID from the guest's own /etc/os-release.
-#   - hostname: /etc/hostname plus chroot.sh's C_HOSTNAME constant; chroot.sh
-#     rewrites /proc/sys/kernel/hostname from that constant on every start.
+#   - hostname: /etc/hostname plus chroot.sh's C_HOSTNAME constant. The real
+#     kernel hostname is set inside the UTS namespace with busybox's
+#     sethostname() path, so `uname -n` and fastfetch show the wizard name too.
+#     Writing /proc/sys/kernel/hostname is deliberately avoided: that sysctl
+#     belongs to the phone's initial UTS namespace, not the container's.
 #   - prompt: restore the release's original coloured `root@host` PS1 in
 #     /root/.bashrc. The release's own PS1 is canonical; earlier builds of this
 #     script replaced it with a plain one and He wants the original look back.
@@ -24,7 +27,7 @@
 # Bump when the patch rules change. The app checks this marker at launch so an
 # unchanged APK does not rewrite chroot.sh on every start (that root-shell
 # contention was implicated in the launch crash reports).
-PATCH_VERSION=7
+PATCH_VERSION=8
 
 BASE="$1"
 HOST="$2"
@@ -124,6 +127,11 @@ if [ -f "$PATCH" ]; then
       fi
 
       case "$line" in
+        *'# ChDroid: hostname'*)
+          # Re-patching a v8 chroot.sh must not stack another hostname call.
+          printf '%s\n' "    run_in_ns sh '$BASE/chdroid-hostname.sh' '$BASE' \"\$C_HOSTNAME\" 2>/dev/null # ChDroid: hostname"
+          continue
+          ;;
         C_HOSTNAME=*)
           printf 'C_HOSTNAME="%s"\n' "$HOST"
           ;;
@@ -147,6 +155,9 @@ if [ -f "$PATCH" ]; then
           # is empty while unmounted, so host-side writes made by this script can
           # vanish once the image is loop-mounted.
           printf '%s\n' "    run_in_ns sh '$BASE/chdroid-mtab.sh' \"\$CHROOT_PATH\" 2>/dev/null # ChDroid: pacman"
+          # fastfetch's title reads uname(2), not /etc/hostname. Set the name in
+          # the UTS namespace so it agrees with the baked prompt.
+          printf '%s\n' "    run_in_ns sh '$BASE/chdroid-hostname.sh' '$BASE' \"\$C_HOSTNAME\" 2>/dev/null # ChDroid: hostname"
           ;;
         *'log "Chroot environment setup completed successfully!"'*)
           printf '%s\n' '    log "Chroot environment setup completed successfully! +$(( $(date +%s) - CHDROID_T0 ))s"'
@@ -338,7 +349,37 @@ CHDROID_MTAB
 chmod_f 755 "$HELPER" 2>/dev/null
 say "pacman mtab generated"
 
-# 8. Patch revision marker. The app reads this at launch and skips the whole
+# 8. Kernel hostname. /etc/hostname is just a file, fastfetch reads uname(2).
+#    busybox's hostname applet reaches sethostname(2), which renames the UTS
+#    namespace only. Skip it without UTS so the phone's own name is untouched.
+HOST_HELPER="$BASE/chdroid-hostname.sh"
+cat > "$HOST_HELPER" <<CHDROID_HOSTNAME
+#!/system/bin/sh
+BASE=\$1
+HOST=\$2
+[ -n "\$HOST" ] || exit 0
+FLAGS_FILE="\$BASE/holder.pid.flags"
+case " \$(cat "\$FLAGS_FILE" 2>/dev/null) " in
+  *" --uts "*|*" -u "*) ;;
+  *) exit 0 ;;
+esac
+BB="\$BUSYBOX"
+[ -x "\$BB" ] || BB="\$BASE/bin/busybox"
+if [ -x "\$BB" ] && "\$BB" hostname "\$HOST" 2>/dev/null; then
+  printf 'chdroid-hostname: %s\\n' "\$HOST"
+  exit 0
+fi
+if hostname "\$HOST" 2>/dev/null; then
+  printf 'chdroid-hostname: %s\\n' "\$HOST"
+  exit 0
+fi
+printf 'chdroid-hostname: could not set kernel hostname\\n'
+exit 1
+CHDROID_HOSTNAME
+chmod_f 755 "$HOST_HELPER" 2>/dev/null
+say "hostname helper generated"
+
+# 9. Patch revision marker. The app reads this at launch and skips the whole
 #    re-patch when the installed chroot.sh is already at this revision.
 printf '%s\n' "$PATCH_VERSION" > "$BASE/chdroid-patch-version" 2>/dev/null
 say "patch version=$PATCH_VERSION"
