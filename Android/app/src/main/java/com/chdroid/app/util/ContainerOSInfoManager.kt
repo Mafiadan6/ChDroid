@@ -41,6 +41,7 @@ object ContainerOSInfoManager {
         val uptime: String? = null,
         val cpuUsage: Double? = null,
         val ramUsedKb: Long? = null,
+        val ramAvailableKb: Long? = null,
         val ramPercent: Double? = null,
         /** The memory limit in force. Null when unlimited, and then [ramPercent] is of the host's RAM. */
         val ramLimitKb: Long? = null,
@@ -49,12 +50,16 @@ object ContainerOSInfoManager {
         val x11: Boolean = false
     ) {
         /** "13.50 MB / 1.50 GB (1%)" under a limit, "13.50 MB (0.2%)" of the host without one.
-         * Each side picks its own unit, the way fastfetch prints memory. */
+         * Each side picks its own unit, the way fastfetch prints memory. Available
+         * memory is appended when the source reports it. */
         fun ramLabel(context: Context): String? {
             val used = ResourceLimits.formatMemoryUsage(context, ramUsedKb ?: return null)
             val percent = ramPercent ?: 0.0
-            return if (ramLimitKb != null) context.getString(R.string.ram_used_of_limit_label, used, ResourceLimits.formatMemoryUsage(context, ramLimitKb), percent)
+            val base = if (ramLimitKb != null) context.getString(R.string.ram_used_of_limit_label, used, ResourceLimits.formatMemoryUsage(context, ramLimitKb), percent)
             else context.getString(R.string.ram_used_label, used, percent)
+            val available = ramAvailableKb?.let { ResourceLimits.formatMemoryUsage(context, it) }
+                ?: return base
+            return context.getString(R.string.ram_with_available_label, base, available)
         }
     }
 
@@ -144,6 +149,7 @@ object ContainerOSInfoManager {
             uptime = obj.optString("uptime").ifEmpty { null },
             cpuUsage = (if (cpuLimitPermill > 0) cpuPermill * 100.0 / cpuLimitPermill else cpuPermill / 10.0).coerceIn(0.0, 100.0),
             ramUsedKb = if (ramTotalKb > 0) ramUsedKb else null,
+            ramAvailableKb = obj.optLong("ram_available_kb").takeIf { it > 0 },
             ramPercent = if (ramTotalKb > 0) (ramUsedKb.toDouble() / ramBaseKb * 100.0).coerceIn(0.0, 100.0) else null,
             ramLimitKb = ramLimitKb.takeIf { it > 0 }
         )

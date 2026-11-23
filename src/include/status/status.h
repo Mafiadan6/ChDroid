@@ -20,6 +20,7 @@ struct ds_status {
   int x11;               /* booted with Termux:X11 */
   long uptime_sec;
   long ram_used_kb;
+  long ram_available_kb;
   long cpu_permill;
   /* Limits in force, 0 when unlimited. cpu_limit_permill is the share of the
    * host the container may use, the same scale as cpu_permill. */

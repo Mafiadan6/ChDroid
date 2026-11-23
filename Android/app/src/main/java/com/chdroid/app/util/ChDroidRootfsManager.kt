@@ -754,9 +754,15 @@ object ChDroidRootfsManager {
               done
             fi
 
-            # MemTotal straight from the kernel via the read builtin.
+            # MemTotal and MemAvailable straight from the kernel via the read builtin.
             MEMTOTAL=0
-            while read -r k v u; do [ "~k" = 'MemTotal:' ] && { MEMTOTAL=~v; break; }; done < /proc/meminfo
+            MEMAVAIL=0
+            while read -r k v u; do
+              case "~k" in
+                MemTotal:) MEMTOTAL=~v ;;
+                MemAvailable:) MEMAVAIL=~v ;;
+              esac
+            done < /proc/meminfo
 
             # Host tick totals cover every core; process ticks cover one. Normalize.
             NCPU=0
@@ -831,16 +837,28 @@ object ChDroidRootfsManager {
               read -r _ u n s i w q r st _ < /proc/stat
               echo ~((u+n+s+i+w+q+r+st))
             }
+            # Some toybox builds reject a fractional sleep, which made the host
+            # tick delta zero and left CPU blank. A one second window still fits
+            # inside the two second poll and gives a stable per-core percentage.
+            elapsed_sec() {
+              read -r up _ < /proc/uptime
+              echo ~{up%.*}
+            }
             CPU=''
-            T1=~(ticks); H1=~(host_ticks)
-            sleep 0.15
-            T2=~(ticks); H2=~(host_ticks)
+            T1=~(ticks); H1=~(host_ticks); S1=~(elapsed_sec)
+            sleep 1
+            T2=~(ticks); H2=~(host_ticks); S2=~(elapsed_sec)
             DT=~((T2 - T1)); [ ~DT -lt 0 ] && DT=0
             DH=~((H2 - H1))
+            DS=~((S2 - S1)); [ ~DS -lt 1 ] && DS=1
             if [ ~DH -gt 0 ]; then
               CPUM=~(( DT * 1000 * NCPU / DH ))
-              CPU="~((CPUM / 10)).~((CPUM % 10))"
+            else
+              # USER_HZ is 100 on Android, so process jiffies over whole seconds
+              # are already one-core percent. Keep CPU live if /proc/stat parse fails.
+              CPUM=~(( DT * 10 / DS ))
             fi
+            CPU="~((CPUM / 10)).~((CPUM % 10))"
             echo "DISTRO=~DISTRO"
             echo "PRETTY=~PRETTY"
             echo "HOST=~HOST"
@@ -849,6 +867,7 @@ object ChDroidRootfsManager {
             echo "CPU=~CPU"
             echo "RSS=~RSS_KB"
             echo "MEMTOTAL=~MEMTOTAL"
+            echo "MEMAVAIL=~MEMAVAIL"
         """.trimIndent().replace('~', '$')
         val out = Shell.cmd(script).exec().out
         val m = out.associate { line ->
@@ -865,6 +884,7 @@ object ChDroidRootfsManager {
         val pretty = m["PRETTY"]?.ifBlank { null }
         val ramUsedKb = m["RSS"]?.toLongOrNull()?.takeIf { it > 0 }
         val memTotalKb = m["MEMTOTAL"]?.toLongOrNull() ?: 0L
+        val memAvailableKb = m["MEMAVAIL"]?.toLongOrNull()?.takeIf { it > 0 }
         ContainerOSInfoManager.OSInfo(
             prettyName = pretty,
             name = pretty,
@@ -876,6 +896,7 @@ object ChDroidRootfsManager {
             uptime = uptimeLabel.ifBlank { null },
             cpuUsage = m["CPU"]?.toDoubleOrNull()?.coerceIn(0.0, 100.0),
             ramUsedKb = ramUsedKb,
+            ramAvailableKb = memAvailableKb,
             ramPercent = if (memTotalKb > 0 && ramUsedKb != null)
                 (ramUsedKb.toDouble() * 100.0 / memTotalKb).coerceIn(0.0, 100.0) else null,
             ramLimitKb = null

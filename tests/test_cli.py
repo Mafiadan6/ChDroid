@@ -57,6 +57,8 @@ class Cli(ChDroidTest):
         self.assertIsInstance(d["total"], int)
         self.assertIsInstance(d["ram_total_kb"], int)
         self.assertIsInstance(d["running"], list)
+        for entry in d["running"]:
+            self.assertIsInstance(entry["ram_available_kb"], int)
 
     def test_show_human_with_nothing_running(self):
         p = ds("show", check=True)

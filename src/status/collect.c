@@ -153,21 +153,22 @@ static long long host_cpu_ticks(void) {
   return total;
 }
 
-static long host_mem_total_kb(void) {
+static long host_mem_kb(const char *key) {
   FILE *f = fopen("/proc/meminfo", "r");
   if (!f)
     return 0;
-  long total = 0;
+  long value = 0;
   char line[128];
+  size_t len = strlen(key);
   while (fgets(line, sizeof(line), f)) {
-    if (strncmp(line, "MemTotal:", 9) == 0) {
-      if (sscanf(line + 9, "%ld", &total) != 1)
-        total = 0;
+    if (strncmp(line, key, len) == 0) {
+      if (sscanf(line + len, "%ld", &value) != 1)
+        value = 0;
       break;
     }
   }
   fclose(f);
-  return total;
+  return value;
 }
 
 /* One pass over /proc. Every process whose PID namespace matches entry i
@@ -200,7 +201,8 @@ static void walk_proc(struct ds_status *st, char (*ns)[64], int n,
 }
 
 long ds_collect_status(struct ds_status *st, int n) {
-  long ram_total = host_mem_total_kb();
+  long ram_total = host_mem_kb("MemTotal:");
+  long ram_available = host_mem_kb("MemAvailable:");
   if (n <= 0)
     return ram_total;
 
@@ -266,6 +268,15 @@ long ds_collect_status(struct ds_status *st, int n) {
     ds_cgroup_get_limits(st[i].name, &lim_mem, &quota, &period, &lim_pids,
                          &swap_capped);
     st[i].ram_limit_kb = (long)(lim_mem / 1024);
+    /* With a cgroup limit, the container can only use what is left of its own
+     * allowance. Without one, the host's MemAvailable is the number free
+     * package managers and fastfetch would report. */
+    if (lim_mem > 0) {
+      long left = st[i].ram_limit_kb - st[i].ram_used_kb;
+      st[i].ram_available_kb = left > 0 ? left : 0;
+    } else {
+      st[i].ram_available_kb = ram_available;
+    }
     st[i].swap_allowed = !swap_capped;
     long ncpu = sysconf(_SC_NPROCESSORS_ONLN);
     long cpu_lim =
@@ -293,6 +304,7 @@ void ds_json_status(const struct ds_status *st, int *first) {
   ds_json_int("uptime_sec", st->uptime_sec, first);
   ds_json_str("uptime", uptime, first);
   ds_json_int("ram_used_kb", st->ram_used_kb, first);
+  ds_json_int("ram_available_kb", st->ram_available_kb, first);
   ds_json_int("cpu_permill", st->cpu_permill, first);
   ds_json_int("ram_limit_kb", st->ram_limit_kb, first);
   ds_json_int("cpu_limit_permill", st->cpu_limit_permill, first);
