@@ -12,7 +12,7 @@ import org.json.JSONArray
  */
 object ChDroidRootfs {
     const val MANIFEST_URL =
-        "https://raw.githubusercontent.com/Mafiadan6/ChDroid-rootfs/main/rootfs.json"
+        "https://raw.githubusercontent.com/Mafiadan6/ChDroid-rootfs/main/manifest.json"
 
     /** Offline fallback: the release this fork targets, matching the manifest. */
     val BUILTIN = RootfsAsset(
