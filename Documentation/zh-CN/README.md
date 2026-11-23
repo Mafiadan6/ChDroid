@@ -5,7 +5,9 @@
 [![Latest release](https://img.shields.io/github/v/release/Mafiadan6/ChDroid?label=Release&style=for-the-badge)](https://github.com/Mafiadan6/ChDroid/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](../../LICENSE)
 [![Rootfs releases](https://img.shields.io/badge/Rootfs-v4.4-2EA44F?style=for-the-badge)](https://github.com/Mafiadan6/ChDroid-rootfs/releases/tag/v4.4)
-[![Telegram channel](https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/chdroid)
+[![Telegram group](https://img.shields.io/badge/Telegram-Group-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/chdroidxx)
+[![Telegram channel](https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/chdroidx)
+[![Developer](https://img.shields.io/badge/Developer-bitcockiii-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/bitcockiii)
 
 # ChDroid
 
@@ -180,7 +182,7 @@ cd Android
 
 ## 社区与贡献
 
-提问和求助：[Telegram 频道](https://t.me/chdroid)。Bug 和功能请求：[GitHub issues](https://github.com/Mafiadan6/ChDroid/issues)。代码贡献从 [CONTRIBUTING.md](../../CONTRIBUTING.md) 开始。
+提问和求助：[Telegram 群组](https://t.me/chdroidxx)和[Telegram 频道](https://t.me/chdroidx)。开发者联系：[Telegram](https://t.me/bitcockiii)。Bug 和功能请求：[GitHub issues](https://github.com/Mafiadan6/ChDroid/issues)。代码贡献从 [CONTRIBUTING.md](../../CONTRIBUTING.md) 开始。
 
 ## 致谢
 

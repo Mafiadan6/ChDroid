@@ -5,7 +5,9 @@ English | [简体中文](./Documentation/zh-CN/README.md)
 [![Latest release](https://img.shields.io/github/v/release/Mafiadan6/ChDroid?label=Release&style=for-the-badge)](https://github.com/Mafiadan6/ChDroid/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](./LICENSE)
 [![Rootfs releases](https://img.shields.io/badge/Rootfs-v4.4-2EA44F?style=for-the-badge)](https://github.com/Mafiadan6/ChDroid-rootfs/releases/tag/v4.4)
-[![Telegram channel](https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/chdroid)
+[![Telegram group](https://img.shields.io/badge/Telegram-Group-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/chdroidxx)
+[![Telegram channel](https://img.shields.io/badge/Telegram-Channel-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/chdroidx)
+[![Developer](https://img.shields.io/badge/Developer-bitcockiii-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/bitcockiii)
 
 # ChDroid
 
@@ -180,7 +182,7 @@ Adding a C source means adding it to `SRCS` in the Makefile. Commit messages are
 
 ## Community and contributing
 
-Questions and help: the [Telegram channel](https://t.me/chdroid). Bugs and feature requests: [GitHub issues](https://github.com/Mafiadan6/ChDroid/issues). Code contributions start with [CONTRIBUTING.md](CONTRIBUTING.md).
+Questions and help: the [Telegram group](https://t.me/chdroidxx) and [Telegram channel](https://t.me/chdroidx). Developer contact: [Telegram](https://t.me/bitcockiii). Bugs and feature requests: [GitHub issues](https://github.com/Mafiadan6/ChDroid/issues). Code contributions start with [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
