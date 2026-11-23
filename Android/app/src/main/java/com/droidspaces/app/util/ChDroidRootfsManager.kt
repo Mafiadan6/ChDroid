@@ -770,6 +770,12 @@ object ChDroidRootfsManager {
               case "~IPL" in *'inet '*) IP=~{IPL#*inet }; IP=~{IP%%/*}; IP=~{IP%% *} ;; esac
             fi
             if [ -z "~IP" ]; then
+              # One query for every non-loopback address; avoids guessing the
+              # active interface name on modem/Wi-Fi combinations.
+              IPL=~(/system/bin/ip -4 -o addr show scope global 2>/dev/null)
+              case "~IPL" in *'inet '*) IP=~{IPL#*inet }; IP=~{IP%%/*}; IP=~{IP%% *} ;; esac
+            fi
+            if [ -z "~IP" ]; then
               for IF in wlan1 eth0 rmnet_data0 rmnet_data1 rmnet0; do
                 [ -n "~IP" ] && break
                 IPL=~(/system/bin/ip -4 addr show "~IF" 2>/dev/null)
@@ -807,7 +813,7 @@ object ChDroidRootfsManager {
             # from the /proc/<pid>/root path before the arrow, never from the date.
             PIDS=~(ls -l /proc/[0-9]*/root 2>/dev/null | while read -r line; do
               case "~line" in
-                *" -> ~rootfs"|*" -> ~rootfs/")
+                *" -> $rootfs"|*" -> $rootfs/")
                   p=~{line#*/proc/}
                   p=~{p%%/*}
                   [ -n "~p" ] && printf '%s\n' "~p"
